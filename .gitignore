@@ -1,0 +1,5 @@
+vendor
+.idea
+main_test.go
+config.json
+oasisTracker

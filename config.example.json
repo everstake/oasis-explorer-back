@@ -1,0 +1,29 @@
+{
+  "LogLevel": "debug",
+  "API": {
+    "ListenOnPort": 9000,
+    "CORSAllowedOrigins": [
+      "*"
+    ]
+  },
+  "Clickhouse": {
+    "Protocol": "http",
+    "Host": "localhost",
+    "Port": 8123,
+    "User": "default",
+    "Password": ""
+  },
+  "Mysql": {
+    "Host": "127.0.0.1",
+    "Port": 3306,
+    "User": "root",
+    "Password": "123",
+    "Database": "oasis",
+    "DebugMode": true
+  },
+  "Scanner": {
+    "Database": "oasis",
+    "NodeRPS": 200,
+    "NodeConfig": "127.0.0.1:9109"
+  }
+}
