@@ -5,5 +5,5 @@ CREATE TABLE IF NOT EXISTS block_signatures (
     sig_validator_address FixedString(40),
     sig_blk_signature FixedString(128)
 ) ENGINE ReplacingMergeTree()
-PARTITION BY sig_blk_lvl
-ORDER BY (sig_blk_lvl, sig_validator_address);
+PARTITION BY toYYYYMMDD(sig_timestamp)
+ORDER BY (sig_blk_signature);
