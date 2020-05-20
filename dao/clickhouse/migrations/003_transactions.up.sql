@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     tx_hash FixedString(64),
     tx_amount Decimal(36, 18),,
     tx_escrow_amount Decimal(36, 18),,
-    tx_escrow_reclaim_amount Decimal(36, 18),,
+    tx_escrow_reclaim_amount Decimal(36, 18),
     tx_escrow_account FixedString(64),
     tx_type  FixedString(64),
     tx_sender FixedString(64),
