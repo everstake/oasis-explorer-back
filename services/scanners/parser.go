@@ -8,6 +8,7 @@ import (
 	"github.com/oasislabs/oasis-core/go/common/grpc"
 	consensusAPI "github.com/oasislabs/oasis-core/go/consensus/api"
 	"github.com/tendermint/tendermint/types"
+	"github.com/wedancedalot/decimal"
 	"golang.org/x/crypto/blake2b"
 	grpcCommon "google.golang.org/grpc"
 	"log"
@@ -195,19 +196,20 @@ func (p *Parser) ParseBlockTransactions(blockID uint64) (err error) {
 		}
 
 		p.txs.Add([]dmodels.Transaction{{
-			BlockLevel:    blockID,
-			Hash:          hex.EncodeToString(types.Tx(txs[key]).Hash()),
-			Time:          blockData.Time,
-			Amount:        raw.Body.Transfer.Tokens.ToBigInt().Uint64(),
-			EscrowAmount:  raw.Body.EscrowTx.Tokens.ToBigInt().Uint64(),
-			EscrowAccount: raw.Body.EscrowTx.Account.String(),
-			Type:          dmodels.TransactionType(raw.Method),
-			Sender:        tx.Signature.PublicKey.String(),
-			Receiver:      raw.Body.To.String(),
-			Nonce:         raw.Nonce,
-			Fee:           raw.Fee.Amount.ToBigInt().Uint64(),
-			GasLimit:      uint64(raw.Fee.Gas),
-			GasPrice:      raw.Fee.GasPrice().ToBigInt().Uint64(),
+			BlockLevel:          blockID,
+			Hash:                hex.EncodeToString(types.Tx(txs[key]).Hash()),
+			Time:                blockData.Time,
+			Amount:              decimal.NewFromBigInt(raw.Body.Transfer.Tokens.ToBigInt(), -int32(dmodels.Precision)),
+			EscrowAmount:        decimal.NewFromBigInt(raw.Body.EscrowTx.Tokens.ToBigInt(), -int32(dmodels.Precision)),
+			EscrowReclaimAmount: decimal.NewFromBigInt(raw.Body.EscrowTx.Shares.ToBigInt(), -int32(dmodels.Precision)),
+			EscrowAccount:       raw.Body.EscrowTx.Account.String(),
+			Type:                dmodels.TransactionType(raw.Method),
+			Sender:              tx.Signature.PublicKey.String(),
+			Receiver:            raw.Body.To.String(),
+			Nonce:               raw.Nonce,
+			Fee:                 raw.Fee.Amount.ToBigInt().Uint64(),
+			GasLimit:            uint64(raw.Fee.Gas),
+			GasPrice:            raw.Fee.GasPrice().ToBigInt().Uint64(),
 		}})
 	}
 

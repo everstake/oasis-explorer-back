@@ -1,11 +1,13 @@
 package dmodels
 
 import (
+	"github.com/wedancedalot/decimal"
 	"time"
 )
 
 const (
 	TransactionsTable = "transactions"
+	Precision         = 9
 )
 
 type TransactionType string
@@ -18,17 +20,18 @@ const (
 )
 
 type Transaction struct {
-	BlockLevel    uint64
-	Hash          string
-	Time          time.Time
-	Amount        uint64
-	EscrowAmount  uint64
-	EscrowAccount string
-	Type          TransactionType
-	Sender        string
-	Receiver      string
-	Nonce         uint64
-	Fee           uint64
-	GasLimit      uint64 //Probably GasUsed
-	GasPrice      uint64
+	BlockLevel          uint64
+	Hash                string
+	Time                time.Time
+	Amount              decimal.Decimal
+	EscrowAmount        decimal.Decimal
+	EscrowReclaimAmount decimal.Decimal
+	EscrowAccount       string
+	Type                TransactionType
+	Sender              string
+	Receiver            string
+	Nonce               uint64
+	Fee                 uint64
+	GasLimit            uint64 //Probably GasUsed
+	GasPrice            uint64
 }
