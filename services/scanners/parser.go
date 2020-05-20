@@ -7,6 +7,7 @@ import (
 	"github.com/fxamacker/cbor/v2"
 	"github.com/oasislabs/oasis-core/go/common/grpc"
 	consensusAPI "github.com/oasislabs/oasis-core/go/consensus/api"
+	"github.com/tendermint/tendermint/types"
 	"golang.org/x/crypto/blake2b"
 	grpcCommon "google.golang.org/grpc"
 	"log"
@@ -25,8 +26,9 @@ const (
 	saveBatch          = 200
 	saveAddressesBatch = 50
 
-	parserBaseTask       = "base"
-	parserSignaturesTask = "signatures"
+	parserBaseTask        = "base"
+	parserSignaturesTask  = "signatures"
+	parseTransactionsTask = "transactions"
 
 	parseBlock ParseFlag = iota
 	parseSig
@@ -43,12 +45,13 @@ type (
 
 		blocks          *smodels.BlocksContainer
 		blockSignatures *smodels.BlockSignatureContainer
+		txs             *smodels.TxsContainer
 	}
 	DAO interface {
 		CreateBlocks(blocks []dmodels.Block) error
 		CreateBlockSignatures(sig []dmodels.BlockSignature) error
 		//CreateAccounts(accounts []interface{}) error
-		//CreateTransfers(transfers []interface{}) error
+		CreateTransfers(transfers []dmodels.Transaction) error
 	}
 )
 
@@ -70,6 +73,7 @@ func NewParser(ctx context.Context, cfg conf.Scanner, tezosdDAO interface{}) (*P
 		dao:             d,
 		blocks:          smodels.NewBlocksContainer(),
 		blockSignatures: smodels.NewBlockSignatureContainer(),
+		txs:             smodels.NewTxsContainer(),
 	}, nil
 }
 
@@ -83,6 +87,11 @@ func (p *Parser) GetTaskExecutor(taskTitle string) (executor *smodels.Executor, 
 	case parserSignaturesTask:
 		return &smodels.Executor{
 			ExecHeight: p.ParseBlockSignatures,
+			Save:       p.Save,
+		}, nil
+	case parseTransactionsTask:
+		return &smodels.Executor{
+			ExecHeight: p.ParseBlockTransactions,
 			Save:       p.Save,
 		}, nil
 	default:
@@ -112,6 +121,15 @@ func (p *Parser) Save() (err error) {
 		p.blockSignatures.Flush()
 	}
 
+	if !p.txs.IsEmpty() {
+		err = p.dao.CreateTransfers(p.txs.Txs())
+		if err != nil {
+			return fmt.Errorf("dao.CreateTransfers: %s", err.Error())
+		}
+
+		p.txs.Flush()
+	}
+
 	return nil
 }
 
@@ -121,6 +139,11 @@ func (p *Parser) saveAccounts() error {
 
 func (p *Parser) ParseFullBlock(blockID uint64) (err error) {
 	err = p.ParseBase(blockID, parseFullBlock)
+	if err != nil {
+		return err
+	}
+
+	err = p.ParseBlockTransactions(blockID)
 	if err != nil {
 		return err
 	}
@@ -141,6 +164,51 @@ func (p *Parser) ParseBlockData(blockID uint64) (err error) {
 	err = p.ParseBase(blockID, parseBlock)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (p *Parser) ParseBlockTransactions(blockID uint64) (err error) {
+	blockData, err := p.api.GetBlock(p.ctx, int64(blockID))
+	if err != nil {
+		return fmt.Errorf("api.Block.Get: %s", err.Error())
+	}
+
+	txs, err := p.api.GetTransactions(p.ctx, int64(blockID))
+	if err != nil {
+		return err
+	}
+
+	for key := range txs {
+		tx := oasis.TxRaw{}
+
+		err = cbor.Unmarshal(txs[key], &tx)
+		if err != nil {
+			return err
+		}
+
+		raw := oasis.UntrustedRawValue{}
+		err = cbor.Unmarshal(tx.UntrustedRawValue, &raw)
+		if err != nil {
+			return err
+		}
+
+		p.txs.Add([]dmodels.Transaction{{
+			BlockLevel:    blockID,
+			Hash:          hex.EncodeToString(types.Tx(txs[key]).Hash()),
+			Time:          blockData.Time,
+			Amount:        raw.Body.Transfer.Tokens.ToBigInt().Uint64(),
+			EscrowAmount:  raw.Body.EscrowTx.Tokens.ToBigInt().Uint64(),
+			EscrowAccount: raw.Body.EscrowTx.Account.String(),
+			Type:          dmodels.TransactionType(raw.Method),
+			Sender:        tx.Signature.PublicKey.String(),
+			Receiver:      raw.Body.To.String(),
+			Nonce:         raw.Nonce,
+			Fee:           raw.Fee.Amount.ToBigInt().Uint64(),
+			GasLimit:      uint64(raw.Fee.Gas),
+			GasPrice:      raw.Fee.GasPrice().ToBigInt().Uint64(),
+		}})
 	}
 
 	return nil

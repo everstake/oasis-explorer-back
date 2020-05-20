@@ -72,6 +72,7 @@ func (s *Scanner) Run() {
 		default:
 		}
 
+		log.Debug("Start scanner")
 		var err error
 		lastHeight := s.task.EndHeight
 
@@ -133,20 +134,15 @@ func (s *Scanner) runWorkers() {
 	for i := uint64(0); i < s.cfg.NodeRPS; i++ {
 		go func() {
 			for {
-				t := time.Now()
-				blockID := <-s.blocksCh
-				err := s.executor.ExecHeight(blockID)
-				if err != nil {
-					err = fmt.Errorf("block %d : %s", blockID, err.Error())
-				}
-				s.resultCh <- err
-
-				//TODO Inspect this strange code
-				readyTo := t.Add(time.Second)
-				wait := readyTo.Sub(time.Now())
-				if wait > 0 {
-					log.Debug("Wait")
-					<-time.After(wait)
+				select {
+				case <-s.ctx.Done():
+					return
+				case blockID := <-s.blocksCh:
+					err := s.executor.ExecHeight(blockID)
+					if err != nil {
+						err = fmt.Errorf("block %d : %s", blockID, err.Error())
+					}
+					s.resultCh <- err
 				}
 			}
 		}()

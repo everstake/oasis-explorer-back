@@ -114,11 +114,23 @@ func (m *Watcher) addReSyncTask(currentHeight int64) error {
 
 	err = m.dao.CreateTask(dmodels.Task{
 		IsActive:      true,
+		Title:         parseTransactionsTask,
+		StartHeight:   startHeight,
+		CurrentHeight: startHeight,
+		EndHeight:     uint64(currentHeight - 1),
+		Batch:         200,
+	})
+	if err != nil {
+		return fmt.Errorf("CreateTask error: %s", err)
+	}
+
+	err = m.dao.CreateTask(dmodels.Task{
+		IsActive:      true,
 		Title:         parserSignaturesTask,
 		StartHeight:   startHeight,
 		CurrentHeight: startHeight,
 		EndHeight:     uint64(currentHeight - 1),
-		Batch:         1,
+		Batch:         200,
 	})
 	if err != nil {
 		return fmt.Errorf("CreateTask error: %s", err)
@@ -133,7 +145,7 @@ func (m *Watcher) addReSyncTask(currentHeight int64) error {
 	//
 	//	err = m.dao.CreateTask(dmodels.Task{
 	//		IsActive:      true,
-	//		Title:         "base",
+	//		Title:         parserSignaturesTask,
 	//		StartHeight:   startHeight,
 	//		CurrentHeight: startHeight,
 	//		EndHeight:     endHeight,
