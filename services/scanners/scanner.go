@@ -72,7 +72,6 @@ func (s *Scanner) Run() {
 		default:
 		}
 
-		log.Debug("Start scanner")
 		var err error
 		lastHeight := s.task.EndHeight
 
