@@ -22,7 +22,6 @@ type (
 	Scanner struct {
 		NodeRPS    uint64
 		BatchSize  uint64
-		Database   string
 		NodeConfig string
 	}
 	Clickhouse struct {

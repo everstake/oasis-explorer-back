@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	TransactionsTable = "transactions"
+	TransactionsTable = "oasis.transactions"
 	Precision         = 9
 )
 

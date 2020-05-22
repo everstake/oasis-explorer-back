@@ -14,13 +14,15 @@ import (
 
 type Clickhouse struct {
 	db *DB
+	//Temp use direct table name
+	database string
 }
 
 const migrationsDir = "./dao/clickhouse/migrations"
 
 func New(cfg conf.Config) (db *Clickhouse, err error) {
 	config := cfg.Clickhouse
-	config.Database = cfg.Scanner.Database
+
 	conn, err := newConnection(config)
 	if err != nil {
 		return db, fmt.Errorf("newConnection: %s", err.Error())
@@ -29,7 +31,8 @@ func New(cfg conf.Config) (db *Clickhouse, err error) {
 	client := NewDB(conn)
 
 	return &Clickhouse{
-		db: client,
+		db:       client,
+		database: config.Database,
 	}, nil
 }
 

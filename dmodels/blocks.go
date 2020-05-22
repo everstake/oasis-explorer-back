@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	BlocksTable          = "blocks"
-	BlockSignaturesTable = "block_signatures"
+	BlocksTable          = "oasis.blocks"
+	BlockSignaturesTable = "oasis.block_signatures"
 )
 
 type Block struct {
