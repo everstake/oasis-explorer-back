@@ -3,6 +3,7 @@ module oasisTracker
 go 1.13
 
 require (
+	github.com/ClickHouse/clickhouse-go v1.4.0
 	github.com/ethereum/go-ethereum v1.9.13
 	github.com/fatih/structs v1.1.0
 	github.com/fxamacker/cbor v1.5.1

@@ -3,7 +3,9 @@ package scanners
 import (
 	"context"
 	"fmt"
+	"github.com/oasislabs/oasis-core/go/common/grpc"
 	"go.uber.org/zap"
+	grpcCommon "google.golang.org/grpc"
 	"oasisTracker/common/log"
 	"oasisTracker/conf"
 	"oasisTracker/dao"
@@ -72,7 +74,7 @@ func (s *Scanner) Run() {
 		default:
 		}
 
-		log.Debug("Start scanner")
+		log.Debug("Start scanner ", zap.String("task_name", s.task.Title), zap.Uint64("task_current", s.task.CurrentHeight))
 		var err error
 		lastHeight := s.task.EndHeight
 
@@ -88,6 +90,7 @@ func (s *Scanner) Run() {
 
 		currentHeight := s.task.CurrentHeight
 
+		tm := time.Now()
 		for i := currentHeight; i < currentHeight+batch; i++ {
 			s.blocksCh <- i
 		}
@@ -101,17 +104,22 @@ func (s *Scanner) Run() {
 			}
 		}
 
+		log.Debug("Execution time", zap.String("task_name", s.task.Title), zap.Int64("Milliseconds", time.Since(tm).Milliseconds()))
+
 		if isFail {
 			<-time.After(repeatPause)
 			continue
 		}
 
+		tm = time.Now()
 		err = s.executor.Save()
 		if err != nil {
 			log.Error("Scanner Save", zap.Error(err), zap.String("task", s.task.Title))
 			<-time.After(repeatPause)
 			continue
 		}
+
+		log.Debug("Save time", zap.String("task_name", s.task.Title), zap.Int64("Milliseconds", time.Since(tm).Milliseconds()))
 
 		s.task.CurrentHeight += batch
 		if s.task.CurrentHeight == s.task.EndHeight {
@@ -133,15 +141,23 @@ func (s *Scanner) Run() {
 func (s *Scanner) runWorkers() {
 	for i := uint64(0); i < s.cfg.NodeRPS; i++ {
 		go func() {
+			grpcConn, err := grpc.Dial(s.cfg.NodeConfig, grpcCommon.WithInsecure())
+			if err != nil {
+				log.Error("grpc.Dial", zap.Error(err))
+				return
+			}
+			defer grpcConn.Close()
+
 			for {
 				select {
 				case <-s.ctx.Done():
 					return
 				case blockID := <-s.blocksCh:
-					err := s.executor.ExecHeight(blockID)
+					err := s.executor.ExecHeight(grpcConn, blockID)
 					if err != nil {
 						err = fmt.Errorf("block %d : %s", blockID, err.Error())
 					}
+
 					s.resultCh <- err
 				}
 			}

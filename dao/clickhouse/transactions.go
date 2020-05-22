@@ -2,10 +2,12 @@ package clickhouse
 
 import (
 	"fmt"
+	"log"
 	"oasisTracker/dmodels"
 )
 
 func (db DB) CreateTransfers(transfers []dmodels.Transaction) error {
+	log.Print("Len Transfers: ", len(transfers))
 	var err error
 	tx, err := db.conn.Begin()
 	if err != nil {
@@ -18,7 +20,6 @@ func (db DB) CreateTransfers(transfers []dmodels.Transaction) error {
 	if err != nil {
 		return err
 	}
-
 	defer stmt.Close()
 
 	for i := range transfers {
@@ -43,7 +44,6 @@ func (db DB) CreateTransfers(transfers []dmodels.Transaction) error {
 			transfers[i].GasLimit,
 			transfers[i].GasPrice,
 		)
-
 		if err != nil {
 			return err
 		}
@@ -52,6 +52,5 @@ func (db DB) CreateTransfers(transfers []dmodels.Transaction) error {
 	if err := tx.Commit(); err != nil {
 		return err
 	}
-
 	return nil
 }

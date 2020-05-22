@@ -2,10 +2,12 @@ package clickhouse
 
 import (
 	"fmt"
+	"log"
 	"oasisTracker/dmodels"
 )
 
 func (db DB) CreateBlocks(blocks []dmodels.Block) error {
+	log.Print("Len: ", len(blocks))
 	var err error
 	tx, err := db.conn.Begin()
 	if err != nil {

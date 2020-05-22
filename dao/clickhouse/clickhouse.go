@@ -3,10 +3,10 @@ package clickhouse
 import (
 	"database/sql"
 	"fmt"
+	_ "github.com/ClickHouse/clickhouse-go"
 	"github.com/golang-migrate/migrate/v4"
 	goclickhouse "github.com/golang-migrate/migrate/v4/database/clickhouse"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	_ "github.com/mailru/go-clickhouse"
 	"oasisTracker/conf"
 	"oasisTracker/dao/clickhouse/client"
 	"strings"
@@ -47,6 +47,7 @@ func newConnection(cfg conf.Clickhouse) (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can`t make makeMigration: %s", err.Error())
 	}
+
 	return conn, nil
 }
 

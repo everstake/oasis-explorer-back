@@ -63,7 +63,6 @@ func (m *Watcher) Run() error {
 			cPub.Close()
 			return nil
 		case block := <-ch:
-
 			if !m.ReSyncInit {
 				err = m.addReSyncTask(block.Height)
 				if err != nil {
@@ -73,7 +72,7 @@ func (m *Watcher) Run() error {
 				m.ReSyncInit = true
 			}
 
-			err = m.parser.ParseFullBlock(uint64(block.Height))
+			err = m.parser.ParseWatchBlock(block)
 			if err != nil {
 				log.Error("ParseBlock error", zap.Error(err))
 				continue
@@ -84,12 +83,12 @@ func (m *Watcher) Run() error {
 				log.Error("Save error", zap.Error(err))
 				continue
 			}
+
 		}
 	}
 }
 
 func (m *Watcher) addReSyncTask(currentHeight int64) error {
-
 	task, isFound, err := m.dao.GetLastTask()
 	if err != nil {
 		return fmt.Errorf("GetLastTask error: %s", err)
@@ -107,30 +106,6 @@ func (m *Watcher) addReSyncTask(currentHeight int64) error {
 		CurrentHeight: startHeight,
 		EndHeight:     uint64(currentHeight - 1),
 		Batch:         m.cfg.Scanner.NodeRPS,
-	})
-	if err != nil {
-		return fmt.Errorf("CreateTask error: %s", err)
-	}
-
-	err = m.dao.CreateTask(dmodels.Task{
-		IsActive:      true,
-		Title:         parseTransactionsTask,
-		StartHeight:   startHeight,
-		CurrentHeight: startHeight,
-		EndHeight:     uint64(currentHeight - 1),
-		Batch:         200,
-	})
-	if err != nil {
-		return fmt.Errorf("CreateTask error: %s", err)
-	}
-
-	err = m.dao.CreateTask(dmodels.Task{
-		IsActive:      true,
-		Title:         parserSignaturesTask,
-		StartHeight:   startHeight,
-		CurrentHeight: startHeight,
-		EndHeight:     uint64(currentHeight - 1),
-		Batch:         200,
 	})
 	if err != nil {
 		return fmt.Errorf("CreateTask error: %s", err)
