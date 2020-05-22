@@ -105,7 +105,7 @@ func (m *Watcher) addReSyncTask(currentHeight int64) error {
 		StartHeight:   startHeight,
 		CurrentHeight: startHeight,
 		EndHeight:     uint64(currentHeight - 1),
-		Batch:         m.cfg.Scanner.NodeRPS,
+		Batch:         m.cfg.Scanner.BatchSize,
 	})
 	if err != nil {
 		return fmt.Errorf("CreateTask error: %s", err)
