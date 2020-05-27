@@ -36,8 +36,8 @@ func New(cfg conf.Config) (db *Clickhouse, err error) {
 	}, nil
 }
 
-func (c *Clickhouse) GetChain() interface{} {
-	return c.db
+func (cl *Clickhouse) GetChain() interface{} {
+	return cl.db
 }
 
 func newConnection(cfg conf.Clickhouse) (*sql.DB, error) {
@@ -46,10 +46,11 @@ func newConnection(cfg conf.Clickhouse) (*sql.DB, error) {
 		return nil, fmt.Errorf("can`t make connection: %s", err.Error())
 	}
 
-	err = makeMigration(conn, migrationsDir, cfg.Database)
-	if err != nil {
-		return nil, fmt.Errorf("can`t make makeMigration: %s", err.Error())
-	}
+	//Temp disable
+	//err = makeMigration(conn, migrationsDir, cfg.Database)
+	//if err != nil {
+	//	return nil, fmt.Errorf("can`t make makeMigration: %s", err.Error())
+	//}
 
 	return conn, nil
 }

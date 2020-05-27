@@ -1,36 +1,21 @@
 package smodels
 
-import (
-	"oasisTracker/dmodels"
-	"sync"
-)
-
-type BlocksContainer struct {
-	blocks []dmodels.Block
-	mu     *sync.Mutex
+type BlockParams struct {
+	Limit      uint64
+	Offset     uint64
+	BlockID    []string `schema:"block_id"`
+	BlockLevel []int64  `schema:"block_level"`
 }
 
-func NewBlocksContainer() *BlocksContainer {
-	return &BlocksContainer{
-		mu:     &sync.Mutex{},
-		blocks: []dmodels.Block{},
-	}
-}
+type Block struct {
+	Epoch     uint64 `json:"epoch,omitempty"`
+	Hash      string `json:"hash"`
+	Level     uint64 `json:"level"`
+	Proposer  string `json:"proposer,omitempty"`
+	Timestamp int64  `json:"timestamp"`
 
-func (c *BlocksContainer) Add(blocks []dmodels.Block) {
-	c.mu.Lock()
-	c.blocks = append(c.blocks, blocks...)
-	c.mu.Unlock()
-}
-
-func (c *BlocksContainer) Blocks() []dmodels.Block {
-	return c.blocks
-}
-
-func (c *BlocksContainer) IsEmpty() bool {
-	return len(c.blocks) == 0
-}
-
-func (c *BlocksContainer) Flush() {
-	c.blocks = []dmodels.Block{}
+	NumberOfTxs        uint64 `json:"number_of_txs,omitempty"`
+	NumberOfSignatures uint64 `json:"number_of_signatures,omitempty"`
+	Fees               uint64 `json:"fees,omitempty"`
+	GasUsed            uint64 `json:"gas_used,omitempty"`
 }

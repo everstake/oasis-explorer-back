@@ -3,12 +3,13 @@ package oasis
 import (
 	"github.com/tendermint/tendermint/crypto"
 	cmn "github.com/tendermint/tendermint/libs/common"
+	tmtypes "github.com/tendermint/tendermint/types"
 	"time"
 )
 
 type Block struct {
-	Hash       []byte          `cbor:"-"`
-	Header     BlockHeader     `cbor:"header"`
+	Hash       cmn.HexBytes    `cbor:"-"`
+	Header     tmtypes.Header  `cbor:"header"`
 	LastCommit BlockLastCommit `cbor:"last_commit"`
 }
 

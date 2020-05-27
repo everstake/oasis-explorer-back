@@ -132,15 +132,21 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 			return err
 		}
 
+		txType, err := dmodels.NewTransactionType(raw.Method)
+		if err != nil {
+			return err
+		}
+
 		p.parserContainer.txs.Add([]dmodels.Transaction{{
 			BlockLevel:          uint64(block.Header.Height),
+			BlockHash:           block.Hash.String(),
 			Hash:                hex.EncodeToString(types.Tx(txs[key]).Hash()),
 			Time:                block.Header.Time,
-			Amount:              decimal.NewFromBigInt(raw.Body.Transfer.Tokens.ToBigInt(), -int32(dmodels.Precision)),
-			EscrowAmount:        decimal.NewFromBigInt(raw.Body.EscrowTx.Tokens.ToBigInt(), -int32(dmodels.Precision)),
-			EscrowReclaimAmount: decimal.NewFromBigInt(raw.Body.EscrowTx.Shares.ToBigInt(), -int32(dmodels.Precision)),
+			Amount:              decimal.NewFromBigInt(raw.Body.Transfer.Tokens.ToBigInt(), -int32(dmodels.Precision)).String(),
+			EscrowAmount:        decimal.NewFromBigInt(raw.Body.EscrowTx.Tokens.ToBigInt(), -int32(dmodels.Precision)).String(),
+			EscrowReclaimAmount: decimal.NewFromBigInt(raw.Body.EscrowTx.Shares.ToBigInt(), -int32(dmodels.Precision)).String(),
 			EscrowAccount:       raw.Body.EscrowTx.Account.String(),
-			Type:                dmodels.TransactionType(raw.Method),
+			Type:                txType.Type(),
 			Sender:              tx.Signature.PublicKey.String(),
 			Receiver:            raw.Body.To.String(),
 			Nonce:               raw.Nonce,

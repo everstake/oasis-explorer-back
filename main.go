@@ -15,6 +15,8 @@ import (
 	"syscall"
 )
 
+var parserDisableFlag = flag.Bool("parser-disable", false, "disable cron for api tests")
+
 func main() {
 	flag.Parse()
 	configFile := flag.String("conf", "./config.json", "Path to config file")
@@ -28,18 +30,20 @@ func main() {
 		log.Fatal("dao.New", zap.Error(err))
 	}
 
-	s := services.NewService(cfg, d)
+	s := services.NewService(cfg, d.GetServiceDAO())
 
 	a := api.NewAPI(cfg, s)
+	mds := []modules.Module{a}
 
-	sm := scanners.NewManager(cfg, d)
+	if !*parserDisableFlag {
+		sm := scanners.NewManager(cfg, d)
 
-	wt, err := scanners.NewWatcher(cfg, d)
-	if err != nil {
-		log.Fatal("Watcher.New", zap.Error(err))
+		wt, err := scanners.NewWatcher(cfg, d)
+		if err != nil {
+			log.Fatal("Watcher.New", zap.Error(err))
+		}
+		mds = append(mds, wt, sm)
 	}
-
-	mds := []modules.Module{wt, sm, a}
 
 	modules.Run(mds)
 

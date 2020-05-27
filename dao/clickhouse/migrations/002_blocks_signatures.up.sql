@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS block_signatures (
-    sig_blk_lvl UInt64,
+    blk_lvl UInt64,
     sig_timestamp DateTime,
     sig_block_id_flag UInt64,
     sig_validator_address FixedString(40),

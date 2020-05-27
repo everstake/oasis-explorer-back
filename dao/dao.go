@@ -6,6 +6,7 @@ import (
 	"oasisTracker/dao/clickhouse"
 	"oasisTracker/dao/mysql"
 	"oasisTracker/dmodels"
+	"oasisTracker/smodels"
 )
 
 type (
@@ -20,13 +21,21 @@ type (
 		UpdateTask(task dmodels.Task) error
 	}
 
+	ServiceDAO interface {
+		GetAccountTiming(accountID string) (dmodels.AccountTime, error)
+
+		GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlock, error)
+
+		GetTransactionsList(params smodels.TransactionsParams) ([]dmodels.Transaction, error)
+	}
+
 	daoImpl struct {
 		*clickhouse.Clickhouse
 		*mysql.MysqlDAO
 	}
 )
 
-func New(cfg conf.Config) (DAO, error) {
+func New(cfg conf.Config) (*daoImpl, error) {
 	m, err := mysql.New(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("mysql.New: %s", err.Error())
@@ -35,12 +44,16 @@ func New(cfg conf.Config) (DAO, error) {
 	if err != nil {
 		return nil, fmt.Errorf("clickhouse.New: %s", err.Error())
 	}
-	return daoImpl{
+	return &daoImpl{
 		Clickhouse: ch,
 		MysqlDAO:   m,
 	}, nil
 }
 
 func (d daoImpl) GetParserDAO() (interface{}, error) {
-	return d.Clickhouse.GetChain(), nil
+	return d.Clickhouse, nil
+}
+
+func (d daoImpl) GetServiceDAO() ServiceDAO {
+	return d.Clickhouse
 }

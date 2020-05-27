@@ -2,14 +2,16 @@ package clickhouse
 
 import (
 	"fmt"
+	sq "github.com/wedancedalot/squirrel"
 	"log"
 	"oasisTracker/dmodels"
+	"oasisTracker/smodels"
 )
 
-func (db DB) CreateBlocks(blocks []dmodels.Block) error {
+func (cl Clickhouse) CreateBlocks(blocks []dmodels.Block) error {
 	log.Print("Len: ", len(blocks))
 	var err error
-	tx, err := db.conn.Begin()
+	tx, err := cl.db.conn.Begin()
 	if err != nil {
 		return err
 	}
@@ -49,15 +51,15 @@ func (db DB) CreateBlocks(blocks []dmodels.Block) error {
 	return nil
 }
 
-func (db DB) CreateBlockSignatures(blocks []dmodels.BlockSignature) error {
+func (cl Clickhouse) CreateBlockSignatures(blocks []dmodels.BlockSignature) error {
 	var err error
 
-	tx, err := db.conn.Begin()
+	tx, err := cl.db.conn.Begin()
 	if err != nil {
 		return err
 	}
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (sig_blk_lvl, sig_timestamp, sig_block_id_flag, sig_validator_address, sig_blk_signature)"+
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, sig_timestamp, sig_block_id_flag, sig_validator_address, sig_blk_signature)"+
 			"VALUES (?, ?, ?, ?, ?)", dmodels.BlockSignaturesTable))
 	if err != nil {
 		return err
@@ -89,4 +91,49 @@ func (db DB) CreateBlockSignatures(blocks []dmodels.BlockSignature) error {
 	}
 
 	return nil
+}
+
+func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlock, error) {
+
+	resp := make([]dmodels.RowBlock, 0, params.Limit)
+
+	q := sq.Select("*").
+		From(dmodels.BlocksRowView).
+		JoinClause(fmt.Sprintf("ANY LEFT JOIN %s as sig USING blk_lvl", dmodels.BlocksSigCountView)).
+		Limit(params.Limit).
+		Offset(params.Offset)
+
+	if len(params.BlockLevel) > 0 {
+		q = q.Where(sq.Eq{"blk_lvl": params.BlockLevel})
+	}
+
+	if len(params.BlockID) > 0 {
+		q = q.Where(sq.Eq{"blk_hash": params.BlockID})
+	}
+
+	rawSql, args, err := q.ToSql()
+	if err != nil {
+		return resp, err
+	}
+
+	log.Print(rawSql)
+
+	rows, err := cl.db.conn.Query(rawSql, args...)
+	if err != nil {
+		return resp, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		row := dmodels.RowBlock{}
+
+		err := rows.Scan(&row.Height, &row.CreatedAt, &row.Hash, &row.ProposerAddress, &row.ValidatorHash, &row.Epoch, &row.GasUsed, &row.Fee, &row.TxsCount, &row.SigCount)
+		if err != nil {
+			return resp, err
+		}
+
+		resp = append(resp, row)
+	}
+
+	return resp, nil
 }

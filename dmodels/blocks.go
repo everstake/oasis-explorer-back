@@ -6,16 +6,26 @@ import (
 
 const (
 	BlocksTable          = "oasis.blocks"
+	BlocksRowView        = "oasis.block_row_view"
+	BlocksSigCountView   = "oasis.blocks_sig_count"
 	BlockSignaturesTable = "oasis.block_signatures"
 )
 
+type RowBlock struct {
+	Block
+	GasUsed  uint64 `db:"gas_used"`
+	Fee      uint64 `db:"fee"`
+	TxsCount uint64 `db:"txs_count"`
+	SigCount uint64 `db:"sig_count"`
+}
+
 type Block struct {
-	Height          uint64
-	Hash            string
-	CreatedAt       time.Time
-	Epoch           uint64
-	ProposerAddress string
-	ValidatorHash   string
+	Height          uint64    `db:"blk_lvl"`
+	Hash            string    `db:"blk_hash"`
+	CreatedAt       time.Time `db:"blk_created_at"`
+	Epoch           uint64    `db:"blk_epoch"`
+	ProposerAddress string    `db:"blk_proposer_address"`
+	ValidatorHash   string    `db:"blk_validator_hash"`
 }
 
 type BlockSignature struct {

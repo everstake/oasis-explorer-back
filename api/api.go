@@ -93,6 +93,10 @@ func (api *API) initialize(handlerArr ...negroni.Handler) {
 		{Path: "/health", Method: http.MethodGet, Func: api.Health},
 		{Path: "/api", Method: http.MethodGet, Func: api.GetSwaggerAPI},
 		{Path: "/metrics_config", Method: http.MethodGet, Func: api.GetMetricsConfig},
+		{Path: "/info", Method: http.MethodGet, Func: api.GetInfo},
+		{Path: "/data/accounts/{account_id}", Method: http.MethodGet, Func: api.GetAccountInfo},
+		{Path: "/data/blocks", Method: http.MethodGet, Func: api.GetBlocksList},
+		{Path: "/data/transactions", Method: http.MethodGet, Func: api.GetTransactionsList},
 	})
 
 	api.server = &http.Server{Addr: fmt.Sprintf(":%d", api.cfg.API.ListenOnPort), Handler: api.router}

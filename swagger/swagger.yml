@@ -1,0 +1,243 @@
+swagger: '2.0'
+info:
+  title: OasisExplorer API
+  version: "1"
+paths:
+  '/data/info':
+    get:
+      operationId: getInfo
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Application info endpoint
+          schema:
+            $ref: '#/definitions/Info'
+        '400':
+          description: Bad request
+        '500':
+          description: Internal error
+      tags:
+        - App Info
+  '/data/accounts/{account_id}':
+    get:
+      operationId: getAccount
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Query compatibility endpoint for account
+          schema:
+            $ref: >-
+              #/definitions/AccountsRow
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+        '500':
+          description: Internal error
+      tags:
+        - Accounts
+  '/data/blocks':
+    get:
+      operationId: getBlocksList
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: limit
+          type: integer
+          default: 20
+          minimum: 1
+          maximum: 500
+        - in: query
+          name: offset
+          description: Offset
+          type: integer
+          default: 0
+          minimum: 0
+        - collectionFormat: multi
+          in: query
+          items:
+            type: string
+          name: block_id
+          description: Not used
+          type: array
+        - collectionFormat: multi
+          in: query
+          items:
+            type: integer
+          name: block_level
+          description: Not used
+          type: array
+      responses:
+        '200':
+          description: Query compatibility endpoint for blocks
+          schema:
+            items:
+              $ref: '#/definitions/BlocksRow'
+            type: array
+          headers:
+            X-Total-Count:
+              description: The total number of data entries.
+              type: integer
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+      tags:
+        - Blocks
+  '/data/transactions':
+    get:
+      operationId: getTransactionsList
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: limit
+          type: integer
+          default: 20
+          minimum: 1
+          maximum: 500
+        - in: query
+          name: offset
+          description: Offset
+          type: integer
+          default: 0
+          minimum: 0
+        - collectionFormat: multi
+          in: query
+          items:
+            type: string
+          name: block_id
+          type: array
+        - collectionFormat: multi
+          in: query
+          items:
+            type: integer
+          name: block_level
+          description: Not used
+          type: array
+        - collectionFormat: multi
+          in: query
+          items:
+            type: string
+          name: operation_id
+          description: Transaction hash
+          type: array
+        - collectionFormat: multi
+          in: query
+          items:
+            type: string
+          name: operation_kind
+          type: array
+      responses:
+        '200':
+          description: Query compatibility endpoint for transactions
+          schema:
+            items:
+              $ref: '#/definitions/OperationsRow'
+            type: array
+          headers:
+            X-Total-Count:
+              description: The total number of data entries.
+              type: integer
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+      tags:
+        - OperationsList
+definitions:
+  Info:
+    properties:
+      height:
+        format: int64
+        type: integer
+    type: object
+  AccountsRow:
+    properties:
+      account_id:
+        type: string
+      balance:
+        format: int64
+        type: integer
+      created_at:
+        format: int64
+        type: integer
+      last_active:
+        format: int64
+        type: integer
+    required:
+      - balance
+      - account_id
+    type: object
+  BlocksRow:
+    properties:
+      timestamp:
+        type: integer
+        format: int64
+      hash:
+        type: string
+      level:
+        format: int64
+        type: integer
+      number_of_txs:
+        format: int64
+        type: integer
+      epoch:
+        format: int64
+        type: integer
+      proposer:
+        type: string
+      numbet_of_signatures:
+        format: int64
+        type: integer
+      fees:
+        format: int64
+        type: integer
+      gas_used:
+        format: int64
+        type: integer
+    required:
+      - timestamp
+      - hash
+      - level
+    type: object
+  OperationsRow:
+    properties:
+      level:
+        format: int64
+        type: integer
+      hash:
+        type: string
+      nonce:
+        type: integer
+        format: int64
+      timestamp:
+        type: integer
+        format: int64
+      type:
+        type: string
+      from:
+        type: string
+      to:
+        type: string
+      amount:
+        type: integer
+        format: int64
+      fee:
+        format: int64
+        type: integer
+      gas_used:
+        format: int64
+        type: integer
+      gas_price:
+        format: int64
+        type: integer
+    type: object
