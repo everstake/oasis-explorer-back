@@ -153,12 +153,53 @@ paths:
           description: Not Found
       tags:
         - OperationsList
+  '/chart/transactions_volume':
+    get:
+      operationId: getTransactionVolume
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: frame
+          type: string
+          enum: [D]
+          required: true
+        - in: query
+          name: from
+          type: integer
+          format: int64
+          required: true
+        - in: query
+          name: to
+          type: integer
+          format: int64
+          required: true
+      responses:
+        '200':
+          description: Query compatibility endpoint for transactions
+          schema:
+            items:
+              $ref: '#/definitions/ChartsData'
+            type: array
+          headers:
+            X-Total-Count:
+              description: The total number of data entries.
+              type: integer
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+      tags:
+        - Charts
 definitions:
   Info:
     properties:
       height:
         format: int64
         type: integer
+      top_stake_weight:
+        type: number
+        format: float64
     type: object
   AccountsRow:
     properties:
@@ -241,3 +282,13 @@ definitions:
         format: int64
         type: integer
     type: object
+  ChartsData:
+    properties:
+      timestamp:
+        type: integer
+        format: int64
+      transactions_volume:
+        type: integer
+        format: int64
+    required:
+      - timestamp

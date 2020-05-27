@@ -14,6 +14,7 @@ type (
 		GetBlockList(params smodels.BlockParams) ([]smodels.Block, error)
 		GetTransactionsList(params smodels.TransactionsParams) ([]smodels.Transaction, error)
 		GetAccountInfo(accountID string) (smodels.Account, error)
+		GetChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
 	}
 
 	ServiceFacade struct {

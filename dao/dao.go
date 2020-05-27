@@ -27,6 +27,8 @@ type (
 		GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlock, error)
 
 		GetTransactionsList(params smodels.TransactionsParams) ([]dmodels.Transaction, error)
+
+		GetChartsData(params smodels.ChartParams) ([]dmodels.ChartData, error)
 	}
 
 	daoImpl struct {
