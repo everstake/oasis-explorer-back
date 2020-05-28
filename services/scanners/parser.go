@@ -49,6 +49,7 @@ type (
 		CreateBlockSignatures(sig []dmodels.BlockSignature) error
 		//CreateAccounts(accounts []interface{}) error
 		CreateTransfers(transfers []dmodels.Transaction) error
+		CreateRegisterTransactions(txs []dmodels.RegistryTransaction) error
 	}
 )
 
@@ -121,6 +122,12 @@ func (p *Parser) Save() (err error) {
 		}
 
 		log.Print("Save time Transfers: ", time.Since(tm))
+
+		err = p.dao.CreateRegisterTransactions(p.container.txs.RegistryTxs())
+		if err != nil {
+			return fmt.Errorf("dao.CreateRegisterTransactions: %s", err.Error())
+		}
+
 		p.container.txs.Flush()
 	}
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/fxamacker/cbor/v2"
 	consensusAPI "github.com/oasislabs/oasis-core/go/consensus/api"
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/types"
 	"github.com/wedancedalot/decimal"
 	"google.golang.org/grpc"
@@ -118,10 +119,13 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 		return err
 	}
 
-	for key := range txs {
+	dTxs := make([]dmodels.Transaction, len(txs))
+	var registerTxs []dmodels.RegistryTransaction
+
+	for i := range txs {
 		tx := oasis.TxRaw{}
 
-		err = cbor.Unmarshal(txs[key], &tx)
+		err = cbor.Unmarshal(txs[i], &tx)
 		if err != nil {
 			return err
 		}
@@ -137,10 +141,48 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 			return err
 		}
 
-		p.parserContainer.txs.Add([]dmodels.Transaction{{
+		if txType.Type() == dmodels.TransactionTypeRegisterNode {
+			regNode := oasis.RegisterNode{}
+			err = cbor.Unmarshal(raw.Body.RegisterTx.Blob, &regNode)
+			if err != nil {
+				return err
+			}
+
+			var physicalAddress string
+			if len(regNode.Consensus.Addresses) > 0 {
+				physicalAddress = regNode.Consensus.Addresses[0].Address.String()
+			}
+
+			entityBytes, err := regNode.EntityID.MarshalBinary()
+			if err != nil {
+				return err
+			}
+
+			consensusIDBytes, err := regNode.Consensus.ID.MarshalBinary()
+			if err != nil {
+				return err
+			}
+
+			registerTxs = append(registerTxs, dmodels.RegistryTransaction{
+				BlockLevel:       uint64(block.Header.Height),
+				Hash:             hex.EncodeToString(types.Tx(txs[i]).Hash()),
+				Time:             block.Header.Time,
+				ID:               regNode.ID.String(),
+				EntityID:         regNode.EntityID.String(),
+				EntityAddress:    crypto.AddressHash(entityBytes).String(),
+				Expiration:       regNode.Expiration,
+				P2PID:            regNode.P2P.ID.String(),
+				ConsensusID:      regNode.Consensus.ID.String(),
+				ConsensusAddress: crypto.AddressHash(consensusIDBytes).String(),
+				PhysicalAddress:  physicalAddress,
+				Roles:            uint32(regNode.Roles),
+			})
+		}
+
+		dTxs[i] = dmodels.Transaction{
 			BlockLevel:          uint64(block.Header.Height),
 			BlockHash:           block.Hash.String(),
-			Hash:                hex.EncodeToString(types.Tx(txs[key]).Hash()),
+			Hash:                hex.EncodeToString(types.Tx(txs[i]).Hash()),
 			Time:                block.Header.Time,
 			Amount:              decimal.NewFromBigInt(raw.Body.Transfer.Tokens.ToBigInt(), -int32(dmodels.Precision)).String(),
 			EscrowAmount:        decimal.NewFromBigInt(raw.Body.EscrowTx.Tokens.ToBigInt(), -int32(dmodels.Precision)).String(),
@@ -153,8 +195,10 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 			Fee:                 raw.Fee.Amount.ToBigInt().Uint64(),
 			GasLimit:            uint64(raw.Fee.Gas),
 			GasPrice:            raw.Fee.GasPrice().ToBigInt().Uint64(),
-		}})
+		}
 	}
+
+	p.parserContainer.txs.Add(dTxs, registerTxs)
 
 	return nil
 }

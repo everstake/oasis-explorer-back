@@ -9,6 +9,10 @@ import (
 )
 
 func (cl Clickhouse) CreateTransfers(transfers []dmodels.Transaction) error {
+	if len(transfers) == 0 {
+		return nil
+	}
+
 	log.Print("Len Transfers: ", len(transfers))
 	var err error
 	tx, err := cl.db.conn.Begin()
@@ -55,6 +59,57 @@ func (cl Clickhouse) CreateTransfers(transfers []dmodels.Transaction) error {
 	if err := tx.Commit(); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (cl Clickhouse) CreateRegisterTransactions(txs []dmodels.RegistryTransaction) error {
+	if len(txs) == 0 {
+		return nil
+	}
+
+	var err error
+	tx, err := cl.db.conn.Begin()
+	if err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare(
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, tx_time, tx_hash, reg_id, reg_entity_id, reg_entity_address, reg_expiration, reg_p2p_id, reg_consensus_id, reg_consensus_address, reg_physical_address, reg_roles)"+
+			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.RegisterTransactionsTable))
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for i := range txs {
+
+		if txs[i].Time.IsZero() {
+			return fmt.Errorf("timestamp can not be 0")
+		}
+
+		_, err = stmt.Exec(
+			txs[i].BlockLevel,
+			txs[i].Time,
+			txs[i].Hash,
+			txs[i].ID,
+			txs[i].EntityID,
+			txs[i].EntityAddress,
+			txs[i].Expiration,
+			txs[i].P2PID,
+			txs[i].ConsensusID,
+			txs[i].ConsensusAddress,
+			txs[i].PhysicalAddress,
+			txs[i].Roles,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
 	return nil
 }
 

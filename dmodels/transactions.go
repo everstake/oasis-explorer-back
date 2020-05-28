@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	TransactionsTable = "oasis.transactions"
-	Precision         = 9
+	TransactionsTable         = "oasis.transactions"
+	RegisterTransactionsTable = "oasis.register_transactions"
+	Precision                 = 9
 )
 
 type TransactionMethod struct {
@@ -36,10 +37,12 @@ func (tt TransactionMethod) Type() TransactionType {
 }
 
 const (
-	TransactionTypeTransfer      TransactionType = "Transfer"
-	TransactionTypeBurn          TransactionType = "Burn"
-	TransactionTypeAddEscrow     TransactionType = "AddEscrow"
-	TransactionTypeReclaimEscrow TransactionType = "ReclaimEscrow"
+	TransactionTypeTransfer       TransactionType = "transfer"
+	TransactionTypeBurn           TransactionType = "burn"
+	TransactionTypeAddEscrow      TransactionType = "addescrow"
+	TransactionTypeReclaimEscrow  TransactionType = "reclaimescrow"
+	TransactionTypeRegisterNode   TransactionType = "registernode"
+	TransactionTypeRegisterEntity TransactionType = "registerentity"
 )
 
 type Transaction struct {
@@ -58,4 +61,19 @@ type Transaction struct {
 	Fee                 uint64          `db:"tx_fee"`
 	GasLimit            uint64          `db:"tx_gas_limit"` //Probably GasUsed
 	GasPrice            uint64          `db:"tx_gas_price"`
+}
+
+type RegistryTransaction struct {
+	BlockLevel       uint64    `db:"blk_lvl"`
+	Hash             string    `db:"tx_hash"`
+	Time             time.Time `db:"tx_time"`
+	ID               string
+	EntityID         string
+	EntityAddress    string
+	Expiration       uint64
+	P2PID            string
+	ConsensusID      string
+	ConsensusAddress string
+	PhysicalAddress  string
+	Roles            uint32
 }

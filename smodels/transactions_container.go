@@ -6,8 +6,9 @@ import (
 )
 
 type TxsContainer struct {
-	txs []dmodels.Transaction
-	mu  *sync.Mutex
+	txs         []dmodels.Transaction
+	registryTxs []dmodels.RegistryTransaction
+	mu          *sync.Mutex
 }
 
 func NewTxsContainer() *TxsContainer {
@@ -17,9 +18,10 @@ func NewTxsContainer() *TxsContainer {
 	}
 }
 
-func (c *TxsContainer) Add(txs []dmodels.Transaction) {
+func (c *TxsContainer) Add(txs []dmodels.Transaction, registerTxs []dmodels.RegistryTransaction) {
 	c.mu.Lock()
 	c.txs = append(c.txs, txs...)
+	c.registryTxs = append(c.registryTxs, registerTxs...)
 	c.mu.Unlock()
 }
 
@@ -27,10 +29,15 @@ func (c *TxsContainer) Txs() []dmodels.Transaction {
 	return c.txs
 }
 
+func (c *TxsContainer) RegistryTxs() []dmodels.RegistryTransaction {
+	return c.registryTxs
+}
+
 func (c *TxsContainer) IsEmpty() bool {
-	return len(c.txs) == 0
+	return len(c.txs) == 0 && len(c.registryTxs) == 0
 }
 
 func (c *TxsContainer) Flush() {
 	c.txs = []dmodels.Transaction{}
+	c.registryTxs = []dmodels.RegistryTransaction{}
 }
