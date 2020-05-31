@@ -21,9 +21,15 @@ const (
 	saveBatch          = 200
 	saveAddressesBatch = 50
 
-	parserBaseTask        = "base"
-	parserSignaturesTask  = "signatures"
-	parseTransactionsTask = "transactions"
+	parserBaseTask             = "base"
+	parserBalancesSnapshotTask = "balances_snapshot"
+	parserSignaturesTask       = "signatures"
+	parseTransactionsTask      = "transactions"
+
+	defaultFlag         ParseFlag = iota
+	baseFlag            ParseFlag = 1
+	balanceSnapshotFlag           = baseFlag << 1
+	watcherFlag                   = baseFlag | balanceSnapshotFlag
 )
 
 type (
@@ -85,6 +91,11 @@ func (p *Parser) GetTaskExecutor(taskTitle string) (executor *smodels.Executor, 
 	case parserBaseTask:
 		return &smodels.Executor{
 			ExecHeight: p.ParseBase,
+			Save:       p.Save,
+		}, nil
+	case parserBalancesSnapshotTask:
+		return &smodels.Executor{
+			ExecHeight: p.ParseBalancesSnapshot,
 			Save:       p.Save,
 		}, nil
 	default:
@@ -167,13 +178,28 @@ func (p *Parser) ParseBase(conn *grpcCommon.ClientConn, blockID uint64) error {
 	return nil
 }
 
+func (p *Parser) ParseBalancesSnapshot(conn *grpcCommon.ClientConn, blockID uint64) error {
+
+	parsTask, err := NewParserTask(p.ctx, conn, p.container)
+	if err != nil {
+		return err
+	}
+
+	err = parsTask.BalanceSnapshot(blockID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (p *Parser) ParseWatchBlock(block *consensusAPI.Block) error {
 	parsTask, err := NewParserTask(p.ctx, p.conn, p.container)
 	if err != nil {
 		return err
 	}
 
-	err = parsTask.ParseOasisBase(block)
+	err = parsTask.parseOasisBase(block, watcherFlag)
 	if err != nil {
 		return err
 	}

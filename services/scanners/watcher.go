@@ -99,6 +99,7 @@ func (m *Watcher) addReSyncTask(currentHeight int64) error {
 		startHeight = 0
 	}
 
+	//Blocks sync
 	err = m.dao.CreateTask(dmodels.Task{
 		IsActive:      true,
 		Title:         parserBaseTask,
@@ -106,6 +107,20 @@ func (m *Watcher) addReSyncTask(currentHeight int64) error {
 		CurrentHeight: startHeight,
 		EndHeight:     uint64(currentHeight - 1),
 		Batch:         m.cfg.Scanner.BatchSize,
+	})
+	if err != nil {
+		return fmt.Errorf("CreateTask error: %s", err)
+	}
+
+	//Snaps sync
+	err = m.dao.CreateTask(dmodels.Task{
+		IsActive:      true,
+		Title:         parserBaseTask,
+		StartHeight:   startHeight,
+		CurrentHeight: startHeight,
+		EndHeight:     uint64(currentHeight - 1),
+		//1 Epoch = 600 blocks
+		Batch: 20000,
 	})
 	if err != nil {
 		return fmt.Errorf("CreateTask error: %s", err)

@@ -39,7 +39,7 @@ func (p *ParserTask) ParseBase(blockID uint64) error {
 		return fmt.Errorf("api.Block.Get: %s", err.Error())
 	}
 
-	err = p.ParseOasisBase(blockData)
+	err = p.parseOasisBase(blockData, baseFlag)
 	if err != nil {
 		return fmt.Errorf("p.parseOasisBase: %s", err.Error())
 	}
@@ -47,7 +47,24 @@ func (p *ParserTask) ParseBase(blockID uint64) error {
 	return nil
 }
 
-func (p *ParserTask) ParseOasisBase(blockData *consensusAPI.Block) (err error) {
+func (p *ParserTask) BalanceSnapshot(blockID uint64) error {
+
+	blockData, err := p.consensusAPI.GetBlock(p.ctx, int64(blockID))
+	if err != nil {
+		return fmt.Errorf("api.Block.Get: %s", err.Error())
+	}
+
+	err = p.parseOasisBase(blockData, balanceSnapshotFlag)
+	if err != nil {
+		return fmt.Errorf("p.parseOasisBase: %s", err.Error())
+	}
+
+	return nil
+
+	return nil
+}
+
+func (p *ParserTask) parseOasisBase(blockData *consensusAPI.Block, parseFlag ParseFlag) (err error) {
 
 	b := oasis.Block{}
 	err = cbor.Unmarshal(blockData.Meta, &b)
@@ -57,11 +74,20 @@ func (p *ParserTask) ParseOasisBase(blockData *consensusAPI.Block) (err error) {
 
 	b.Hash = blockData.Hash
 
-	pipes := []func(data oasis.Block) error{
-		p.parseBlock,
-		p.parseBlockSignatures,
-		p.parseBlockTransactions,
-		p.epochBalanceSnapshot,
+	var pipes []func(data oasis.Block) error
+
+	if (parseFlag & baseFlag) != 0 {
+		pipes = append(pipes, []func(data oasis.Block) error{
+			p.parseBlock,
+			p.parseBlockSignatures,
+			p.parseBlockTransactions,
+		}...)
+	}
+
+	if (parseFlag & balanceSnapshotFlag) != 0 {
+		pipes = append(pipes, []func(data oasis.Block) error{
+			p.epochBalanceSnapshot,
+		}...)
 	}
 
 	for _, pipe := range pipes {
