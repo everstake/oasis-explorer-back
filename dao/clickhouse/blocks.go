@@ -8,9 +8,9 @@ import (
 	"oasisTracker/smodels"
 )
 
-func (cl Clickhouse) CreateBlocks(blocks []dmodels.Block) error {
+func (cl Clickhouse) CreateBlocks(blocks []dmodels.Block) (err error) {
 	log.Print("Len: ", len(blocks))
-	var err error
+
 	tx, err := cl.db.conn.Begin()
 	if err != nil {
 		return err

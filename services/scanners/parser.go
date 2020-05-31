@@ -42,12 +42,13 @@ type (
 		blocks          *smodels.BlocksContainer
 		blockSignatures *smodels.BlockSignatureContainer
 		txs             *smodels.TxsContainer
+		balances        *smodels.AccountsContainer
 	}
 
 	DAO interface {
 		CreateBlocks(blocks []dmodels.Block) error
 		CreateBlockSignatures(sig []dmodels.BlockSignature) error
-		//CreateAccounts(accounts []interface{}) error
+		CreateAccountBalances(accounts []dmodels.AccountBalance) error
 		CreateTransfers(transfers []dmodels.Transaction) error
 		CreateRegisterTransactions(txs []dmodels.RegistryTransaction) error
 	}
@@ -74,6 +75,7 @@ func NewParser(ctx context.Context, cfg conf.Scanner, tezosdDAO interface{}) (*P
 			blocks:          smodels.NewBlocksContainer(),
 			blockSignatures: smodels.NewBlockSignatureContainer(),
 			txs:             smodels.NewTxsContainer(),
+			balances:        smodels.NewAccountsContainer(),
 		},
 	}, nil
 }
@@ -129,6 +131,18 @@ func (p *Parser) Save() (err error) {
 		}
 
 		p.container.txs.Flush()
+	}
+
+	if !p.container.balances.IsEmpty() {
+		tm := time.Now()
+		err = p.dao.CreateAccountBalances(p.container.balances.Balances())
+		if err != nil {
+			return fmt.Errorf("dao.CreateAccountBalances: %s", err.Error())
+		}
+
+		log.Print("Save time Balances: ", time.Since(tm))
+
+		p.container.balances.Flush()
 	}
 
 	return nil

@@ -18,6 +18,9 @@ func NewBlocksContainer() *BlocksContainer {
 }
 
 func (c *BlocksContainer) Add(blocks []dmodels.Block) {
+	if len(blocks) == 0 {
+		return
+	}
 	c.mu.Lock()
 	c.blocks = append(c.blocks, blocks...)
 	c.mu.Unlock()

@@ -1,16 +1,26 @@
 package oasis
 
 import (
+	"github.com/oasislabs/oasis-core/go/common/crypto/signature"
 	"github.com/tendermint/tendermint/crypto"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	tmtypes "github.com/tendermint/tendermint/types"
 	"time"
 )
 
+const EpochBlocksNumber = 600
+
+//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+var SystemAddress = signature.PublicKey{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
 type Block struct {
 	Hash       cmn.HexBytes    `cbor:"-"`
 	Header     tmtypes.Header  `cbor:"header"`
 	LastCommit BlockLastCommit `cbor:"last_commit"`
+}
+
+func (b Block) IsEpochBlock() bool {
+	return (b.Header.Height % EpochBlocksNumber) == 0
 }
 
 type BlockLastCommit struct {

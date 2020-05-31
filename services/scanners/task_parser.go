@@ -5,7 +5,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/fxamacker/cbor/v2"
+	"github.com/oasislabs/oasis-core/go/common/crypto/signature"
 	consensusAPI "github.com/oasislabs/oasis-core/go/consensus/api"
+	stakingAPI "github.com/oasislabs/oasis-core/go/staking/api"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/types"
 	"github.com/wedancedalot/decimal"
@@ -19,18 +21,20 @@ import (
 //Struct for direct work with connection from worker
 type ParserTask struct {
 	ctx             context.Context
-	api             consensusAPI.ClientBackend
+	consensusAPI    consensusAPI.ClientBackend
+	stakingAPI      stakingAPI.Backend
 	parserContainer *ParseContainer
 }
 
 func NewParserTask(ctx context.Context, conn *grpc.ClientConn, parserContainer *ParseContainer) (*ParserTask, error) {
-	api := consensusAPI.NewConsensusClient(conn)
+	consensusAPI := consensusAPI.NewConsensusClient(conn)
+	stakingAPI := stakingAPI.NewStakingClient(conn)
 
-	return &ParserTask{ctx: ctx, api: api, parserContainer: parserContainer}, nil
+	return &ParserTask{ctx: ctx, consensusAPI: consensusAPI, stakingAPI: stakingAPI, parserContainer: parserContainer}, nil
 }
 
 func (p *ParserTask) ParseBase(blockID uint64) error {
-	blockData, err := p.api.GetBlock(p.ctx, int64(blockID))
+	blockData, err := p.consensusAPI.GetBlock(p.ctx, int64(blockID))
 	if err != nil {
 		return fmt.Errorf("api.Block.Get: %s", err.Error())
 	}
@@ -57,6 +61,7 @@ func (p *ParserTask) ParseOasisBase(blockData *consensusAPI.Block) (err error) {
 		p.parseBlock,
 		p.parseBlockSignatures,
 		p.parseBlockTransactions,
+		p.epochBalanceSnapshot,
 	}
 
 	for _, pipe := range pipes {
@@ -70,7 +75,7 @@ func (p *ParserTask) ParseOasisBase(blockData *consensusAPI.Block) (err error) {
 }
 
 func (p *ParserTask) parseBlock(block oasis.Block) error {
-	epoch, err := p.api.GetEpoch(p.ctx, block.Header.Height)
+	epoch, err := p.consensusAPI.GetEpoch(p.ctx, block.Header.Height)
 	if err != nil {
 		return err
 	}
@@ -114,14 +119,14 @@ func (p *ParserTask) parseBlockSignatures(block oasis.Block) error {
 }
 
 func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
-	txs, err := p.api.GetTransactions(p.ctx, block.Header.Height)
+	txs, err := p.consensusAPI.GetTransactions(p.ctx, block.Header.Height)
 	if err != nil {
 		return err
 	}
 
 	dTxs := make([]dmodels.Transaction, len(txs))
 	var registerTxs []dmodels.RegistryTransaction
-
+	accountBalanceUpdates := make([]dmodels.AccountBalance, 0, len(txs))
 	for i := range txs {
 		tx := oasis.TxRaw{}
 
@@ -179,6 +184,14 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 			})
 		}
 
+		if !block.IsEpochBlock() {
+			balanceUpdates, err := p.parseAccountBalances(block, tx, raw)
+			if err != nil {
+				return err
+			}
+			accountBalanceUpdates = append(accountBalanceUpdates, balanceUpdates...)
+		}
+
 		dTxs[i] = dmodels.Transaction{
 			BlockLevel:          uint64(block.Header.Height),
 			BlockHash:           block.Hash.String(),
@@ -199,6 +212,80 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 	}
 
 	p.parserContainer.txs.Add(dTxs, registerTxs)
+	p.parserContainer.balances.Add(accountBalanceUpdates)
 
 	return nil
+}
+
+func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
+	//Make snapshot only for epoch blocks
+	if !block.IsEpochBlock() {
+		return nil
+	}
+
+	accounts, err := p.stakingAPI.Accounts(p.ctx, block.Header.Height)
+	if err != nil {
+		return err
+	}
+
+	updates := make([]dmodels.AccountBalance, 0, len(accounts))
+
+	for i := range accounts {
+
+		balance, err := p.getAccountBalance(block.Header.Height, accounts[i])
+		if err != nil {
+			return err
+		}
+
+		balance.Time = block.Header.Time
+		updates = append(updates, balance)
+	}
+
+	p.parserContainer.balances.Add(updates)
+
+	return nil
+}
+
+func (p *ParserTask) parseAccountBalances(block oasis.Block, tx oasis.TxRaw, rawTX oasis.UntrustedRawValue) ([]dmodels.AccountBalance, error) {
+	accounts := []signature.PublicKey{tx.Signature.PublicKey, rawTX.Body.EscrowTx.Account, rawTX.Body.To}
+	updates := make([]dmodels.AccountBalance, 0, len(accounts))
+
+	for i := range accounts {
+		//Skip system address
+		if accounts[i].Equal(oasis.SystemAddress) {
+			continue
+		}
+
+		balance, err := p.getAccountBalance(block.Header.Height, accounts[i])
+		if err != nil {
+			return updates, err
+		}
+
+		balance.Time = block.Header.Time
+		updates = append(updates, balance)
+	}
+
+	return updates, nil
+}
+
+func (p *ParserTask) getAccountBalance(height int64, pubKey signature.PublicKey) (balance dmodels.AccountBalance, err error) {
+
+	accInfo, err := p.stakingAPI.AccountInfo(p.ctx, &stakingAPI.OwnerQuery{
+		Height: height,
+		Owner:  pubKey,
+	})
+	if err != nil {
+		return balance, err
+	}
+
+	return dmodels.AccountBalance{
+		Account:               pubKey.String(),
+		Height:                height,
+		GeneralBalance:        accInfo.General.Balance.String(),
+		Nonce:                 accInfo.General.Nonce,
+		EscrowBalanceActive:   accInfo.Escrow.Active.Balance.String(),
+		EscrowBalanceShare:    accInfo.Escrow.Active.TotalShares.String(),
+		EscrowDebondingActive: accInfo.Escrow.Debonding.Balance.String(),
+		EscrowDebondingShare:  accInfo.Escrow.Debonding.TotalShares.String(),
+	}, nil
 }
