@@ -10,3 +10,9 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
+  api-documentation:
+    build:
+      context: .
+      dockerfile: Dockerfile-api
+    ports:
+      - 8080:8080
