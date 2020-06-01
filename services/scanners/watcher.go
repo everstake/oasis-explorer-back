@@ -115,7 +115,7 @@ func (m *Watcher) addReSyncTask(currentHeight int64) error {
 	//Snaps sync
 	err = m.dao.CreateTask(dmodels.Task{
 		IsActive:      true,
-		Title:         parserBaseTask,
+		Title:         parserBalancesSnapshotTask,
 		StartHeight:   startHeight,
 		CurrentHeight: startHeight,
 		EndHeight:     uint64(currentHeight - 1),
