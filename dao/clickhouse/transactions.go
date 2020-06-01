@@ -22,7 +22,7 @@ func (cl Clickhouse) CreateTransfers(transfers []dmodels.Transaction) error {
 
 	stmt, err := tx.Prepare(
 		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_hash, tx_time, tx_hash, tx_amount, tx_escrow_amount,  tx_escrow_reclaim_amount, tx_escrow_account, tx_type, tx_sender, tx_receiver, tx_nonce, tx_fee, tx_gas_limit, tx_gas_price)"+
-			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.TransactionsTable))
+			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.TransactionsTable))
 	if err != nil {
 		return err
 	}
