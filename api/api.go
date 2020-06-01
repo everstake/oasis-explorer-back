@@ -95,6 +95,7 @@ func (api *API) initialize(handlerArr ...negroni.Handler) {
 		{Path: "/metrics_config", Method: http.MethodGet, Func: api.GetMetricsConfig},
 		{Path: "/info", Method: http.MethodGet, Func: api.GetInfo},
 		{Path: "/chart/transactions_volume", Method: http.MethodGet, Func: api.GetTransactionsVolume},
+		{Path: "/chart/escrow_ratio", Method: http.MethodGet, Func: api.GetEscrowRatio},
 		{Path: "/data/accounts/{account_id}", Method: http.MethodGet, Func: api.GetAccountInfo},
 		{Path: "/data/blocks", Method: http.MethodGet, Func: api.GetBlocksList},
 		{Path: "/data/transactions", Method: http.MethodGet, Func: api.GetTransactionsList},

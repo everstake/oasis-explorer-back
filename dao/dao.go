@@ -29,6 +29,7 @@ type (
 		GetTransactionsList(params smodels.TransactionsParams) ([]dmodels.Transaction, error)
 
 		GetChartsData(params smodels.ChartParams) ([]dmodels.ChartData, error)
+		GetEscrowRatioChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error)
 	}
 
 	daoImpl struct {

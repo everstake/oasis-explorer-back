@@ -18,6 +18,7 @@ func ChartElement(chd dmodels.ChartData) smodels.ChartData {
 	data := smodels.ChartData{
 		Timestamp:         chd.BeginOfPeriod.Unix(),
 		TransactionVolume: chd.TransactionVolume,
+		EscrowRatio:       chd.EscrowRatio,
 	}
 
 	return data

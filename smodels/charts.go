@@ -21,6 +21,7 @@ func (p ChartParams) Validate() error {
 }
 
 type ChartData struct {
-	Timestamp         int64  `json:"timestamp"`
-	TransactionVolume string `json:"transaction_volume,omitempty"`
+	Timestamp         int64   `json:"timestamp"`
+	TransactionVolume string  `json:"transaction_volume,omitempty"`
+	EscrowRatio       float64 `json:"escrow_ratio,omitempty"`
 }

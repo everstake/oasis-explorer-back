@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS day_total_balance_view;
