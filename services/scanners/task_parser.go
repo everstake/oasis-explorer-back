@@ -60,8 +60,6 @@ func (p *ParserTask) BalanceSnapshot(blockID uint64) error {
 	}
 
 	return nil
-
-	return nil
 }
 
 func (p *ParserTask) parseOasisBase(blockData *consensusAPI.Block, parseFlag ParseFlag) (err error) {
