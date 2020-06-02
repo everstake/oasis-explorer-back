@@ -20,10 +20,12 @@ require (
 	github.com/mailru/go-clickhouse v1.3.0
 	github.com/mitchellh/mapstructure v1.3.0
 	github.com/oasislabs/oasis-core/go v0.0.0-20200506180820-c12748013a80
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prataprc/gson v0.0.0-20181107060252-71739fac98d6
 	github.com/rs/cors v1.7.0
 	github.com/rubenv/sql-migrate v0.0.0-20200429072036-ae26b214fa43
 	github.com/satori/go.uuid v1.2.0
+	github.com/sirupsen/logrus v1.4.2
 	github.com/tendermint/go-amino v0.15.0
 	github.com/tendermint/tendermint v0.32.8
 	github.com/urfave/negroni v1.0.0

@@ -79,3 +79,34 @@ func (cl Clickhouse) CreateAccountBalances(balances []dmodels.AccountBalance) (e
 
 	return nil
 }
+
+func (cl Clickhouse) GetTopEscrowAccounts(limit uint64) (resp []dmodels.AccountBalance, err error) {
+
+	q := sq.Select("*").
+		From(dmodels.TopEscrowBalanceAccountsView).
+		Limit(limit)
+
+	rawSql, args, err := q.ToSql()
+	if err != nil {
+		return resp, err
+	}
+
+	rows, err := cl.db.conn.Query(rawSql, args...)
+	if err != nil {
+		return resp, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		row := dmodels.AccountBalance{}
+
+		err := rows.Scan(&row.Account, &row.Height, &row.Time, &row.Nonce, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.EscrowDebondingActive, &row.EscrowDebondingShare)
+		if err != nil {
+			return resp, err
+		}
+
+		resp = append(resp, row)
+	}
+
+	return resp, nil
+}

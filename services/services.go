@@ -3,14 +3,17 @@ package services
 import (
 	"github.com/oasislabs/oasis-core/go/common/grpc"
 	"github.com/oasislabs/oasis-core/go/staking/api"
+	"github.com/patrickmn/go-cache"
 	grpcCommon "google.golang.org/grpc"
 	"oasisTracker/conf"
 	"oasisTracker/dao"
 	"oasisTracker/smodels"
+	"time"
 )
 
 type (
 	Service interface {
+		GetInfo() (smodels.Info, error)
 		GetBlockList(params smodels.BlockParams) ([]smodels.Block, error)
 		GetTransactionsList(params smodels.TransactionsParams) ([]smodels.Transaction, error)
 		GetAccountInfo(accountID string) (smodels.Account, error)
@@ -22,7 +25,13 @@ type (
 		cfg     conf.Config
 		dao     dao.ServiceDAO
 		nodeAPI api.Backend
+		cache   *cache.Cache
 	}
+)
+
+const (
+	topEscrowCacheKey = "top_escrow_percent"
+	cacheTTL          = 1 * time.Minute
 )
 
 func NewService(cfg conf.Config, dao dao.ServiceDAO) *ServiceFacade {
@@ -37,5 +46,6 @@ func NewService(cfg conf.Config, dao dao.ServiceDAO) *ServiceFacade {
 		cfg:     cfg,
 		dao:     dao,
 		nodeAPI: sAPI,
+		cache:   cache.New(cacheTTL, cacheTTL),
 	}
 }

@@ -6,4 +6,13 @@ select start_of_period,
 from (select acb_account,start_of_period, max(blk_lvl) blk_lvl from account_balance group by acb_account, toStartOfDay(blk_time) as start_of_period) s
        ANY
        LEFT JOIN account_balance USING acb_account, blk_lvl
-       GROUP BY start_of_period;
+       GROUP BY start_of_period
+       ORDER BY start_of_period desc;
+
+CREATE VIEW IF NOT EXISTS oasis.top_escrow_balance_accounts_view AS
+  select *
+from (select acb_account, max(blk_lvl) blk_lvl from oasis.account_balance group by acb_account) s
+       ANY
+       LEFT JOIN oasis.account_balance USING acb_account, blk_lvl
+  ORDER BY acb_escrow_balance_active desc;
+

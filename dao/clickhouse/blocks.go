@@ -116,8 +116,6 @@ func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlo
 		return resp, err
 	}
 
-	log.Print(rawSql)
-
 	rows, err := cl.db.conn.Query(rawSql, args...)
 	if err != nil {
 		return resp, err
@@ -136,4 +134,32 @@ func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlo
 	}
 
 	return resp, nil
+}
+
+func (cl Clickhouse) GetLastBlock() (block dmodels.Block, err error) {
+	q := sq.Select("*").
+		From(dmodels.BlocksTable).
+		Limit(1).
+		OrderBy("blk_lvl desc")
+
+	rawSql, args, err := q.ToSql()
+	if err != nil {
+		return block, err
+	}
+
+	rows, err := cl.db.conn.Query(rawSql, args...)
+	if err != nil {
+		return block, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		err = rows.Scan(&block.Height, &block.CreatedAt, &block.Hash, &block.ProposerAddress, &block.ValidatorHash, &block.Epoch)
+		if err != nil {
+			return block, err
+		}
+	}
+
+	return block, nil
 }

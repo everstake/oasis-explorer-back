@@ -24,12 +24,16 @@ type (
 	ServiceDAO interface {
 		GetAccountTiming(accountID string) (dmodels.AccountTime, error)
 
+		GetLastBlock() (dmodels.Block, error)
 		GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlock, error)
 
 		GetTransactionsList(params smodels.TransactionsParams) ([]dmodels.Transaction, error)
 
 		GetChartsData(params smodels.ChartParams) ([]dmodels.ChartData, error)
 		GetEscrowRatioChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error)
+
+		GetTopEscrowAccounts(uint64) ([]dmodels.AccountBalance, error)
+		GetLastDayTotalBalance() (dmodels.DayBalance, error)
 	}
 
 	daoImpl struct {
