@@ -10,7 +10,7 @@ type TransactionsParams struct {
 }
 
 type Transaction struct {
-	Amount    string `json:"amount,omitempty"`
+	Amount    uint64 `json:"amount,omitempty"`
 	Fee       uint64 `json:"fee,omitempty"`
 	From      string `json:"from,omitempty"`
 	GasPrice  uint64 `json:"gas_price,omitempty"`

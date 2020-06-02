@@ -18,9 +18,9 @@ type AccountBalance struct {
 	Time                  time.Time `db:"blk_time"`
 	Height                int64     `db:"blk_lvl"`
 	Nonce                 uint64    `db:"acb_nonce"`
-	GeneralBalance        string    `db:"acb_general_balance"`
-	EscrowBalanceActive   string    `db:"acb_escrow_balance_active"`
-	EscrowBalanceShare    string    `db:"acb_escrow_balance_share"`
-	EscrowDebondingActive string    `db:"acb_escrow_debonding_active"`
-	EscrowDebondingShare  string    `db:"acb_escrow_debonding_share"`
+	GeneralBalance        uint64    `db:"acb_general_balance"`
+	EscrowBalanceActive   uint64    `db:"acb_escrow_balance_active"`
+	EscrowBalanceShare    uint64    `db:"acb_escrow_balance_share"`
+	EscrowDebondingActive uint64    `db:"acb_escrow_debonding_active"`
+	EscrowDebondingShare  uint64    `db:"acb_escrow_debonding_share"`
 }

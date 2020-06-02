@@ -10,7 +10,6 @@ import (
 	stakingAPI "github.com/oasislabs/oasis-core/go/staking/api"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/types"
-	"github.com/wedancedalot/decimal"
 	"google.golang.org/grpc"
 	"oasisTracker/dmodels"
 	"oasisTracker/dmodels/oasis"
@@ -221,9 +220,9 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 			BlockHash:           block.Hash.String(),
 			Hash:                hex.EncodeToString(types.Tx(txs[i]).Hash()),
 			Time:                block.Header.Time,
-			Amount:              decimal.NewFromBigInt(raw.Body.Transfer.Tokens.ToBigInt(), -int32(dmodels.Precision)).String(),
-			EscrowAmount:        decimal.NewFromBigInt(raw.Body.EscrowTx.Tokens.ToBigInt(), -int32(dmodels.Precision)).String(),
-			EscrowReclaimAmount: decimal.NewFromBigInt(raw.Body.EscrowTx.Shares.ToBigInt(), -int32(dmodels.Precision)).String(),
+			Amount:              raw.Body.Transfer.Tokens.ToBigInt().Uint64(),
+			EscrowAmount:        raw.Body.EscrowTx.Tokens.ToBigInt().Uint64(),
+			EscrowReclaimAmount: raw.Body.EscrowTx.Shares.ToBigInt().Uint64(),
 			EscrowAccount:       raw.Body.EscrowTx.Account.String(),
 			Type:                txType.Type(),
 			Sender:              tx.Signature.PublicKey.String(),
@@ -305,11 +304,11 @@ func (p *ParserTask) getAccountBalance(height int64, pubKey signature.PublicKey)
 	return dmodels.AccountBalance{
 		Account:               pubKey.String(),
 		Height:                height,
-		GeneralBalance:        accInfo.General.Balance.String(),
 		Nonce:                 accInfo.General.Nonce,
-		EscrowBalanceActive:   accInfo.Escrow.Active.Balance.String(),
-		EscrowBalanceShare:    accInfo.Escrow.Active.TotalShares.String(),
-		EscrowDebondingActive: accInfo.Escrow.Debonding.Balance.String(),
-		EscrowDebondingShare:  accInfo.Escrow.Debonding.TotalShares.String(),
+		GeneralBalance:        accInfo.General.Balance.ToBigInt().Uint64(),
+		EscrowBalanceActive:   accInfo.Escrow.Active.Balance.ToBigInt().Uint64(),
+		EscrowBalanceShare:    accInfo.Escrow.Active.TotalShares.ToBigInt().Uint64(),
+		EscrowDebondingActive: accInfo.Escrow.Debonding.Balance.ToBigInt().Uint64(),
+		EscrowDebondingShare:  accInfo.Escrow.Debonding.TotalShares.ToBigInt().Uint64(),
 	}, nil
 }

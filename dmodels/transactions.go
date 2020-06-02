@@ -50,9 +50,9 @@ type Transaction struct {
 	BlockHash           string          `db:"blk_hash"`
 	Hash                string          `db:"tx_hash"`
 	Time                time.Time       `db:"tx_time"`
-	Amount              string          `db:"tx_amount"`
-	EscrowAmount        string          `db:"tx_escrow_amount"`
-	EscrowReclaimAmount string          `db:"tx_escrow_reclaim_amount"`
+	Amount              uint64          `db:"tx_amount"`
+	EscrowAmount        uint64          `db:"tx_escrow_amount"`
+	EscrowReclaimAmount uint64          `db:"tx_escrow_reclaim_amount"`
 	EscrowAccount       string          `db:"tx_escrow_account"`
 	Type                TransactionType `db:"tx_type"`
 	Sender              string          `db:"tx_sender"`

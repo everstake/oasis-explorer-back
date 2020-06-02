@@ -4,7 +4,6 @@ import (
 	"go.uber.org/zap"
 	"oasisTracker/common/log"
 	"oasisTracker/smodels"
-	"strconv"
 )
 
 func (s *ServiceFacade) GetInfo() (info smodels.Info, err error) {
@@ -42,13 +41,7 @@ func (s *ServiceFacade) getTopEscrowRatio() (float64, error) {
 
 	var topAccountsEscrow uint64
 	for i := range topAccounts {
-		//TODO Change DB schema
-		escrowBalanceActive, err := strconv.ParseUint(topAccounts[i].EscrowBalanceActive, 10, 64)
-		if err != nil {
-			return 0, err
-		}
-
-		topAccountsEscrow += escrowBalanceActive
+		topAccountsEscrow += topAccounts[i].EscrowBalanceActive
 	}
 
 	return float64(topAccountsEscrow) / float64(totalBalance.EscrowBalanceActive) * 100, nil
