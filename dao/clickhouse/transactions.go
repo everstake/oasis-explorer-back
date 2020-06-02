@@ -123,6 +123,14 @@ func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]d
 		Limit(params.Limit).
 		Offset(params.Offset)
 
+	if len(params.OperationID) > 0 {
+		q = q.Where(sq.Eq{"tx_hash": params.OperationID})
+	}
+
+	if len(params.OperationKind) > 0 {
+		q = q.Where(sq.Eq{"tx_type": params.OperationKind})
+	}
+
 	if len(params.BlockLevel) > 0 {
 		q = q.Where(sq.Eq{"blk_lvl": params.BlockLevel})
 	}

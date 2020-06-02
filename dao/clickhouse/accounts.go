@@ -9,7 +9,8 @@ import (
 func (cl Clickhouse) GetAccountTiming(accountID string) (resp dmodels.AccountTime, err error) {
 
 	q := sq.Select("min(tx_time) created_at, max(tx_time) last_active").
-		From(dmodels.TransactionsTable)
+		From(dmodels.TransactionsTable).
+		Where("tx_receiver = ? OR tx_sender = ?", accountID, accountID)
 
 	rawSql, args, err := q.ToSql()
 	if err != nil {

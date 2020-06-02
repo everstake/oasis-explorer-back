@@ -4,23 +4,22 @@ import (
 	"context"
 	"github.com/oasislabs/oasis-core/go/common/crypto/signature"
 	"github.com/oasislabs/oasis-core/go/staking/api"
-	"github.com/wedancedalot/decimal"
 	"log"
-	"oasisTracker/dmodels"
 	"oasisTracker/smodels"
 	"strings"
 )
 
-func (s *ServiceFacade) GetAccountInfo(accountID string) (smodels.Account, error) {
+func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, err error) {
 	pb := signature.PublicKey{}
 
-	err := pb.UnmarshalText([]byte(accountID))
+	err = pb.UnmarshalText([]byte(accountID))
 	if err != nil {
-
+		return sAcc, err
 	}
 
 	acc, err := s.nodeAPI.AccountInfo(context.Background(), &api.OwnerQuery{
-		Height: 201978,
+		//Latest
+		Height: 0,
 		Owner:  pb,
 	})
 	if err != nil {
@@ -28,8 +27,6 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (smodels.Account, error
 	}
 
 	log.Printf("%+v", acc)
-
-	log.Print(len(acc.Escrow.StakeAccumulator.Claims))
 
 	accType := "account"
 	nodeAddress := ""
@@ -53,18 +50,18 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (smodels.Account, error
 
 	accountTime, err := s.dao.GetAccountTiming(accountID)
 	if err != nil {
-		log.Print(err)
+		return sAcc, err
 	}
 
-	liquidBalance := decimal.NewFromBigInt(acc.General.Balance.ToBigInt(), int32(-dmodels.Precision))
-	escrowBalance := decimal.NewFromBigInt(acc.Escrow.Active.Balance.ToBigInt(), int32(-dmodels.Precision))
+	liquidBalance := acc.General.Balance.ToBigInt().Uint64()
+	escrowBalance := acc.Escrow.Active.Balance.ToBigInt().Uint64()
 
 	return smodels.Account{
 		Address:          accountID,
 		LiquidBalance:    liquidBalance,
 		EscrowBalance:    escrowBalance,
-		DebondingBalance: decimal.NewFromBigInt(acc.Escrow.Debonding.Balance.ToBigInt(), int32(-dmodels.Precision)),
-		TotalBalance:     decimal.Sum(liquidBalance, escrowBalance),
+		DebondingBalance: acc.Escrow.Debonding.Balance.ToBigInt().Uint64(),
+		TotalBalance:     liquidBalance + escrowBalance,
 		CreatedAt:        accountTime.CreatedAt,
 		LastActive:       accountTime.LastActive,
 		Nonce:            acc.General.Nonce,
