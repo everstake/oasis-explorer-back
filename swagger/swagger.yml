@@ -61,6 +61,22 @@ paths:
           type: integer
           default: 0
           minimum: 0
+        - in: query
+          name: from
+          description: Timestamp of time interval start
+          type: integer
+        - in: query
+          name: sender
+          description: Sender address
+          type: string
+        - in: query
+          name: receiver
+          description: Receiver address
+          type: string
+        - in: query
+          name: to
+          description: Timestamp of time interval end
+          type: integer
         - collectionFormat: multi
           in: query
           items:

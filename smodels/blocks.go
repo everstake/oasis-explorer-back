@@ -1,10 +1,26 @@
 package smodels
 
+//Constructor to setup default values
+func NewBlockParams() BlockParams {
+	return BlockParams{
+		Limit: 20,
+	}
+}
+
+func (b *BlockParams) Validate() error {
+	return nil
+}
+
 type BlockParams struct {
 	Limit      uint64
 	Offset     uint64
 	BlockID    []string `schema:"block_id"`
 	BlockLevel []int64  `schema:"block_level"`
+	Sender     string
+	Receiver   string
+	//Time range
+	From uint64
+	To   uint64
 }
 
 type Block struct {
