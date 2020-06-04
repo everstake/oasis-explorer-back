@@ -34,6 +34,9 @@ type (
 
 		GetTopEscrowAccounts(uint64) ([]dmodels.AccountBalance, error)
 		GetLastDayTotalBalance() (dmodels.DayBalance, error)
+
+		GetAccountValidatorInfo(accountID string) (resp dmodels.EntityNodesContainer, err error)
+		GetEntityActiveDepositorsCount(accountID string) (count uint64, err error)
 	}
 
 	daoImpl struct {

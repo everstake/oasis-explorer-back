@@ -4,9 +4,7 @@ import (
 	"context"
 	"github.com/oasislabs/oasis-core/go/common/crypto/signature"
 	"github.com/oasislabs/oasis-core/go/staking/api"
-	"log"
 	"oasisTracker/smodels"
-	"strings"
 )
 
 func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, err error) {
@@ -17,55 +15,104 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 		return sAcc, err
 	}
 
+	//Get last account state
 	acc, err := s.nodeAPI.AccountInfo(context.Background(), &api.OwnerQuery{
 		//Latest
 		Height: 0,
 		Owner:  pb,
 	})
 	if err != nil {
-		log.Print(err)
+		return sAcc, err
 	}
 
-	log.Printf("%+v", acc)
-
-	accType := "account"
-	nodeAddress := ""
-
-	for key, value := range acc.Escrow.StakeAccumulator.Claims {
-
-		if len(value) == 1 {
-
-			switch value[0] {
-			case api.KindEntity:
-				accType = value[0].String()
-			case api.KindNodeValidator:
-				splits := strings.Split(string(key), ".")
-				if len(splits) == 3 {
-					nodeAddress = splits[2]
-				}
-
-			}
-		}
-	}
-
+	//Get account Create LastActive time based on txs
 	accountTime, err := s.dao.GetAccountTiming(accountID)
 	if err != nil {
 		return sAcc, err
 	}
 
+	//TODO move to consts
+	accType := "account"
+
+	//Account can be entity but doesn't have validator node
+	if len(acc.Escrow.StakeAccumulator.Claims) > 0 {
+		var kind api.ThresholdKind
+		for _, value := range acc.Escrow.StakeAccumulator.Claims {
+			if len(value) < 1 {
+				continue
+			}
+
+			if value[0] > kind {
+				kind = value[0]
+			}
+		}
+
+		accType = kind.String()
+	}
+
 	liquidBalance := acc.General.Balance.ToBigInt().Uint64()
 	escrowBalance := acc.Escrow.Active.Balance.ToBigInt().Uint64()
 
-	return smodels.Account{
+	sAcc = smodels.Account{
 		Address:          accountID,
 		LiquidBalance:    liquidBalance,
 		EscrowBalance:    escrowBalance,
 		DebondingBalance: acc.Escrow.Debonding.Balance.ToBigInt().Uint64(),
 		TotalBalance:     liquidBalance + escrowBalance,
-		CreatedAt:        accountTime.CreatedAt,
-		LastActive:       accountTime.LastActive,
-		Nonce:            acc.General.Nonce,
 		Type:             accType,
-		NodeAddress:      nodeAddress,
-	}, nil
+		Nonce:            &acc.General.Nonce,
+
+		CreatedAt:  accountTime.CreatedAt,
+		LastActive: accountTime.LastActive,
+	}
+
+	//Check all account because node addresses are displayed only on Entity address
+	resp, err := s.dao.GetAccountValidatorInfo(accountID)
+	if err != nil {
+		return sAcc, err
+	}
+
+	switch {
+	//Node account
+	case resp.IsNode(accountID):
+		sAcc.EntityAddress = resp.GetEntityAddress()
+		sAcc.Type = "node"
+	//Entity account
+	case resp.IsEntity(accountID):
+		ent := resp.GetEntity()
+		sAcc.EntityAddress = ent.EntityID
+
+		depositorsCount, err := s.dao.GetEntityActiveDepositorsCount(accountID)
+		if err != nil {
+			return sAcc, err
+		}
+
+		if ent.CreatedTime.Before(sAcc.CreatedAt) {
+			sAcc.CreatedAt = ent.CreatedTime
+		}
+
+		lastActive := ent.GetLastActiveTime()
+		if lastActive.After(sAcc.LastActive) {
+			sAcc.LastActive = lastActive
+		}
+
+		sAcc.Type = "validator"
+
+		status := "active"
+		if accType != api.KindNodeValidator.String() {
+			status = "inactive"
+		}
+
+		sAcc.Validator = &smodels.Validator{
+			CommissionScheduleRules: smodels.TestNetGenesis,
+			Status:                  status,
+			NodeAddress:             ent.NodeID,
+			ConsensusAddress:        ent.ConsensusAddress,
+			DepositorsCount:         depositorsCount,
+			BlocksCount:             ent.BlocksCount,
+			SignaturesCount:         ent.BlockSignaturesCount,
+		}
+	}
+
+	return sAcc, nil
 }
