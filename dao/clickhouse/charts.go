@@ -8,7 +8,7 @@ import (
 
 func (cl Clickhouse) GetChartsData(params smodels.ChartParams) (resp []dmodels.ChartData, err error) {
 
-	q := sq.Select("start_of_period, toString(sum(toDecimal64(tx_amount,9))) transaction_volume").
+	q := sq.Select("start_of_period, toString(sum(tx_amount)) transaction_volume").
 		From(dmodels.TransactionsTable).
 		Where(sq.GtOrEq{"tx_time": params.From}).
 		Where(sq.LtOrEq{"tx_time": params.To}).

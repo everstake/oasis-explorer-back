@@ -119,7 +119,7 @@ func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]d
 
 	q := sq.Select("*").
 		From(dmodels.TransactionsTable).
-		OrderBy("blk_lvl").
+		OrderBy("blk_lvl desc").
 		Limit(params.Limit).
 		Offset(params.Offset)
 
