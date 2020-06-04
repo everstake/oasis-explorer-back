@@ -1,12 +1,18 @@
 package smodels
 
 type TransactionsParams struct {
-	Limit         uint64
-	Offset        uint64
+	Limit  uint64
+	Offset uint64
+	//Time range
+	From uint64
+	To   uint64
+
 	BlockID       []string `schema:"block_id"`
 	BlockLevel    []int64  `schema:"block_level"`
 	OperationID   []string `schema:"operation_id"`
 	OperationKind []string `schema:"operation_kind"`
+	Sender        string
+	Receiver      string
 }
 
 type Transaction struct {

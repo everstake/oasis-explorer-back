@@ -16,8 +16,6 @@ type BlockParams struct {
 	Offset     uint64
 	BlockID    []string `schema:"block_id"`
 	BlockLevel []int64  `schema:"block_level"`
-	Sender     string
-	Receiver   string
 	//Time range
 	From uint64
 	To   uint64

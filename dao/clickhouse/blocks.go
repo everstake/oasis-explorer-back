@@ -112,19 +112,11 @@ func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlo
 	}
 
 	if params.From > 0 {
-		q = q.Where(sq.GtOrEq{"tx_time": params.From})
+		q = q.Where(sq.GtOrEq{"blk_created_at": params.From})
 	}
 
 	if params.To > 0 {
-		q = q.Where(sq.Lt{"tx_time": params.To})
-	}
-
-	if params.Sender != "" {
-		q = q.Where(sq.Eq{"tx_sender": params.Sender})
-	}
-
-	if params.Receiver != "" {
-		q = q.Where(sq.Eq{"tx_receiver": params.Receiver})
+		q = q.Where(sq.Lt{"blk_created_at": params.To})
 	}
 
 	rawSql, args, err := q.ToSql()
