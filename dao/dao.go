@@ -12,7 +12,7 @@ import (
 type (
 	DAO interface {
 		MySql
-		GetParserDAO() (interface{}, error)
+		GetParserDAO() (ParserDAO, error)
 	}
 	MySql interface {
 		CreateTask(task dmodels.Task) error
@@ -39,6 +39,15 @@ type (
 		GetEntityActiveDepositorsCount(accountID string) (count uint64, err error)
 	}
 
+	ParserDAO interface {
+		CreateBlocks(blocks []dmodels.Block) error
+		CreateBlockSignatures(sig []dmodels.BlockSignature) error
+		CreateAccountBalances(accounts []dmodels.AccountBalance) error
+		CreateTransfers(transfers []dmodels.Transaction) error
+		CreateRegisterNodeTransactions(txs []dmodels.NodeRegistryTransaction) error
+		CreateRegisterEntityTransactions(txs []dmodels.EntityRegistryTransaction) error
+	}
+
 	daoImpl struct {
 		*clickhouse.Clickhouse
 		*mysql.MysqlDAO
@@ -60,7 +69,7 @@ func New(cfg conf.Config) (*daoImpl, error) {
 	}, nil
 }
 
-func (d daoImpl) GetParserDAO() (interface{}, error) {
+func (d daoImpl) GetParserDAO() (ParserDAO, error) {
 	return d.Clickhouse, nil
 }
 

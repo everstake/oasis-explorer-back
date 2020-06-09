@@ -148,7 +148,9 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 	}
 
 	dTxs := make([]dmodels.Transaction, len(txs))
-	var registerTxs []dmodels.RegistryTransaction
+	var nodeRegisterTxs []dmodels.NodeRegistryTransaction
+	var entityRegisterTxs []dmodels.EntityRegistryTransaction
+
 	accountBalanceUpdates := make([]dmodels.AccountBalance, 0, len(txs))
 	for i := range txs {
 		tx := oasis.TxRaw{}
@@ -169,44 +171,31 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 			return err
 		}
 
-		if txType.Type() == dmodels.TransactionTypeRegisterNode {
-			regNode := oasis.RegisterNode{}
-			err = cbor.Unmarshal(raw.Body.RegisterTx.Blob, &regNode)
-			if err != nil {
-				return err
-			}
-
-			var physicalAddress string
-			if len(regNode.Consensus.Addresses) > 0 {
-				physicalAddress = regNode.Consensus.Addresses[0].Address.String()
-			}
-
-			entityBytes, err := regNode.EntityID.MarshalBinary()
-			if err != nil {
-				return err
-			}
-
-			consensusIDBytes, err := regNode.Consensus.ID.MarshalBinary()
-			if err != nil {
-				return err
-			}
-
-			registerTxs = append(registerTxs, dmodels.RegistryTransaction{
-				BlockLevel:       uint64(block.Header.Height),
-				Hash:             hex.EncodeToString(types.Tx(txs[i]).Hash()),
-				Time:             block.Header.Time,
-				ID:               regNode.ID.String(),
-				EntityID:         regNode.EntityID.String(),
-				EntityAddress:    crypto.AddressHash(entityBytes).String(),
-				Expiration:       regNode.Expiration,
-				P2PID:            regNode.P2P.ID.String(),
-				ConsensusID:      regNode.Consensus.ID.String(),
-				ConsensusAddress: crypto.AddressHash(consensusIDBytes).String(),
-				PhysicalAddress:  physicalAddress,
-				Roles:            uint32(regNode.Roles),
-			})
+		//Parse NodeRegister Tx
+		nodeRegisterTx, err := p.parseNodeRegistryTransaction(txType, block, raw)
+		if err != nil {
+			return err
 		}
 
+		if nodeRegisterTx.ID != "" {
+			//Make hash from origin []byte
+			nodeRegisterTx.Hash = hex.EncodeToString(types.Tx(txs[i]).Hash())
+			nodeRegisterTxs = append(nodeRegisterTxs, nodeRegisterTx)
+		}
+
+		//Parse EntityRegister Tx
+		entityRegisterTx, err := p.parseEntityRegistryTransaction(txType, block, raw)
+		if err != nil {
+			return err
+		}
+
+		if entityRegisterTx.ID != "" {
+			//Make hash from origin []byte
+			entityRegisterTx.Hash = hex.EncodeToString(types.Tx(txs[i]).Hash())
+			entityRegisterTxs = append(entityRegisterTxs, entityRegisterTx)
+		}
+
+		//Epoch balance snapshots on another job
 		if !block.IsEpochBlock() {
 			balanceUpdates, err := p.parseAccountBalances(block, tx, raw)
 			if err != nil {
@@ -234,7 +223,7 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 		}
 	}
 
-	p.parserContainer.txs.Add(dTxs, registerTxs)
+	p.parserContainer.txs.Add(dTxs, nodeRegisterTxs, entityRegisterTxs)
 	p.parserContainer.balances.Add(accountBalanceUpdates)
 
 	return nil
@@ -310,5 +299,71 @@ func (p *ParserTask) getAccountBalance(height int64, pubKey signature.PublicKey)
 		EscrowBalanceShare:    accInfo.Escrow.Active.TotalShares.ToBigInt().Uint64(),
 		EscrowDebondingActive: accInfo.Escrow.Debonding.Balance.ToBigInt().Uint64(),
 		EscrowDebondingShare:  accInfo.Escrow.Debonding.TotalShares.ToBigInt().Uint64(),
+	}, nil
+}
+
+func (p *ParserTask) parseNodeRegistryTransaction(txType dmodels.TransactionMethod, block oasis.Block, raw oasis.UntrustedRawValue) (registerTx dmodels.NodeRegistryTransaction, err error) {
+	if txType.Type() != dmodels.TransactionTypeRegisterNode {
+		return
+	}
+
+	regNode := oasis.RegisterNode{}
+	err = cbor.Unmarshal(raw.Body.RegisterTx.Blob, &regNode)
+	if err != nil {
+		return registerTx, err
+	}
+
+	var physicalAddress string
+	if len(regNode.Consensus.Addresses) > 0 {
+		physicalAddress = regNode.Consensus.Addresses[0].Address.String()
+	}
+
+	entityBytes, err := regNode.EntityID.MarshalBinary()
+	if err != nil {
+		return registerTx, err
+	}
+
+	consensusIDBytes, err := regNode.Consensus.ID.MarshalBinary()
+	if err != nil {
+		return registerTx, err
+	}
+
+	return dmodels.NodeRegistryTransaction{
+		BlockLevel:       uint64(block.Header.Height),
+		Time:             block.Header.Time,
+		ID:               regNode.ID.String(),
+		EntityID:         regNode.EntityID.String(),
+		EntityAddress:    crypto.AddressHash(entityBytes).String(),
+		Expiration:       regNode.Expiration,
+		P2PID:            regNode.P2P.ID.String(),
+		ConsensusID:      regNode.Consensus.ID.String(),
+		ConsensusAddress: crypto.AddressHash(consensusIDBytes).String(),
+		PhysicalAddress:  physicalAddress,
+		Roles:            uint32(regNode.Roles),
+	}, nil
+}
+
+func (p *ParserTask) parseEntityRegistryTransaction(txType dmodels.TransactionMethod, block oasis.Block, raw oasis.UntrustedRawValue) (registerTx dmodels.EntityRegistryTransaction, err error) {
+	if txType.Type() != dmodels.TransactionTypeRegisterEntity {
+		return
+	}
+
+	regEntity := oasis.RegisterEntity{}
+	err = cbor.Unmarshal(raw.Body.RegisterTx.Blob, &regEntity)
+	if err != nil {
+		return registerTx, err
+	}
+
+	nodes := make([]string, len(regEntity.Nodes))
+	for i := range regEntity.Nodes {
+		nodes[i] = regEntity.Nodes[i].String()
+	}
+
+	return dmodels.EntityRegistryTransaction{
+		BlockLevel:             uint64(block.Header.Height),
+		Time:                   block.Header.Time,
+		ID:                     regEntity.ID.String(),
+		Nodes:                  nodes,
+		AllowEntitySignedNodes: regEntity.AllowEntitySignedNodes,
 	}, nil
 }

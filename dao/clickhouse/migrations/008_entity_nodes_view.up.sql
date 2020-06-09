@@ -23,7 +23,7 @@ from (
        from (
               --Group all register txs by entity and node
               select reg_entity_id, reg_id, reg_consensus_address, min(tx_time) created_time, max(blk_lvl) blk_lvl
-              from register_transactions
+              from register_node_transactions
               group by reg_entity_id, reg_id, reg_consensus_address
               ) nodes
               ANY

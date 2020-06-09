@@ -5,6 +5,7 @@ import (
 	"go.uber.org/zap"
 	"log"
 	"oasisTracker/api"
+	"oasisTracker/cli"
 	"oasisTracker/common/modules"
 	"oasisTracker/conf"
 	"oasisTracker/dao"
@@ -28,6 +29,17 @@ func main() {
 	d, err := dao.New(cfg)
 	if err != nil {
 		log.Fatal("dao.New", zap.Error(err))
+	}
+
+	args := os.Args[1:]
+	if len(args) > 0 {
+		cli := cli.NewCli(d)
+
+		err = cli.Setup(args)
+		if err != nil {
+			log.Fatal("cli.SetupGenesisJson", zap.Error(err))
+		}
+		return
 	}
 
 	s := services.NewService(cfg, d.GetServiceDAO())
