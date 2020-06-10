@@ -68,7 +68,7 @@ func (api *API) Title() string {
 }
 
 func (api *API) initialize(handlerArr ...negroni.Handler) {
-	api.router = mux.NewRouter()
+	api.router = mux.NewRouter().UseEncodedPath()
 
 	wrapper := negroni.New()
 

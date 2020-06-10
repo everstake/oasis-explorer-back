@@ -32,7 +32,7 @@ func main() {
 	}
 
 	args := os.Args[1:]
-	if len(args) > 0 {
+	if len(args) > 0 && !*parserDisableFlag {
 		cli := cli.NewCli(d)
 
 		err = cli.Setup(args)
