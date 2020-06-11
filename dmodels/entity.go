@@ -3,8 +3,8 @@ package dmodels
 import "time"
 
 const (
-	EntityNodesView                   = "oasis.entity_nodes_view"
-	EntityActiveDepositorsCounterView = "oasis.entity_active_depositors_counter_view"
+	EntityNodesView                   = "entity_nodes_view"
+	EntityActiveDepositorsCounterView = "entity_active_depositors_counter_view"
 )
 
 type EntityNodesContainer struct {

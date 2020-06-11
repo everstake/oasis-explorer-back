@@ -3,9 +3,9 @@ package dmodels
 import "time"
 
 const (
-	AccountBalanceTable          = "oasis.account_balance"
-	DayTotalBalanceView          = "oasis.day_total_balance_view"
-	TopEscrowBalanceAccountsView = "oasis.top_escrow_balance_accounts_view"
+	AccountBalanceTable          = "account_balance"
+	DayTotalBalanceView          = "day_total_balance_view"
+	TopEscrowBalanceAccountsView = "top_escrow_balance_accounts_view"
 )
 
 type AccountTime struct {

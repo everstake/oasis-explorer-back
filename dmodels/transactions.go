@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	TransactionsTable   = "oasis.transactions"
-	RegisterNodeTable   = "oasis.register_node_transactions"
-	RegisterEntityTable = "oasis.register_entity_transactions"
+	TransactionsTable   = "transactions"
+	RegisterNodeTable   = "register_node_transactions"
+	RegisterEntityTable = "register_entity_transactions"
 	Precision           = 9
 )
 

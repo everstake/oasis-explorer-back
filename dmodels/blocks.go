@@ -5,10 +5,10 @@ import (
 )
 
 const (
-	BlocksTable          = "oasis.blocks"
-	BlocksRowView        = "oasis.block_row_view"
-	BlocksSigCountView   = "oasis.blocks_sig_count"
-	BlockSignaturesTable = "oasis.block_signatures"
+	BlocksTable          = "blocks"
+	BlocksRowView        = "block_row_view"
+	BlocksSigCountView   = "blocks_sig_count"
+	BlockSignaturesTable = "block_signatures"
 )
 
 type RowBlock struct {
