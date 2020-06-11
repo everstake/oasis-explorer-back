@@ -22,6 +22,7 @@ type (
 	}
 
 	ServiceDAO interface {
+		GetAccountList(listParams smodels.AccountListParams) (resp []dmodels.AccountList, err error)
 		GetAccountTiming(accountID string) (dmodels.AccountTime, error)
 
 		GetLastBlock() (dmodels.Block, error)

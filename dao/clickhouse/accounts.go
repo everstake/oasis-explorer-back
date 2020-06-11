@@ -4,6 +4,7 @@ import (
 	"fmt"
 	sq "github.com/wedancedalot/squirrel"
 	"oasisTracker/dmodels"
+	"oasisTracker/smodels"
 )
 
 func (cl Clickhouse) GetAccountTiming(accountID string) (resp dmodels.AccountTime, err error) {
@@ -102,6 +103,38 @@ func (cl Clickhouse) GetTopEscrowAccounts(limit uint64) (resp []dmodels.AccountB
 		row := dmodels.AccountBalance{}
 
 		err := rows.Scan(&row.Account, &row.Height, &row.Time, &row.Nonce, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.EscrowDebondingActive, &row.EscrowDebondingShare)
+		if err != nil {
+			return resp, err
+		}
+
+		resp = append(resp, row)
+	}
+
+	return resp, nil
+}
+
+func (cl Clickhouse) GetAccountList(listParams smodels.AccountListParams) (resp []dmodels.AccountList, err error) {
+
+	q := sq.Select("*").
+		From(dmodels.AccountListTable).
+		OrderBy(listParams.SortColumn + " desc").
+		Limit(listParams.Limit)
+
+	rawSql, args, err := q.ToSql()
+	if err != nil {
+		return resp, err
+	}
+
+	rows, err := cl.db.conn.Query(rawSql, args...)
+	if err != nil {
+		return resp, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		row := dmodels.AccountList{}
+
+		err := rows.Scan(&row.Account, &row.CreatedAt, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.Delegate, &row.EntityRegisterBlock, &row.NodeRegisterBlock)
 		if err != nil {
 			return resp, err
 		}

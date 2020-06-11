@@ -1,13 +1,66 @@
 package smodels
 
 import (
+	"fmt"
 	"github.com/oasislabs/oasis-core/go/staking/api"
 	"oasisTracker/dmodels"
+	"sort"
 	"sync"
 	"time"
 )
 
-//const
+func NewAccountListParams() AccountListParams {
+	return AccountListParams{
+		Limit:      50,
+		SortColumn: sortCreatedAt,
+	}
+}
+
+const (
+	sortCreatedAt      = "created_at"
+	sortBalance        = "balance"
+	sortShare          = "share"
+	AccountTypeAccount = "account"
+	AccountTypeNode    = "node"
+	AccountTypeEntity  = "entity"
+)
+
+//Sorted
+var sortColumns = []string{sortBalance, sortCreatedAt, sortShare}
+
+func (b AccountListParams) Validate() error {
+	if b.Limit == 0 {
+		return fmt.Errorf("limit not present")
+	}
+
+	if b.SortColumn == "" {
+		return fmt.Errorf("sort column not present")
+	}
+
+	//Not found
+	if sort.SearchStrings(sortColumns, b.SortColumn) == len(sortColumns) {
+		return fmt.Errorf("sort column unknown")
+	}
+
+	return nil
+}
+
+type AccountListParams struct {
+	Limit      uint64
+	Offset     uint64
+	SortColumn string
+}
+
+type AccountList struct {
+	Account            string `json:"account_id"`
+	CreatedAt          int64  `json:"created_at"`
+	GeneralBalance     uint64 `json:"general_balance"`
+	EscrowBalance      uint64 `json:"escrow_balance"`
+	EscrowBalanceShare uint64 `json:"escrow_balance_share"`
+	Delegate           string `json:"delegate"`
+	Type               string `json:"type"`
+}
+
 type Account struct {
 	Address          string    `json:"address"`
 	LiquidBalance    uint64    `json:"liquid_balance"`
