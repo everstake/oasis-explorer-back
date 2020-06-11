@@ -10,8 +10,7 @@ import (
 
 func (api *API) GetTransactionsList(w http.ResponseWriter, r *http.Request) {
 
-	params := smodels.TransactionsParams{}
-
+	params := smodels.NewTransactionsParams()
 	err := api.queryDecoder.Decode(&params, r.URL.Query())
 	if err != nil {
 		response.JsonError(w, err)

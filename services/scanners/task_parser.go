@@ -205,7 +205,9 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 		}
 
 		dTxs[i] = dmodels.Transaction{
-			BlockLevel:          uint64(block.Header.Height),
+			BlockLevel: uint64(block.Header.Height),
+			//Todo change to lower
+			//Upper case
 			BlockHash:           block.Hash.String(),
 			Hash:                hex.EncodeToString(types.Tx(txs[i]).Hash()),
 			Time:                block.Header.Time,
