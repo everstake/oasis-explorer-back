@@ -118,7 +118,8 @@ func (cl Clickhouse) GetAccountList(listParams smodels.AccountListParams) (resp 
 	q := sq.Select("*").
 		From(dmodels.AccountListTable).
 		OrderBy(listParams.SortColumn + " desc").
-		Limit(listParams.Limit)
+		Limit(listParams.Limit).
+		Offset(listParams.Offset)
 
 	rawSql, args, err := q.ToSql()
 	if err != nil {
