@@ -117,7 +117,7 @@ func (cl Clickhouse) GetAccountList(listParams smodels.AccountListParams) (resp 
 
 	q := sq.Select("*").
 		From(dmodels.AccountListTable).
-		OrderBy(listParams.SortColumn + " desc").
+		OrderBy(fmt.Sprintf("%s %s", listParams.SortColumn, listParams.SortSide)).
 		Limit(listParams.Limit).
 		Offset(listParams.Offset)
 
@@ -135,7 +135,7 @@ func (cl Clickhouse) GetAccountList(listParams smodels.AccountListParams) (resp 
 	for rows.Next() {
 		row := dmodels.AccountList{}
 
-		err := rows.Scan(&row.Account, &row.CreatedAt, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.Delegate, &row.EntityRegisterBlock, &row.NodeRegisterBlock)
+		err := rows.Scan(&row.Account, &row.CreatedAt, &row.OperationsAmount, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.Delegate, &row.EntityRegisterBlock, &row.NodeRegisterBlock)
 		if err != nil {
 			return resp, err
 		}

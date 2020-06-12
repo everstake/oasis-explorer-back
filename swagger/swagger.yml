@@ -38,8 +38,13 @@ paths:
           default: 0
           minimum: 0
         - in: query
-          name: sort_string
+          name: sort_column
           type: string
+          enum: [created_at, general_balance, escrow_balance, escrow_share, operations_amount]
+        - in: query
+          name: sort_side
+          type: string
+          enum: [asc,desc]
       responses:
         '200':
           description: Query compatibility endpoint for account

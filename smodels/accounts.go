@@ -13,20 +13,26 @@ func NewAccountListParams() AccountListParams {
 	return AccountListParams{
 		Limit:      50,
 		SortColumn: sortCreatedAt,
+		SortSide:   sortDesc,
 	}
 }
 
 const (
-	sortCreatedAt      = "created_at"
-	sortBalance        = "balance"
-	sortShare          = "share"
-	AccountTypeAccount = "account"
-	AccountTypeNode    = "node"
-	AccountTypeEntity  = "entity"
+	sortCreatedAt        = "created_at"
+	sortBalance          = "general_balance"
+	sortEscrowBalance    = "escrow_balance"
+	sortEscrowShare      = "escrow_share"
+	sortOperationsAmount = "operations_amount"
+	sortAsc              = "asc"
+	sortDesc             = "desc"
+	AccountTypeAccount   = "account"
+	AccountTypeNode      = "node"
+	AccountTypeEntity    = "entity"
 )
 
 //Sorted
-var sortColumns = []string{sortBalance, sortCreatedAt, sortShare}
+var sortColumns = []string{sortCreatedAt, sortEscrowBalance, sortEscrowShare, sortBalance, sortOperationsAmount}
+var sortSides = []string{sortAsc, sortDesc}
 
 func (b AccountListParams) Validate() error {
 	if b.Limit == 0 {
@@ -42,18 +48,29 @@ func (b AccountListParams) Validate() error {
 		return fmt.Errorf("sort column unknown")
 	}
 
+	if b.SortSide == "" {
+		return fmt.Errorf("sort side not present")
+	}
+
+	//Not found
+	if sort.SearchStrings(sortSides, b.SortSide) == len(sortSides) {
+		return fmt.Errorf("sort side unknown")
+	}
+
 	return nil
 }
 
 type AccountListParams struct {
 	Limit      uint64
 	Offset     uint64
-	SortColumn string
+	SortColumn string `schema:"sort_column"`
+	SortSide   string `schema:"sort_side"`
 }
 
 type AccountList struct {
 	Account            string `json:"account_id"`
 	CreatedAt          int64  `json:"created_at"`
+	OperationsAmount   uint64 `json:"operations_amount"`
 	GeneralBalance     uint64 `json:"general_balance"`
 	EscrowBalance      uint64 `json:"escrow_balance"`
 	EscrowBalanceShare uint64 `json:"escrow_balance_share"`

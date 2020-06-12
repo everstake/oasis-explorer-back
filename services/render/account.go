@@ -19,6 +19,7 @@ func AccountListElement(a dmodels.AccountList) smodels.AccountList {
 	return smodels.AccountList{
 		Account:            a.Account,
 		CreatedAt:          a.CreatedAt.Unix(),
+		OperationsAmount:   a.OperationsAmount,
 		GeneralBalance:     a.GeneralBalance,
 		EscrowBalance:      a.EscrowBalanceActive,
 		EscrowBalanceShare: a.EscrowBalanceShare,

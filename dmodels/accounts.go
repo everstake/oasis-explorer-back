@@ -29,9 +29,10 @@ type AccountBalance struct {
 type AccountList struct {
 	Account             string    `db:"acb_account"`
 	CreatedAt           time.Time `db:"created_at"`
-	GeneralBalance      uint64    `db:"acb_general_balance"`
-	EscrowBalanceActive uint64    `db:"acb_escrow_balance_active"`
-	EscrowBalanceShare  uint64    `db:"acb_escrow_balance_share"`
+	OperationsAmount    uint64    `db:"operations_amount"`
+	GeneralBalance      uint64    `db:"general_balance"`
+	EscrowBalanceActive uint64    `db:"escrow_balance"`
+	EscrowBalanceShare  uint64    `db:"escrow_share"`
 	Delegate            string    `db:"delegate"`
 	EntityRegisterBlock uint64    `db:"entity"`
 	NodeRegisterBlock   uint64    `db:"node"`
