@@ -65,9 +65,8 @@ CREATE VIEW IF NOT EXISTS account_operations_amount_view AS
 SELECT acb_account,
        sum(operations_amount) operations_amount
 FROM account_operations_amount_mv
-GROUP BY acb_account
+GROUP BY acb_account;
 
---
 CREATE VIEW IF NOT EXISTS account_list_view AS
 select acb_account, created_at, operations_amount, acb_general_balance general_balance, acb_escrow_balance_active escrow_balance, acb_escrow_balance_share escrow_share, tx_escrow_account delegate, entity.blk_lvl entity, prp.blk_lvl node from (
 select *

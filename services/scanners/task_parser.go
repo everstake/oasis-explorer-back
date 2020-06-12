@@ -64,6 +64,7 @@ func (p *ParserTask) BalanceSnapshot(blockID uint64) error {
 func (p *ParserTask) parseOasisBase(blockData *consensusAPI.Block, parseFlag ParseFlag) (err error) {
 
 	b := oasis.Block{}
+	//Nil pointer err
 	err = cbor.Unmarshal(blockData.Meta, &b)
 	if err != nil {
 		return err
