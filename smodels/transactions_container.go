@@ -6,9 +6,10 @@ import (
 )
 
 type TxsContainer struct {
-	txs         []dmodels.Transaction
-	registryTxs []dmodels.RegistryTransaction
-	mu          *sync.Mutex
+	txs               []dmodels.Transaction
+	nodeRegistryTxs   []dmodels.NodeRegistryTransaction
+	entityRegistryTxs []dmodels.EntityRegistryTransaction
+	mu                *sync.Mutex
 }
 
 func NewTxsContainer() *TxsContainer {
@@ -18,10 +19,11 @@ func NewTxsContainer() *TxsContainer {
 	}
 }
 
-func (c *TxsContainer) Add(txs []dmodels.Transaction, registerTxs []dmodels.RegistryTransaction) {
+func (c *TxsContainer) Add(txs []dmodels.Transaction, nodeRegistryTxs []dmodels.NodeRegistryTransaction, entityRegistryTxs []dmodels.EntityRegistryTransaction) {
 	c.mu.Lock()
 	c.txs = append(c.txs, txs...)
-	c.registryTxs = append(c.registryTxs, registerTxs...)
+	c.nodeRegistryTxs = append(c.nodeRegistryTxs, nodeRegistryTxs...)
+	c.entityRegistryTxs = append(c.entityRegistryTxs, entityRegistryTxs...)
 	c.mu.Unlock()
 }
 
@@ -29,15 +31,20 @@ func (c *TxsContainer) Txs() []dmodels.Transaction {
 	return c.txs
 }
 
-func (c *TxsContainer) RegistryTxs() []dmodels.RegistryTransaction {
-	return c.registryTxs
+func (c *TxsContainer) NodeRegistryTxs() []dmodels.NodeRegistryTransaction {
+	return c.nodeRegistryTxs
+}
+
+func (c *TxsContainer) EntityRegistryTxs() []dmodels.EntityRegistryTransaction {
+	return c.entityRegistryTxs
 }
 
 func (c *TxsContainer) IsEmpty() bool {
-	return len(c.txs) == 0 && len(c.registryTxs) == 0
+	return len(c.txs) == 0 && len(c.nodeRegistryTxs) == 0 && len(c.entityRegistryTxs) == 0
 }
 
 func (c *TxsContainer) Flush() {
 	c.txs = []dmodels.Transaction{}
-	c.registryTxs = []dmodels.RegistryTransaction{}
+	c.nodeRegistryTxs = []dmodels.NodeRegistryTransaction{}
+	c.entityRegistryTxs = []dmodels.EntityRegistryTransaction{}
 }

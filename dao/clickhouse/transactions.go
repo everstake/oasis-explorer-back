@@ -2,10 +2,12 @@ package clickhouse
 
 import (
 	"fmt"
+	"github.com/ClickHouse/clickhouse-go"
 	sq "github.com/wedancedalot/squirrel"
 	"log"
 	"oasisTracker/dmodels"
 	"oasisTracker/smodels"
+	"strings"
 )
 
 func (cl Clickhouse) CreateTransfers(transfers []dmodels.Transaction) error {
@@ -62,7 +64,7 @@ func (cl Clickhouse) CreateTransfers(transfers []dmodels.Transaction) error {
 	return nil
 }
 
-func (cl Clickhouse) CreateRegisterTransactions(txs []dmodels.RegistryTransaction) error {
+func (cl Clickhouse) CreateRegisterNodeTransactions(txs []dmodels.NodeRegistryTransaction) error {
 	if len(txs) == 0 {
 		return nil
 	}
@@ -75,7 +77,7 @@ func (cl Clickhouse) CreateRegisterTransactions(txs []dmodels.RegistryTransactio
 
 	stmt, err := tx.Prepare(
 		fmt.Sprintf("INSERT INTO %s (blk_lvl, tx_time, tx_hash, reg_id, reg_entity_id, reg_entity_address, reg_expiration, reg_p2p_id, reg_consensus_id, reg_consensus_address, reg_physical_address, reg_roles)"+
-			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.RegisterTransactionsTable))
+			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.RegisterNodeTable))
 	if err != nil {
 		return err
 	}
@@ -113,6 +115,51 @@ func (cl Clickhouse) CreateRegisterTransactions(txs []dmodels.RegistryTransactio
 	return nil
 }
 
+func (cl Clickhouse) CreateRegisterEntityTransactions(txs []dmodels.EntityRegistryTransaction) error {
+	if len(txs) == 0 {
+		return nil
+	}
+
+	var err error
+	tx, err := cl.db.conn.Begin()
+	if err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare(
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, tx_time, tx_hash, reg_entity_id, reg_nodes, reg_allow_entity_signed_nodes)"+
+			"VALUES (?, ?, ?, ?, ?, ?)", dmodels.RegisterEntityTable))
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for i := range txs {
+
+		if txs[i].Time.IsZero() {
+			return fmt.Errorf("timestamp can not be 0")
+		}
+
+		_, err = stmt.Exec(
+			txs[i].BlockLevel,
+			txs[i].Time,
+			txs[i].Hash,
+			txs[i].ID,
+			clickhouse.Array(txs[i].Nodes),
+			txs[i].AllowEntitySignedNodes,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]dmodels.Transaction, error) {
 
 	resp := make([]dmodels.Transaction, 0, params.Limit)
@@ -136,6 +183,10 @@ func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]d
 	}
 
 	if len(params.BlockID) > 0 {
+		//Todo choose common case
+		for i := range params.BlockID {
+			params.BlockID[i] = strings.ToUpper(params.BlockID[i])
+		}
 		q = q.Where(sq.Eq{"blk_hash": params.BlockID})
 	}
 
@@ -159,8 +210,6 @@ func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]d
 	if err != nil {
 		return resp, err
 	}
-
-	log.Print(rawSql)
 
 	rows, err := cl.db.conn.Query(rawSql, args...)
 	if err != nil {

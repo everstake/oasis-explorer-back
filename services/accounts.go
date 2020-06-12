@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/oasislabs/oasis-core/go/common/crypto/signature"
 	"github.com/oasislabs/oasis-core/go/staking/api"
+	"oasisTracker/services/render"
 	"oasisTracker/smodels"
 )
 
@@ -31,8 +32,7 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 		return sAcc, err
 	}
 
-	//TODO move to consts
-	accType := "account"
+	accType := smodels.AccountTypeAccount
 
 	//Account can be entity but doesn't have validator node
 	if len(acc.Escrow.StakeAccumulator.Claims) > 0 {
@@ -76,7 +76,7 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 	//Node account
 	case resp.IsNode(accountID):
 		sAcc.EntityAddress = resp.GetEntityAddress()
-		sAcc.Type = "node"
+		sAcc.Type = smodels.AccountTypeNode
 	//Entity account
 	case resp.IsEntity(accountID):
 		ent := resp.GetEntity()
@@ -115,4 +115,26 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 	}
 
 	return sAcc, nil
+}
+
+func (s *ServiceFacade) GetAccountList(listParams smodels.AccountListParams) (sAcc []smodels.AccountList, err error) {
+
+	list, err := s.dao.GetAccountList(listParams)
+	if err != nil {
+		return sAcc, err
+	}
+
+	for i := range list {
+		accountType := smodels.AccountTypeAccount
+		switch {
+		case list[i].NodeRegisterBlock > 0:
+			accountType = smodels.AccountTypeNode
+		case list[i].EntityRegisterBlock > 0:
+			accountType = smodels.AccountTypeEntity
+		}
+
+		list[i].Type = accountType
+	}
+
+	return render.AccountList(list), nil
 }

@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	TransactionsTable         = "oasis.transactions"
-	RegisterTransactionsTable = "oasis.register_transactions"
-	Precision                 = 9
+	TransactionsTable   = "transactions"
+	RegisterNodeTable   = "register_node_transactions"
+	RegisterEntityTable = "register_entity_transactions"
+	Precision           = 9
 )
 
 type TransactionMethod struct {
@@ -63,7 +64,7 @@ type Transaction struct {
 	GasPrice            uint64          `db:"tx_gas_price"`
 }
 
-type RegistryTransaction struct {
+type NodeRegistryTransaction struct {
 	BlockLevel       uint64    `db:"blk_lvl"`
 	Hash             string    `db:"tx_hash"`
 	Time             time.Time `db:"tx_time"`
@@ -76,4 +77,13 @@ type RegistryTransaction struct {
 	ConsensusAddress string
 	PhysicalAddress  string
 	Roles            uint32
+}
+
+type EntityRegistryTransaction struct {
+	BlockLevel             uint64    `db:"blk_lvl"`
+	Hash                   string    `db:"tx_hash"`
+	Time                   time.Time `db:"tx_time"`
+	ID                     string
+	Nodes                  []string
+	AllowEntitySignedNodes bool
 }

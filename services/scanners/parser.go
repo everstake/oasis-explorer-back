@@ -10,7 +10,7 @@ import (
 	grpcCommon "google.golang.org/grpc"
 	"log"
 	"oasisTracker/conf"
-	"oasisTracker/dmodels"
+	"oasisTracker/dao"
 	"oasisTracker/smodels"
 	"strconv"
 	"time"
@@ -37,7 +37,7 @@ type (
 	Parser    struct {
 		ctx context.Context
 
-		dao  DAO
+		dao  dao.ParserDAO
 		api  consensusAPI.ClientBackend
 		conn *grpcCommon.ClientConn
 
@@ -50,17 +50,9 @@ type (
 		txs             *smodels.TxsContainer
 		balances        *smodels.AccountsContainer
 	}
-
-	DAO interface {
-		CreateBlocks(blocks []dmodels.Block) error
-		CreateBlockSignatures(sig []dmodels.BlockSignature) error
-		CreateAccountBalances(accounts []dmodels.AccountBalance) error
-		CreateTransfers(transfers []dmodels.Transaction) error
-		CreateRegisterTransactions(txs []dmodels.RegistryTransaction) error
-	}
 )
 
-func NewParser(ctx context.Context, cfg conf.Scanner, tezosdDAO interface{}) (*Parser, error) {
+func NewParser(ctx context.Context, cfg conf.Scanner, d dao.ParserDAO) (*Parser, error) {
 	grpcConn, err := grpc.Dial(cfg.NodeConfig, grpcCommon.WithInsecure())
 	if err != nil {
 		return nil, err
@@ -68,10 +60,6 @@ func NewParser(ctx context.Context, cfg conf.Scanner, tezosdDAO interface{}) (*P
 
 	cAPI := consensusAPI.NewConsensusClient(grpcConn)
 
-	d, ok := tezosdDAO.(DAO)
-	if !ok {
-		return nil, fmt.Errorf("can`t cast to oasis DAO")
-	}
 	return &Parser{
 		ctx:  ctx,
 		conn: grpcConn,
@@ -136,9 +124,14 @@ func (p *Parser) Save() (err error) {
 
 		log.Print("Save time Transfers: ", time.Since(tm))
 
-		err = p.dao.CreateRegisterTransactions(p.container.txs.RegistryTxs())
+		err = p.dao.CreateRegisterNodeTransactions(p.container.txs.NodeRegistryTxs())
 		if err != nil {
-			return fmt.Errorf("dao.CreateRegisterTransactions: %s", err.Error())
+			return fmt.Errorf("dao.CreateRegisterNodeTransactions: %s", err.Error())
+		}
+
+		err = p.dao.CreateRegisterEntityTransactions(p.container.txs.EntityRegistryTxs())
+		if err != nil {
+			return fmt.Errorf("dao.CreateRegisterEntityTransactions: %s", err.Error())
 		}
 
 		p.container.txs.Flush()

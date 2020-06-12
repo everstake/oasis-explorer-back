@@ -1,1 +1,1 @@
-DROP TABLE register_transactions;
+DROP TABLE register_node_transactions;

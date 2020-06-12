@@ -1,5 +1,12 @@
 package smodels
 
+//Constructor to setup default values
+func NewTransactionsParams() TransactionsParams {
+	return TransactionsParams{
+		Limit: 20,
+	}
+}
+
 type TransactionsParams struct {
 	Limit  uint64
 	Offset uint64

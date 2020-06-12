@@ -19,6 +19,47 @@ paths:
           description: Internal error
       tags:
         - App Info
+  '/data/accounts':
+    get:
+      operationId: getAccountsList
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: limit
+          type: integer
+          default: 50
+          minimum: 1
+          maximum: 500
+        - in: query
+          name: offset
+          description: Offset
+          type: integer
+          default: 0
+          minimum: 0
+        - in: query
+          name: sort_column
+          type: string
+          enum: [created_at, general_balance, escrow_balance, escrow_share, operations_amount]
+        - in: query
+          name: sort_side
+          type: string
+          enum: [asc,desc]
+      responses:
+        '200':
+          description: Query compatibility endpoint for account
+          schema:
+            items:
+              $ref: '#/definitions/AccountListItem'
+            type: array
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+        '500':
+          description: Internal error
+      tags:
+        - Accounts
   '/data/accounts/{account_id}':
     get:
       operationId: getAccount
@@ -263,11 +304,75 @@ definitions:
         type: number
         format: float64
     type: object
-  AccountsRow:
+  AccountListItem:
     properties:
       account_id:
         type: string
-      balance:
+      created_at:
+        format: int64
+        type: integer
+      general_balance:
+        format: int64
+        type: integer
+      escrow_balance:
+        format: int64
+        type: integer
+      escrow_balance_share:
+        format: int64
+        type: integer
+      delegate:
+        type: string
+      type:
+        type: string
+    required:
+      - general_balance
+      - escrow_balance
+      - escrow_balance_share
+      - account_id
+    type: object
+  ValidatorInfo:
+    properties:
+      status:
+        type: string
+      node_address:
+        type: string
+      consensus_address:
+        type: string
+      depositors_count:
+        format: int64
+        type: integer
+      blocks_count:
+        format: int64
+        type: integer
+      signatures_count:
+        format: int64
+        type: integer
+      rate_change_interval:
+        format: int64
+        type: integer
+      rate_bound_lead:
+        format: int64
+        type: integer
+      max_rate_steps:
+        format: int64
+        type: integer
+      max_bound_steps:
+        format: int64
+        type: integer
+  AccountsRow:
+    properties:
+      address:
+        type: string
+      liquid_balance:
+        format: int64
+        type: integer
+      escrow_balance:
+        format: int64
+        type: integer
+      debonding_balance:
+        format: int64
+        type: integer
+      total_balance:
         format: int64
         type: integer
       created_at:
@@ -276,9 +381,20 @@ definitions:
       last_active:
         format: int64
         type: integer
+      nonce:
+        format: int64
+        type: integer
+      type:
+        format: string
+      entity_address:
+        format: string
+      validator:
+        $ref: '#/definitions/ValidatorInfo'
     required:
-      - balance
-      - account_id
+      - address
+      - liquid_balance
+      - escrow_balance
+      - debonding_balance
     type: object
   BlocksRow:
     properties:

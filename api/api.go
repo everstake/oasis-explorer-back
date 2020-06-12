@@ -68,7 +68,7 @@ func (api *API) Title() string {
 }
 
 func (api *API) initialize(handlerArr ...negroni.Handler) {
-	api.router = mux.NewRouter()
+	api.router = mux.NewRouter().UseEncodedPath()
 
 	wrapper := negroni.New()
 
@@ -94,6 +94,7 @@ func (api *API) initialize(handlerArr ...negroni.Handler) {
 		{Path: "/api", Method: http.MethodGet, Func: api.GetSwaggerAPI},
 		{Path: "/metrics_config", Method: http.MethodGet, Func: api.GetMetricsConfig},
 		{Path: "/data/info", Method: http.MethodGet, Func: api.GetInfo},
+		{Path: "/data/accounts", Method: http.MethodGet, Func: api.GetAccountList},
 		{Path: "/data/accounts/{account_id}", Method: http.MethodGet, Func: api.GetAccountInfo},
 		{Path: "/data/blocks", Method: http.MethodGet, Func: api.GetBlocksList},
 		{Path: "/data/transactions", Method: http.MethodGet, Func: api.GetTransactionsList},

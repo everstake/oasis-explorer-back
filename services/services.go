@@ -19,6 +19,7 @@ type (
 		GetAccountInfo(accountID string) (smodels.Account, error)
 		GetChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
 		GetEscrowRatioChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
+		GetAccountList(listParams smodels.AccountListParams) ([]smodels.AccountList, error)
 	}
 
 	ServiceFacade struct {

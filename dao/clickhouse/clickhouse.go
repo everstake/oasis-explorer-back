@@ -46,28 +46,29 @@ func newConnection(cfg conf.Clickhouse) (*sql.DB, error) {
 		return nil, fmt.Errorf("can`t make connection: %s", err.Error())
 	}
 
-	//Temp disable
-	//err = makeMigration(conn, migrationsDir, cfg.Database)
-	//if err != nil {
-	//	return nil, fmt.Errorf("can`t make makeMigration: %s", err.Error())
-	//}
+	err = makeMigration(conn, migrationsDir, cfg.Database)
+	if err != nil {
+		return nil, fmt.Errorf("can`t make makeMigration: %s", err.Error())
+	}
 
 	return conn, nil
 }
 
 func makeSource(cfg conf.Clickhouse) string {
-	return fmt.Sprintf("%s://%s:%d/%s?password=%s&user=%s",
+	return fmt.Sprintf("%s://%s:%d/%s?password=%s&user=%s&database=%s",
 		strings.Trim(cfg.Protocol, "://"),
 		strings.Trim(cfg.Host, "/"),
 		cfg.Port,
 		cfg.Database,
 		cfg.Password,
 		cfg.User,
+		//For Clickhouse driver
+		cfg.Database,
 	)
 }
 
 func makeMigration(conn *sql.DB, migrationDir string, dbName string) error {
-	driver, err := goclickhouse.WithInstance(conn, &goclickhouse.Config{})
+	driver, err := goclickhouse.WithInstance(conn, &goclickhouse.Config{DatabaseName: dbName, MultiStatementEnabled: true})
 	if err != nil {
 		return fmt.Errorf("clickhouse.WithInstance: %s", err.Error())
 	}

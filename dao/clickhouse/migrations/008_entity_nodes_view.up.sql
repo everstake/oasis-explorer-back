@@ -1,4 +1,4 @@
-CREATE VIEW entity_depositors_view AS
+CREATE VIEW IF NOT EXISTS entity_depositors_view AS
 select *, add.input - remove.output balance from (
   select tx_escrow_account, tx_sender, sum(tx_escrow_amount) input
   from transactions
@@ -11,7 +11,7 @@ select *, add.input - remove.output balance from (
          where tx_type = 'reclaimescrow'
          group by tx_escrow_account, tx_sender) remove USING tx_escrow_account, tx_sender;
 
-CREATE VIEW entity_active_depositors_counter_view AS
+CREATE VIEW IF NOT EXISTS entity_active_depositors_counter_view AS
   SELECT tx_escrow_account reg_entity_id, count() depositors_num from entity_depositors_view
   where balance > 0
   group by tx_escrow_account;
@@ -23,7 +23,7 @@ from (
        from (
               --Group all register txs by entity and node
               select reg_entity_id, reg_id, reg_consensus_address, min(tx_time) created_time, max(blk_lvl) blk_lvl
-              from register_transactions
+              from register_node_transactions
               group by reg_entity_id, reg_id, reg_consensus_address
               ) nodes
               ANY
