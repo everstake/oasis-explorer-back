@@ -48,6 +48,7 @@ func (api *API) GetAccountList(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("params.Validate", zap.Error(err))
 		response.JsonError(w, apperrors.New(apperrors.ErrBadParam, err.Error()))
+		return
 	}
 
 	accs, err := api.services.GetAccountList(params)

@@ -23,6 +23,7 @@ func (api *API) GetTransactionsVolume(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("params.Validate", zap.Error(err))
 		response.JsonError(w, apperrors.New(apperrors.ErrBadParam, err.Error()))
+		return
 	}
 
 	data, err := api.services.GetChartData(params)
@@ -49,6 +50,7 @@ func (api *API) GetEscrowRatio(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("params.Validate", zap.Error(err))
 		response.JsonError(w, apperrors.New(apperrors.ErrBadParam, err.Error()))
+		return
 	}
 
 	data, err := api.services.GetEscrowRatioChartData(params)

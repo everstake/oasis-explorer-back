@@ -44,7 +44,8 @@ func (b AccountListParams) Validate() error {
 	}
 
 	//Not found
-	if sort.SearchStrings(sortColumns, b.SortColumn) == len(sortColumns) {
+	index := sort.SearchStrings(sortColumns, b.SortColumn)
+	if index == len(sortColumns) || sortColumns[index] != b.SortColumn {
 		return fmt.Errorf("sort column unknown")
 	}
 
@@ -53,7 +54,8 @@ func (b AccountListParams) Validate() error {
 	}
 
 	//Not found
-	if sort.SearchStrings(sortSides, b.SortSide) == len(sortSides) {
+	index = sort.SearchStrings(sortSides, b.SortSide)
+	if index == len(sortSides) || sortSides[index] != b.SortSide {
 		return fmt.Errorf("sort side unknown")
 	}
 

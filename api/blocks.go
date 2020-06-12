@@ -22,6 +22,7 @@ func (api *API) GetBlocksList(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("params.Validate", zap.Error(err))
 		response.JsonError(w, apperrors.New(apperrors.ErrBadParam, err.Error()))
+		return
 	}
 
 	blocks, err := api.services.GetBlockList(params)
