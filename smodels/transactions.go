@@ -3,13 +3,14 @@ package smodels
 //Constructor to setup default values
 func NewTransactionsParams() TransactionsParams {
 	return TransactionsParams{
-		Limit: 20,
+		CommonParams: CommonParams{
+			Limit: 20,
+		},
 	}
 }
 
 type TransactionsParams struct {
-	Limit  uint64
-	Offset uint64
+	CommonParams
 	//Time range
 	From uint64
 	To   uint64

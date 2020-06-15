@@ -103,7 +103,7 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 			status = "inactive"
 		}
 
-		sAcc.Validator = &smodels.Validator{
+		sAcc.Validator = &smodels.ValidatorInfo{
 			CommissionScheduleRules: smodels.TestNetGenesis,
 			Status:                  status,
 			NodeAddress:             ent.NodeID,

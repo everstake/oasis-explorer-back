@@ -11,7 +11,10 @@ import (
 
 func NewAccountListParams() AccountListParams {
 	return AccountListParams{
-		Limit:      50,
+		CommonParams: CommonParams{
+			Limit:  50,
+			Offset: 0,
+		},
 		SortColumn: sortCreatedAt,
 		SortSide:   sortDesc,
 	}
@@ -35,8 +38,9 @@ var sortColumns = []string{sortCreatedAt, sortEscrowBalance, sortEscrowShare, so
 var sortSides = []string{sortAsc, sortDesc}
 
 func (b AccountListParams) Validate() error {
-	if b.Limit == 0 {
-		return fmt.Errorf("limit not present")
+
+	if err := b.CommonParams.Validate(); err != nil {
+		return err
 	}
 
 	if b.SortColumn == "" {
@@ -63,8 +67,7 @@ func (b AccountListParams) Validate() error {
 }
 
 type AccountListParams struct {
-	Limit      uint64
-	Offset     uint64
+	CommonParams
 	SortColumn string `schema:"sort_column"`
 	SortSide   string `schema:"sort_side"`
 }
@@ -91,8 +94,8 @@ type Account struct {
 	Nonce            *uint64   `json:"nonce"`
 	Type             string    `json:"type"`
 
-	EntityAddress string     `json:"entity_address,omitempty"`
-	Validator     *Validator `json:"validator"`
+	EntityAddress string         `json:"entity_address,omitempty"`
+	Validator     *ValidatorInfo `json:"validator"`
 }
 
 var TestNetGenesis = api.CommissionScheduleRules{
@@ -102,11 +105,11 @@ var TestNetGenesis = api.CommissionScheduleRules{
 	MaxBoundSteps:      21,
 }
 
-type Validator struct {
+type ValidatorInfo struct {
 	api.CommissionScheduleRules
 	Status           string `json:"status"`
 	NodeAddress      string `json:"node_address,omitempty"`
-	ConsensusAddress string `json:"consensus_address,"`
+	ConsensusAddress string `json:"consensus_address,omitempty"`
 	DepositorsCount  uint64 `json:"depositors_count,omitempty"`
 	BlocksCount      uint64 `json:"blocks_count"`
 	SignaturesCount  uint64 `json:"signatures_count"`
