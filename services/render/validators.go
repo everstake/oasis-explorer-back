@@ -24,7 +24,6 @@ func Validator(a dmodels.Validator) smodels.Validator {
 		CreatedAt:      a.ValidateSince.Unix(),
 		ValidatorInfo: smodels.ValidatorInfo{
 			Status:          a.Status,
-			NodeAddress:     a.NodeAddress,
 			DepositorsCount: a.DepositorsNum,
 			BlocksCount:     a.BlocksCount,
 			SignaturesCount: a.SignaturesCount,

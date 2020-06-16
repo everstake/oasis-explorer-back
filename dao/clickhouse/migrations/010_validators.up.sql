@@ -66,21 +66,35 @@ CREATE TABLE IF NOT EXISTS public_validators
     PARTITION BY reg_entity_id
     ORDER BY (reg_entity_id);
 
+CREATE VIEW IF NOT EXISTS validator_entity_view AS
+select reg_entity_id,
+       max(blk_lvl)         blk_lvl,
+       min(created_time)    created_time,
+       max(reg_expiration)  reg_expiration,
+       max(last_block_time) last_block_time,
+       sum(blocks)          blocks,
+       sum(signatures)      signatures
+from entity_nodes_view
+GROUP BY reg_entity_id;
+
+
 CREATE VIEW IF NOT EXISTS validators_list_view AS
 select *
 from (
        select *, CASE WHEN reg_expiration >= (select max(blk_epoch) from blocks) THEN 1 ELSE 0 END is_active
-       from
-         --Entity last node with expiration
-         ( select *
-           from (select reg_entity_id, max(blk_lvl) blk_lvl from entity_nodes_view GROUP BY reg_entity_id) s
-                  ANY
-                  LEFT JOIN entity_nodes_view USING reg_entity_id, blk_lvl) validator
-           ANY
-           LEFT JOIN (SELECT acb_account reg_entity_id, acb_escrow_balance_active, depositors_num
-                      from account_last_balance_view ANY
-                             LEFT JOIN entity_active_depositors_counter_view USING reg_entity_id
-           ) b USING reg_entity_id
+       from (SELECT *
+             FROM validator_entity_view
+                    ANY
+                    LEFT JOIN
+                  ( select reg_entity_id,
+                    min(blk_lvl) start_blk_lvl
+                    from register_node_transactions
+                    group by reg_entity_id ) val_lvl USING reg_entity_id) validator
+              ANY
+              LEFT JOIN (SELECT acb_account reg_entity_id, acb_escrow_balance_active, depositors_num
+                         from account_last_balance_view ANY
+                                LEFT JOIN entity_active_depositors_counter_view USING reg_entity_id
+         ) b USING reg_entity_id
        where blocks > 0
           OR signatures > 0
           OR reg_expiration >= (select max(blk_epoch) from blocks)) prep

@@ -6,8 +6,8 @@ const ValidatorsTable = "validators_list_view"
 
 type Validator struct {
 	EntityID          string    `db:"reg_entity_id"`
-	NodeAddress       string    `db:"reg_id"`
 	ValidateSince     time.Time `db:"created_time"`
+	StartBlockLevel   uint64    `db:"start_blk_lvl"`
 	LastBlockTime     time.Time `db:"last_block_time"`
 	BlocksCount       uint64    `db:"blocks"`
 	LastSignatureTime uint64    `db:"last_signature_time"`
