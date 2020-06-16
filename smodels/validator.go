@@ -1,5 +1,14 @@
 package smodels
 
+func NewValidatorListParams() ValidatorParams {
+	return ValidatorParams{
+		CommonParams: CommonParams{
+			Limit:  50,
+			Offset: 0,
+		},
+	}
+}
+
 type ValidatorParams struct {
 	CommonParams
 }

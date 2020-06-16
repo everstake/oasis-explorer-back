@@ -3,13 +3,16 @@ package clickhouse
 import (
 	sq "github.com/wedancedalot/squirrel"
 	"oasisTracker/dmodels"
+	"oasisTracker/smodels"
 )
 
-func (cl Clickhouse) GetValidatorsList(params interface{}) (resp []dmodels.Validator, err error) {
+func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.Validator, err error) {
 
 	q := sq.Select("reg_entity_id,reg_id,created_time,blocks,signatures,acb_escrow_balance_active,depositors_num,is_active,pvl_name,pvl_fee,pvl_address").
 		From(dmodels.ValidatorsTable).
-		OrderBy("acb_escrow_balance_active desc")
+		OrderBy("acb_escrow_balance_active desc").
+		Limit(params.Limit).
+		Offset(params.Offset)
 
 	rawSql, args, err := q.ToSql()
 	if err != nil {
