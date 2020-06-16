@@ -25,6 +25,8 @@ func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]
 			availabilityScore += uint64(availabilityPercent * float64(blk.Height-resp[i].StartBlockLevel))
 		}
 
+		resp[i].AvailableScore = availabilityScore
+
 		if !resp[i].IsActive {
 			resp[i].Status = smodels.StatusInActive
 			continue
