@@ -23,12 +23,11 @@ func Validator(a dmodels.Validator) smodels.Validator {
 		AvailableScore: a.AvailableScore,
 		CreatedAt:      a.ValidateSince.Unix(),
 		ValidatorInfo: smodels.ValidatorInfo{
-			CommissionScheduleRules: smodels.TestNetGenesis,
-			Status:                  a.Status,
-			NodeAddress:             a.NodeAddress,
-			DepositorsCount:         a.DepositorsNum,
-			BlocksCount:             a.BlocksCount,
-			SignaturesCount:         a.SignaturesCount,
+			Status:          a.Status,
+			NodeAddress:     a.NodeAddress,
+			DepositorsCount: a.DepositorsNum,
+			BlocksCount:     a.BlocksCount,
+			SignaturesCount: a.SignaturesCount,
 		},
 	}
 }

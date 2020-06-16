@@ -84,6 +84,39 @@ paths:
           description: Internal error
       tags:
         - Accounts
+  '/data/validators':
+    get:
+      operationId: getValidatorsList
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: limit
+          type: integer
+          default: 50
+          minimum: 1
+          maximum: 500
+        - in: query
+          name: offset
+          description: Offset
+          type: integer
+          default: 0
+          minimum: 0
+      responses:
+        '200':
+          description: Query compatibility endpoint for account
+          schema:
+            items:
+              $ref: '#/definitions/ValidatorsRow'
+            type: array
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+        '500':
+          description: Internal error
+      tags:
+        - Accounts
   '/data/blocks':
     get:
       operationId: getBlocksList
@@ -395,6 +428,44 @@ definitions:
       - liquid_balance
       - escrow_balance
       - debonding_balance
+    type: object
+  ValidatorsRow:
+    properties:
+      account_id:
+        type: string
+      account_name:
+        type: string
+      fee:
+        format: int64
+        type: integer
+      escrow_balance:
+        format: int64
+        type: integer
+      available_score:
+        format: int64
+        type: integer
+      validate_since:
+        format: int64
+        type: integer
+      status:
+        type: string
+      node_address:
+        type: string
+      consensus_address:
+        type: string
+      depositors_count:
+        format: int64
+        type: integer
+      blocks_count:
+        format: int64
+        type: integer
+      signatures_count:
+        format: int64
+        type: integer
+    required:
+      - account_id
+      - status
+      - escrow_balance
     type: object
   BlocksRow:
     properties:
