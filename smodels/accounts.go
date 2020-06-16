@@ -31,6 +31,7 @@ const (
 	AccountTypeAccount   = "account"
 	AccountTypeNode      = "node"
 	AccountTypeEntity    = "entity"
+	AccountTypeValidator = "validator"
 )
 
 //Sorted

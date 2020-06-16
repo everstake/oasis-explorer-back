@@ -14,10 +14,10 @@ func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]
 
 	for i := range resp {
 		if !resp[i].IsActive {
-			resp[i].Status = "inactive"
+			resp[i].Status = smodels.StatusInActive
 			continue
 		}
-		resp[i].Status = "active"
+		resp[i].Status = smodels.StatusActive
 	}
 
 	return render.ValidatorsList(resp), nil

@@ -96,11 +96,11 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 			sAcc.LastActive = lastActive
 		}
 
-		sAcc.Type = "validator"
+		sAcc.Type = smodels.AccountTypeValidator
 
-		status := "active"
+		status := smodels.StatusActive
 		if accType != api.KindNodeValidator.String() {
-			status = "inactive"
+			status = smodels.StatusInActive
 		}
 
 		sAcc.Validator = &smodels.ValidatorInfo{

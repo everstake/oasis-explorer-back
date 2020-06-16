@@ -9,6 +9,11 @@ func NewValidatorListParams() ValidatorParams {
 	}
 }
 
+const (
+	StatusActive   = "active"
+	StatusInActive = "inactive"
+)
+
 type ValidatorParams struct {
 	CommonParams
 }
