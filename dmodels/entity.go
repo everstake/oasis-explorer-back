@@ -67,9 +67,10 @@ type EntityNode struct {
 	ConsensusAddress     string    `db="reg_consensus_address"`
 	LastRegBlock         uint64    `db="blk_lvl"`
 	CreatedTime          time.Time `db="created_time"`
-	BlocksCount          uint64    `db="c_blocks"`
+	Expiration           uint64    `db="reg_expiration"`
+	BlocksCount          uint64    `db="blocks"`
 	LastBlockTime        time.Time `db="last_block_time"`
-	BlockSignaturesCount uint64    `db="c_block_signatures"`
+	BlockSignaturesCount uint64    `db="signatures"`
 	LastSignatureTime    time.Time `db="last_signature_time"`
 }
 

@@ -20,6 +20,7 @@ type (
 		GetChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
 		GetEscrowRatioChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
 		GetAccountList(listParams smodels.AccountListParams) ([]smodels.AccountList, error)
+		GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, error)
 	}
 
 	ServiceFacade struct {

@@ -1,19 +1,34 @@
 package smodels
 
+import "fmt"
+
 //Constructor to setup default values
 func NewBlockParams() BlockParams {
 	return BlockParams{
-		Limit: 20,
+		CommonParams: CommonParams{
+			Limit: 20,
+		},
 	}
 }
 
 func (b *BlockParams) Validate() error {
+	if err := b.CommonParams.Validate(); err != nil {
+		return err
+	}
+
+	if len(b.BlockLevel) > MaxLimitSize {
+		return fmt.Errorf("block_level overlimit")
+	}
+
+	if len(b.BlockID) > MaxLimitSize {
+		return fmt.Errorf("block_id overlimit")
+	}
+
 	return nil
 }
 
 type BlockParams struct {
-	Limit      uint64
-	Offset     uint64
+	CommonParams
 	BlockID    []string `schema:"block_id"`
 	BlockLevel []int64  `schema:"block_level"`
 	//Time range

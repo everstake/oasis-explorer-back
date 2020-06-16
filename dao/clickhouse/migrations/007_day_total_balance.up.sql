@@ -9,7 +9,7 @@ from (select acb_account,start_of_period, max(blk_lvl) blk_lvl from account_bala
        GROUP BY start_of_period
        ORDER BY start_of_period desc;
 
-CREATE VIEW IF NOT EXISTS oasis.top_escrow_balance_accounts_view AS
+CREATE VIEW IF NOT EXISTS top_escrow_balance_accounts_view AS
   select *
 from (select acb_account, max(blk_lvl) blk_lvl from oasis.account_balance group by acb_account) s
        ANY

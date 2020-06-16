@@ -38,6 +38,7 @@ type (
 
 		GetAccountValidatorInfo(accountID string) (resp dmodels.EntityNodesContainer, err error)
 		GetEntityActiveDepositorsCount(accountID string) (count uint64, err error)
+		GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.Validator, err error)
 	}
 
 	ParserDAO interface {
