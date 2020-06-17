@@ -521,6 +521,12 @@ definitions:
       amount:
         type: integer
         format: int64
+      escrow_amount:
+        type: integer
+        format: int64
+      reclaim_escrow_amount:
+        type: integer
+        format: int64
       fee:
         format: int64
         type: integer

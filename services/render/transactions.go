@@ -16,16 +16,18 @@ func Transactions(txs []dmodels.Transaction) []smodels.Transaction {
 func Transaction(tx dmodels.Transaction) smodels.Transaction {
 
 	return smodels.Transaction{
-		Amount:    tx.Amount,
-		Fee:       tx.Fee,
-		From:      tx.Sender,
-		GasPrice:  tx.GasLimit,
-		GasUsed:   tx.GasPrice,
-		Hash:      tx.Hash,
-		Level:     tx.BlockLevel,
-		Nonce:     tx.Nonce,
-		Timestamp: tx.Time.Unix(),
-		To:        tx.Receiver,
-		Type:      string(tx.Type),
+		Amount:              tx.Amount,
+		EscrowAmount:        tx.EscrowAmount,
+		ReclaimEscrowAmount: tx.EscrowReclaimAmount,
+		Fee:                 tx.Fee,
+		From:                tx.Sender,
+		GasPrice:            tx.GasLimit,
+		GasUsed:             tx.GasPrice,
+		Hash:                tx.Hash,
+		Level:               tx.BlockLevel,
+		Nonce:               tx.Nonce,
+		Timestamp:           tx.Time.Unix(),
+		To:                  tx.Receiver,
+		Type:                string(tx.Type),
 	}
 }
