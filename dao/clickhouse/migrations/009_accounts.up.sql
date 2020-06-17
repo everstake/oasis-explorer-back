@@ -1,12 +1,3 @@
-CREATE VIEW IF NOT EXISTS oasis.account_balance_view AS
-select *
-from (select acb_account, min(blk_time) created_on , max(blk_lvl) blk_lvl
-      from oasis.account_balance
-      group by acb_account
-       ) s
-       ANY
-       LEFT JOIN oasis.account_balance USING acb_account, blk_lvl;
-
 --Last registered unique entity
 CREATE VIEW IF NOT EXISTS oasis.entity_register_view AS
 select *

@@ -16,6 +16,7 @@ const (
 
 type ValidatorParams struct {
 	CommonParams
+	ValidatorID string
 }
 
 type Validator struct {
@@ -26,4 +27,11 @@ type Validator struct {
 	AvailableScore uint64 `json:"available_score"`
 	CreatedAt      int64  `json:"validate_since"`
 	ValidatorInfo
+}
+
+type ValidatorStats struct {
+	Timestamp         int64  `json:"timestamp"`
+	AvailabilityScore uint64 `json:"availability_score,omitempty"`
+	BlocksCount       uint64 `json:"blocks_count,omitempty"`
+	SignaturesCount   uint64 `json:"signatures_count,omitempty"`
 }

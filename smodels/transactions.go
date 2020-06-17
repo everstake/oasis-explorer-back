@@ -32,8 +32,8 @@ type Transaction struct {
 	GasPrice            uint64 `json:"gas_price,omitempty"`
 	GasUsed             uint64 `json:"gas_used,omitempty"`
 	Hash                string `json:"hash,omitempty"`
-	Level               uint64 `json:"level,omitempty"`
-	Nonce               uint64 `json:"nonce,omitempty"`
+	Level               uint64 `json:"level"`
+	Nonce               uint64 `json:"nonce"`
 	Timestamp           int64  `json:"timestamp,omitempty"`
 	To                  string `json:"to,omitempty"`
 	Type                string `json:"type,omitempty"`

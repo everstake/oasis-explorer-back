@@ -17,10 +17,11 @@ type (
 		GetBlockList(params smodels.BlockParams) ([]smodels.Block, error)
 		GetTransactionsList(params smodels.TransactionsParams) ([]smodels.Transaction, error)
 		GetAccountInfo(accountID string) (smodels.Account, error)
-		GetChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
-		GetEscrowRatioChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
 		GetAccountList(listParams smodels.AccountListParams) ([]smodels.AccountList, error)
 		GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, error)
+		GetChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
+		GetEscrowRatioChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
+		GetValidatorStatsChartData(accountID string, params smodels.ChartParams) ([]smodels.ValidatorStats, error)
 	}
 
 	ServiceFacade struct {

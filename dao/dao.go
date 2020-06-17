@@ -38,7 +38,9 @@ type (
 
 		GetAccountValidatorInfo(accountID string) (resp dmodels.EntityNodesContainer, err error)
 		GetEntityActiveDepositorsCount(accountID string) (count uint64, err error)
+
 		GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.Validator, err error)
+		GetValidatorDayStats(string, smodels.ChartParams) (resp []dmodels.ValidatorStats, err error)
 	}
 
 	ParserDAO interface {

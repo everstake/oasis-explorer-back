@@ -20,7 +20,7 @@ func Validator(a dmodels.Validator) smodels.Validator {
 		AccountName:    a.ValidatorName,
 		Fee:            a.ValidatorFee,
 		EscrowBalance:  a.EscrowBalance,
-		AvailableScore: a.AvailableScore,
+		AvailableScore: a.AvailabilityScore,
 		CreatedAt:      a.ValidateSince.Unix(),
 		ValidatorInfo: smodels.ValidatorInfo{
 			Status:          a.Status,
@@ -28,5 +28,23 @@ func Validator(a dmodels.Validator) smodels.Validator {
 			BlocksCount:     a.BlocksCount,
 			SignaturesCount: a.SignaturesCount,
 		},
+	}
+}
+
+func ValidatorStatList(sts []dmodels.ValidatorStats) []smodels.ValidatorStats {
+	stats := make([]smodels.ValidatorStats, len(sts))
+	for i := range sts {
+		stats[i] = ValidatorStat(sts[i])
+	}
+	return stats
+}
+
+func ValidatorStat(s dmodels.ValidatorStats) smodels.ValidatorStats {
+
+	return smodels.ValidatorStats{
+		Timestamp:         s.BeginOfPeriod.Unix(),
+		AvailabilityScore: s.AvailabilityScore,
+		BlocksCount:       s.BlocksCount,
+		SignaturesCount:   s.SignaturesCount,
 	}
 }
