@@ -18,6 +18,7 @@ type (
 		GetTransactionsList(params smodels.TransactionsParams) ([]smodels.Transaction, error)
 		GetAccountInfo(accountID string) (smodels.Account, error)
 		GetAccountList(listParams smodels.AccountListParams) ([]smodels.AccountList, error)
+		GetValidatorInfo(string) (smodels.Validator, error)
 		GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, error)
 		GetChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
 		GetEscrowRatioChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
