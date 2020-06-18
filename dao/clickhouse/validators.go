@@ -76,3 +76,36 @@ func (cl Clickhouse) GetValidatorDayStats(consensusAddress string, params smodel
 
 	return resp, nil
 }
+
+func (cl Clickhouse) GetValidatorDelegators(validatorID string, params smodels.CommonParams) (resp []dmodels.Delegator, err error) {
+
+	q := sq.Select("tx_sender,escrow_since,balance").
+		From(dmodels.DepositorsView).
+		OrderBy("balance desc").
+		Where(sq.Gt{"balance": 0}).
+		Where(sq.Eq{"tx_escrow_account": validatorID})
+
+	rawSql, args, err := q.ToSql()
+	if err != nil {
+		return resp, err
+	}
+
+	rows, err := cl.db.conn.Query(rawSql, args...)
+	if err != nil {
+		return resp, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		row := dmodels.Delegator{}
+
+		err := rows.Scan(&row.Address, &row.DelegateSince, &row.EscrowAmount)
+		if err != nil {
+			return resp, err
+		}
+
+		resp = append(resp, row)
+	}
+
+	return resp, nil
+}

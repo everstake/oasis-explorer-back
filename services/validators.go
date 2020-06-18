@@ -76,6 +76,16 @@ func (s *ServiceFacade) GetValidatorStatsChartData(accountID string, params smod
 	return render.ValidatorStatList(stats), nil
 }
 
+func (s *ServiceFacade) GetValidatorDelegators(validatorID string, params smodels.CommonParams) ([]smodels.Delegator, error) {
+
+	delegators, err := s.dao.GetValidatorDelegators(validatorID, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return render.DelegatorList(delegators), nil
+}
+
 func calcAvailabilityScore(blocks, signatures, nodeRegisterBlock, currentHeight uint64) uint64 {
 
 	availabilityScore := signatures

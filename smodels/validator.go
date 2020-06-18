@@ -35,3 +35,9 @@ type ValidatorStats struct {
 	BlocksCount       uint64 `json:"blocks_count,omitempty"`
 	SignaturesCount   uint64 `json:"signatures_count,omitempty"`
 }
+
+type Delegator struct {
+	Account       string `json:"account_id"`
+	EscrowAmount  uint64 `json:"escrow_amount"`
+	DelegateSince int64  `json:"delegate_since"`
+}

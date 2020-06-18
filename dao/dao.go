@@ -41,6 +41,7 @@ type (
 
 		GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.Validator, err error)
 		GetValidatorDayStats(string, smodels.ChartParams) (resp []dmodels.ValidatorStats, err error)
+		GetValidatorDelegators(validatorID string, params smodels.CommonParams) ([]dmodels.Delegator, error)
 	}
 
 	ParserDAO interface {
