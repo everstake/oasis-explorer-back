@@ -9,15 +9,12 @@ import (
 )
 
 func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, err error) {
-	//TODO Refactor
-	pb := signature.PublicKey{}
 
-	err = pb.UnmarshalText([]byte(accountID))
+	adr := api.NewAddress(signature.PublicKey{})
+	err = adr.UnmarshalText([]byte(accountID))
 	if err != nil {
 		return sAcc, err
 	}
-
-	adr := api.NewAddress(pb)
 
 	//Get last account state
 	acc, err := s.nodeAPI.Account(context.Background(), &api.OwnerQuery{
@@ -83,7 +80,7 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 	//Entity account
 	case resp.IsEntity(accountID):
 		ent := resp.GetEntity()
-		sAcc.EntityAddress = ent.EntityID
+		sAcc.EntityAddress = ent.EntityAddress
 
 		depositorsCount, err := s.dao.GetEntityActiveDepositorsCount(accountID)
 		if err != nil {
@@ -109,7 +106,7 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 		sAcc.Validator = &smodels.ValidatorInfo{
 			CommissionScheduleRules: smodels.TestNetGenesis,
 			Status:                  status,
-			NodeAddress:             ent.NodeID,
+			NodeAddress:             ent.Address,
 			ConsensusAddress:        ent.ConsensusAddress,
 			DepositorsCount:         depositorsCount,
 			BlocksCount:             ent.BlocksCount,
