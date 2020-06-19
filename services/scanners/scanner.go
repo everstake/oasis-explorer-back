@@ -3,7 +3,7 @@ package scanners
 import (
 	"context"
 	"fmt"
-	"github.com/oasislabs/oasis-core/go/common/grpc"
+	"github.com/oasisprotocol/oasis-core/go/common/grpc"
 	"go.uber.org/zap"
 	grpcCommon "google.golang.org/grpc"
 	"oasisTracker/common/log"
