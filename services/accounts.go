@@ -2,13 +2,14 @@ package services
 
 import (
 	"context"
-	"github.com/oasislabs/oasis-core/go/common/crypto/signature"
-	"github.com/oasislabs/oasis-core/go/staking/api"
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+	"github.com/oasisprotocol/oasis-core/go/staking/api"
 	"oasisTracker/services/render"
 	"oasisTracker/smodels"
 )
 
 func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, err error) {
+	//TODO Refactor
 	pb := signature.PublicKey{}
 
 	err = pb.UnmarshalText([]byte(accountID))
@@ -16,11 +17,13 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 		return sAcc, err
 	}
 
+	adr := api.NewAddress(pb)
+
 	//Get last account state
-	acc, err := s.nodeAPI.AccountInfo(context.Background(), &api.OwnerQuery{
+	acc, err := s.nodeAPI.Account(context.Background(), &api.OwnerQuery{
 		//Latest
 		Height: 0,
-		Owner:  pb,
+		Owner:  adr,
 	})
 	if err != nil {
 		return sAcc, err
@@ -42,8 +45,8 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 				continue
 			}
 
-			if value[0] > kind {
-				kind = value[0]
+			if *value[0].Global > kind {
+				kind = *value[0].Global
 			}
 		}
 

@@ -2,7 +2,7 @@ package smodels
 
 import (
 	"fmt"
-	"github.com/oasislabs/oasis-core/go/staking/api"
+	"github.com/oasisprotocol/oasis-core/go/staking/api"
 	"oasisTracker/dmodels"
 	"sort"
 	"sync"
