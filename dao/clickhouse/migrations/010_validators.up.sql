@@ -60,12 +60,13 @@ from (
               select reg_entity_id,
                      reg_entity_address,
                      reg_id,
+                     reg_address,
                      reg_consensus_address,
                      min(tx_time)        created_time,
                      max(blk_lvl)        blk_lvl,
                      max(reg_expiration) reg_expiration
               from register_node_transactions
-              group by reg_entity_id, reg_entity_address, reg_id, reg_consensus_address
+              group by reg_entity_id, reg_entity_address, reg_address, reg_id, reg_consensus_address
               ) nodes
               ANY
               LEFT JOIN validator_blocks_count_view USING reg_consensus_address
@@ -85,7 +86,7 @@ CREATE TABLE IF NOT EXISTS public_validators
     ORDER BY (reg_entity_id);
 
 CREATE VIEW IF NOT EXISTS validator_entity_view AS
-select reg_entity_id,
+select reg_entity_address,
        anyLast(reg_consensus_address) reg_consensus_address,
        max(blk_lvl)         blk_lvl,
        min(created_time)    created_time,
@@ -94,7 +95,7 @@ select reg_entity_id,
        sum(blocks)          blocks,
        sum(signatures)      signatures
 from entity_nodes_view
-GROUP BY reg_entity_id;
+GROUP BY reg_entity_address;
 
 
 CREATE VIEW IF NOT EXISTS validators_list_view AS
