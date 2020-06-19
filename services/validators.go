@@ -2,9 +2,27 @@ package services
 
 import (
 	"fmt"
+	"oasisTracker/common/apperrors"
 	"oasisTracker/services/render"
 	"oasisTracker/smodels"
 )
+
+func (s *ServiceFacade) GetValidatorInfo(accountID string) (val smodels.Validator, err error) {
+	validators, err := s.dao.GetValidatorsList(smodels.ValidatorParams{
+		CommonParams: smodels.CommonParams{Limit: 1},
+		ValidatorID:  accountID,
+	})
+
+	if err != nil {
+		return val, err
+	}
+
+	if len(validators) == 0 {
+		return val, apperrors.New(apperrors.ErrNotFound, "account_id")
+	}
+
+	return render.Validator(validators[0]), nil
+}
 
 func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, error) {
 	blk, err := s.dao.GetLastBlock()
@@ -35,7 +53,7 @@ func (s *ServiceFacade) GetValidatorStatsChartData(accountID string, params smod
 
 	validators, err := s.dao.GetValidatorsList(smodels.ValidatorParams{
 		CommonParams: smodels.CommonParams{Limit: 1},
-		ValidatorID:  "PhDiz71pnE2XeMpfZzcvbpDRZZkM4Bw0iZFcr3LtB9Q=",
+		ValidatorID:  accountID,
 	})
 
 	if err != nil {
@@ -56,6 +74,16 @@ func (s *ServiceFacade) GetValidatorStatsChartData(accountID string, params smod
 	}
 
 	return render.ValidatorStatList(stats), nil
+}
+
+func (s *ServiceFacade) GetValidatorDelegators(validatorID string, params smodels.CommonParams) ([]smodels.Delegator, error) {
+
+	delegators, err := s.dao.GetValidatorDelegators(validatorID, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return render.DelegatorList(delegators), nil
 }
 
 func calcAvailabilityScore(blocks, signatures, nodeRegisterBlock, currentHeight uint64) uint64 {

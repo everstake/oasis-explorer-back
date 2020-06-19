@@ -25,3 +25,11 @@ type ChartData struct {
 	TransactionVolume string  `json:"transaction_volume,omitempty"`
 	EscrowRatio       float64 `json:"escrow_ratio,omitempty"`
 }
+
+type BalanceChartData struct {
+	Timestamp        int64  `json:"timestamp"`
+	TotalBalance     uint64 `json:"total_balance"`
+	EscrowBalance    uint64 `json:"escrow_balance"`
+	DebondingBalance uint64 `json:"debonding_balance"`
+	SelfStakeBalance uint64 `json:"self_stake_balance"`
+}

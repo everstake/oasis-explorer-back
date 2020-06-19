@@ -48,3 +48,20 @@ func ValidatorStat(s dmodels.ValidatorStats) smodels.ValidatorStats {
 		SignaturesCount:   s.SignaturesCount,
 	}
 }
+
+func DelegatorList(sts []dmodels.Delegator) []smodels.Delegator {
+	stats := make([]smodels.Delegator, len(sts))
+	for i := range sts {
+		stats[i] = Delegator(sts[i])
+	}
+	return stats
+}
+
+func Delegator(s dmodels.Delegator) smodels.Delegator {
+
+	return smodels.Delegator{
+		Account:       s.Address,
+		EscrowAmount:  s.EscrowAmount,
+		DelegateSince: s.DelegateSince.Unix(),
+	}
+}
