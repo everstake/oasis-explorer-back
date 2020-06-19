@@ -104,6 +104,7 @@ func (api *API) initialize(handlerArr ...negroni.Handler) {
 		{Path: "/chart/transactions_volume", Method: http.MethodGet, Func: api.GetTransactionsVolume},
 		{Path: "/chart/escrow_ratio", Method: http.MethodGet, Func: api.GetEscrowRatio},
 		{Path: "/chart/validator_stat/{account_id}", Method: http.MethodGet, Func: api.GetValidatorStats},
+		{Path: "/chart/balance/{account_id}", Method: http.MethodGet, Func: api.GetBalanceChart},
 	})
 
 	api.server = &http.Server{Addr: fmt.Sprintf(":%d", api.cfg.API.ListenOnPort), Handler: api.router}

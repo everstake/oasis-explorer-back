@@ -6,6 +6,7 @@ const (
 	AccountBalanceTable          = "account_balance"
 	AccountListTable             = "account_list_view"
 	DayTotalBalanceView          = "day_total_balance_view"
+	AccountDayBalanceView        = "account_day_balance_view"
 	TopEscrowBalanceAccountsView = "top_escrow_balance_accounts_view"
 )
 

@@ -22,6 +22,7 @@ type (
 		GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, error)
 		GetValidatorDelegators(validatorID string, params smodels.CommonParams) ([]smodels.Delegator, error)
 		GetChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
+		GetBalanceChartData(accountID string, params smodels.ChartParams) ([]smodels.BalanceChartData, error)
 		GetEscrowRatioChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
 		GetValidatorStatsChartData(accountID string, params smodels.ChartParams) ([]smodels.ValidatorStats, error)
 	}

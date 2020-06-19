@@ -3,6 +3,7 @@ package clickhouse
 import (
 	sq "github.com/wedancedalot/squirrel"
 	"oasisTracker/dmodels"
+	"oasisTracker/smodels"
 )
 
 func (cl Clickhouse) GetLastDayTotalBalance() (bal dmodels.DayBalance, err error) {
@@ -32,4 +33,39 @@ func (cl Clickhouse) GetLastDayTotalBalance() (bal dmodels.DayBalance, err error
 	}
 
 	return bal, nil
+}
+
+func (cl Clickhouse) GetBalanceChartData(accountID string, params smodels.ChartParams) (resp []dmodels.BalanceChartData, err error) {
+
+	q := sq.Select("*").
+		From(dmodels.AccountDayBalanceView).
+		Where(sq.Eq{"acb_account": accountID}).
+		Where(sq.GtOrEq{"start_of_period": params.From}).
+		Where(sq.LtOrEq{"start_of_period": params.To}).
+		OrderBy("start_of_period desc")
+
+	rawSql, args, err := q.ToSql()
+	if err != nil {
+		return resp, err
+	}
+
+	rows, err := cl.db.conn.Query(rawSql, args...)
+	if err != nil {
+		return resp, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		row := dmodels.BalanceChartData{}
+
+		err := rows.Scan(&row.AccountID, &row.BeginOfPeriod, &row.GeneralBalance, &row.EscrowBalance, &row.DebondingBalance)
+		if err != nil {
+			return resp, err
+		}
+
+		resp = append(resp, row)
+	}
+
+	return resp, nil
 }

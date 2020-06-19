@@ -24,3 +24,13 @@ func (s *ServiceFacade) GetEscrowRatioChartData(params smodels.ChartParams) ([]s
 
 	return render.ChartData(data), nil
 }
+
+func (s *ServiceFacade) GetBalanceChartData(accountID string, params smodels.ChartParams) ([]smodels.BalanceChartData, error) {
+
+	data, err := s.dao.GetBalanceChartData(accountID, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return render.BalanceChartData(data), nil
+}
