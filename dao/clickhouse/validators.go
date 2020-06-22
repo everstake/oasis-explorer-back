@@ -15,7 +15,7 @@ func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []d
 		Offset(params.Offset)
 
 	if params.ValidatorID != "" {
-		q = q.Where(sq.Eq{"reg_entity_id": params.ValidatorID})
+		q = q.Where(sq.Eq{"reg_entity_address": params.ValidatorID})
 	}
 
 	rawSql, args, err := q.ToSql()
