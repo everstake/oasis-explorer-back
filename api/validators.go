@@ -50,11 +50,7 @@ func (api *API) GetValidatorInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validators, err := api.services.GetValidatorList(smodels.ValidatorParams{
-		CommonParams: smodels.CommonParams{Limit: 1},
-		ValidatorID:  account,
-	})
-
+	validators, err := api.services.GetValidatorInfo(account)
 	if err != nil {
 		log.Error("GetValidatorList api error", zap.Error(err))
 		response.JsonError(w, err)

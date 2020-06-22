@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS public_validators
   reg_entity_address FixedString(46),
   pvl_name      String,
   pvl_fee       UInt64,
-  pvl_address   String
+  pvl_info   String
 ) ENGINE ReplacingMergeTree()
     PARTITION BY reg_entity_id
     ORDER BY (reg_entity_id);

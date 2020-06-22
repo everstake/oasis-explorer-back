@@ -1,6 +1,7 @@
 package render
 
 import (
+	"encoding/json"
 	"oasisTracker/dmodels"
 	"oasisTracker/smodels"
 )
@@ -22,6 +23,7 @@ func Validator(a dmodels.Validator) smodels.Validator {
 		EscrowBalance:  a.EscrowBalance,
 		AvailableScore: a.AvailabilityScore,
 		CreatedAt:      a.ValidateSince.Unix(),
+		MediaInfo:      ValidatorMediaInfo(a.ValidatorMediaInfo),
 		ValidatorInfo: smodels.ValidatorInfo{
 			Status:          a.Status,
 			DepositorsCount: a.DepositorsNum,
@@ -29,6 +31,19 @@ func Validator(a dmodels.Validator) smodels.Validator {
 			SignaturesCount: a.SignaturesCount,
 		},
 	}
+}
+
+func ValidatorMediaInfo(validatorMediaInfoString string) *smodels.ValidatorMediaInfo {
+	if validatorMediaInfoString == "" {
+		return nil
+	}
+
+	var mediaInfo smodels.ValidatorMediaInfo
+	if validatorMediaInfoString != "" {
+		json.Unmarshal([]byte(validatorMediaInfoString), &mediaInfo)
+	}
+
+	return &mediaInfo
 }
 
 func ValidatorStatList(sts []dmodels.ValidatorStats) []smodels.ValidatorStats {

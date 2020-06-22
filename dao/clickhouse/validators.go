@@ -8,7 +8,7 @@ import (
 
 func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.Validator, err error) {
 
-	q := sq.Select("reg_entity_address,reg_consensus_address,created_time,start_blk_lvl,blocks,signatures,acb_escrow_balance_active,depositors_num,is_active,pvl_name,pvl_fee,pvl_address").
+	q := sq.Select("reg_entity_address,reg_consensus_address,created_time,start_blk_lvl,blocks,signatures,acb_escrow_balance_active,depositors_num,is_active,pvl_name,pvl_fee,pvl_info").
 		From(dmodels.ValidatorsTable).
 		OrderBy("acb_escrow_balance_active desc").
 		Limit(params.Limit).
@@ -32,7 +32,7 @@ func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []d
 	for rows.Next() {
 		row := dmodels.Validator{}
 
-		err := rows.Scan(&row.EntityID, &row.ConsensusAddress, &row.ValidateSince, &row.StartBlockLevel, &row.BlocksCount, &row.SignaturesCount, &row.EscrowBalance, &row.DepositorsNum, &row.IsActive, &row.ValidatorName, &row.ValidatorFee, &row.WebAddress)
+		err := rows.Scan(&row.EntityID, &row.ConsensusAddress, &row.ValidateSince, &row.StartBlockLevel, &row.BlocksCount, &row.SignaturesCount, &row.EscrowBalance, &row.DepositorsNum, &row.IsActive, &row.ValidatorName, &row.ValidatorFee, &row.ValidatorMediaInfo)
 		if err != nil {
 			return resp, err
 		}

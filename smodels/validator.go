@@ -20,13 +20,22 @@ type ValidatorParams struct {
 }
 
 type Validator struct {
-	Account        string `json:"account_id"`
-	AccountName    string `json:"account_name"`
-	Fee            uint64 `json:"fee"`
-	EscrowBalance  uint64 `json:"escrow_balance"`
-	AvailableScore uint64 `json:"available_score"`
-	CreatedAt      int64  `json:"validate_since"`
+	Account        string              `json:"account_id"`
+	AccountName    string              `json:"account_name"`
+	Fee            uint64              `json:"fee"`
+	EscrowBalance  uint64              `json:"escrow_balance"`
+	AvailableScore uint64              `json:"available_score"`
+	CreatedAt      int64               `json:"validate_since"`
+	MediaInfo      *ValidatorMediaInfo `json:"media_info"`
 	ValidatorInfo
+}
+
+type ValidatorMediaInfo struct {
+	WebsiteLink  string `json:"website_link,omitempty"`
+	EmailAddress string `json:"email_address,omitempty"`
+	TwitterAcc   string `json:"twitter_acc,omitempty"`
+	TGChat       string `json:"tg_chat,omitempty"`
+	MediumLink   string `json:"medium_link,omitempty"`
 }
 
 type ValidatorStats struct {

@@ -8,7 +8,7 @@ import (
 )
 
 func (s *ServiceFacade) GetValidatorInfo(accountID string) (val smodels.Validator, err error) {
-	validators, err := s.dao.GetValidatorsList(smodels.ValidatorParams{
+	validators, err := s.GetValidatorList(smodels.ValidatorParams{
 		CommonParams: smodels.CommonParams{Limit: 1},
 		ValidatorID:  accountID,
 	})
@@ -21,7 +21,7 @@ func (s *ServiceFacade) GetValidatorInfo(accountID string) (val smodels.Validato
 		return val, apperrors.New(apperrors.ErrNotFound, "account_id")
 	}
 
-	return render.Validator(validators[0]), nil
+	return validators[0], nil
 }
 
 func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, error) {
