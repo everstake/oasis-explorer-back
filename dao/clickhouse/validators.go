@@ -8,7 +8,7 @@ import (
 
 func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.Validator, err error) {
 
-	q := sq.Select("reg_entity_id,created_time,start_blk_lvl,blocks,signatures,acb_escrow_balance_active,depositors_num,is_active,pvl_name,pvl_fee,pvl_address").
+	q := sq.Select("reg_entity_address,created_time,start_blk_lvl,blocks,signatures,acb_escrow_balance_active,depositors_num,is_active,pvl_name,pvl_fee,pvl_address").
 		From(dmodels.ValidatorsTable).
 		OrderBy("acb_escrow_balance_active desc").
 		Limit(params.Limit).

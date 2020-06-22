@@ -9,6 +9,14 @@ select blk_proposer_address reg_consensus_address,
 from blocks
 group by reg_consensus_address, day;
 
+CREATE VIEW IF NOT EXISTS validator_blocks_day_count_view AS
+select reg_consensus_address,
+       day,
+       max(last_block_time) last_block_time,
+       sum(blocks)             blocks
+from validator_blocks_count_mv
+group by reg_consensus_address, day;
+
 CREATE VIEW IF NOT EXISTS validator_blocks_count_view AS
 SELECT reg_consensus_address,
        max(last_block_time) last_block_time,
@@ -27,6 +35,14 @@ select sig_validator_address reg_consensus_address,
 from block_signatures
 group by reg_consensus_address, day;
 
+CREATE VIEW IF NOT EXISTS validator_block_signatures_day_count_view AS
+select reg_consensus_address,
+       day,
+       max(last_signature_time) last_signature_time,
+       sum(signatures)                     signatures
+from validator_block_signatures_count_mv
+group by reg_consensus_address, day;
+
 CREATE VIEW IF NOT EXISTS validator_block_signatures_count_view AS
 SELECT reg_consensus_address,
        max(last_signature_time) last_signature_time,
@@ -42,13 +58,15 @@ from (
        from (
               --Group all register txs by entity and node
               select reg_entity_id,
+                     reg_entity_address,
                      reg_id,
+                     reg_address,
                      reg_consensus_address,
                      min(tx_time)        created_time,
                      max(blk_lvl)        blk_lvl,
                      max(reg_expiration) reg_expiration
               from register_node_transactions
-              group by reg_entity_id, reg_id, reg_consensus_address
+              group by reg_entity_id, reg_entity_address, reg_address, reg_id, reg_consensus_address
               ) nodes
               ANY
               LEFT JOIN validator_blocks_count_view USING reg_consensus_address
@@ -59,6 +77,7 @@ from (
 CREATE TABLE IF NOT EXISTS public_validators
 (
   reg_entity_id FixedString(44),
+  reg_entity_address FixedString(46),
   pvl_name      String,
   pvl_fee       UInt64,
   pvl_address   String
@@ -67,7 +86,8 @@ CREATE TABLE IF NOT EXISTS public_validators
     ORDER BY (reg_entity_id);
 
 CREATE VIEW IF NOT EXISTS validator_entity_view AS
-select reg_entity_id,
+select reg_entity_address,
+       anyLast(reg_consensus_address) reg_consensus_address,
        max(blk_lvl)         blk_lvl,
        min(created_time)    created_time,
        max(reg_expiration)  reg_expiration,
@@ -75,7 +95,7 @@ select reg_entity_id,
        sum(blocks)          blocks,
        sum(signatures)      signatures
 from entity_nodes_view
-GROUP BY reg_entity_id;
+GROUP BY reg_entity_address;
 
 
 CREATE VIEW IF NOT EXISTS validators_list_view AS
@@ -86,18 +106,18 @@ from (
              FROM validator_entity_view
                     ANY
                     LEFT JOIN
-                  ( select reg_entity_id,
+                  ( select reg_entity_address,
                     min(blk_lvl) start_blk_lvl
                     from register_node_transactions
-                    group by reg_entity_id ) val_lvl USING reg_entity_id) validator
+                    group by reg_entity_address ) val_lvl USING reg_entity_address) validator
               ANY
-              LEFT JOIN (SELECT acb_account reg_entity_id, acb_escrow_balance_active, depositors_num
+              LEFT JOIN (SELECT acb_account reg_entity_address, acb_escrow_balance_active, depositors_num
                          from account_last_balance_view ANY
-                                LEFT JOIN entity_active_depositors_counter_view USING reg_entity_id
-         ) b USING reg_entity_id
+                                LEFT JOIN entity_active_depositors_counter_view USING reg_entity_address
+         ) b USING reg_entity_address
        where blocks > 0
           OR signatures > 0
           OR reg_expiration >= (select max(blk_epoch) from blocks)) prep
        ANY
-       LEFT JOIN public_validators USING reg_entity_id;
+       LEFT JOIN public_validators USING reg_entity_address;
 

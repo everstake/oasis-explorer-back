@@ -1,8 +1,8 @@
 package services
 
 import (
-	"github.com/oasislabs/oasis-core/go/common/grpc"
-	"github.com/oasislabs/oasis-core/go/staking/api"
+	"github.com/oasisprotocol/oasis-core/go/common/grpc"
+	"github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/patrickmn/go-cache"
 	grpcCommon "google.golang.org/grpc"
 	"oasisTracker/conf"

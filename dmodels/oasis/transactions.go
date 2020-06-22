@@ -1,13 +1,13 @@
 package oasis
 
 import (
-	"github.com/oasislabs/oasis-core/go/common/crypto/signature"
-	"github.com/oasislabs/oasis-core/go/common/entity"
-	"github.com/oasislabs/oasis-core/go/common/node"
-	"github.com/oasislabs/oasis-core/go/common/quantity"
-	tx "github.com/oasislabs/oasis-core/go/consensus/api/transaction"
-	registry "github.com/oasislabs/oasis-core/go/registry/api"
-	staking "github.com/oasislabs/oasis-core/go/staking/api"
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+	"github.com/oasisprotocol/oasis-core/go/common/entity"
+	"github.com/oasisprotocol/oasis-core/go/common/node"
+	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+	tx "github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
+	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
+	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 )
 
 type TxRaw struct {
@@ -37,7 +37,7 @@ type TxBody struct {
 }
 
 type EscrowTx struct {
-	Account signature.PublicKey `json:"escrow_account"`
+	Account staking.Address `json:"escrow_account"`
 	//Escrow
 	Tokens quantity.Quantity `json:"escrow_tokens"`
 	//ReclaimEscrow

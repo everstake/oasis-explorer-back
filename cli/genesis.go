@@ -5,7 +5,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/oasislabs/oasis-core/go/common/cbor"
+	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+	"github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/tendermint/tendermint/crypto"
 	"oasisTracker/common/log"
 	"oasisTracker/dao"
@@ -78,10 +79,10 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 
 	i := 0
 	//Genesis balances
-	for account, balance := range gen.Staking.Ledger {
+	for accountAddress, balance := range gen.Staking.Ledger {
 
 		balances[i] = dmodels.AccountBalance{
-			Account:               account,
+			Account:               accountAddress.String(),
 			Time:                  gen.GenesisTime,
 			Height:                genesisHeight,
 			Nonce:                 balance.General.Nonce,
@@ -100,14 +101,13 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 		return err
 	}
 
-	txs := make([]dmodels.Transaction, 0, len(gen.Staking.Delegations)+len(gen.Staking.DebondingDelegations))
+	txs := make([]dmodels.Transaction, 0, len(gen.Staking.Delegations)) //+len(gen.Staking.DebondingDelegations)
 
 	//Genesis delegations
-	for delegate, receiver := range gen.Staking.Delegations {
+	for delegateAddress, receiver := range gen.Staking.Delegations {
 
-		for receiver, share := range receiver {
-
-			txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "delegation", delegate, receiver, share.Shares.String())))
+		for receiverAddress, share := range receiver {
+			txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "delegation", delegateAddress, receiver, share.Shares.String())))
 
 			txs = append(txs, dmodels.Transaction{
 				BlockLevel:          genesisHeight,
@@ -117,10 +117,9 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 				Amount:              0,
 				EscrowAmount:        share.Shares.ToBigInt().Uint64(),
 				EscrowReclaimAmount: 0,
-				EscrowAccount:       receiver,
 				Type:                "addescrow",
-				Sender:              delegate,
-				Receiver:            oasis.SystemAddress.String(),
+				Sender:              delegateAddress.String(),
+				Receiver:            receiverAddress,
 				Nonce:               0,
 				Fee:                 0,
 				GasLimit:            0,
@@ -129,36 +128,37 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 		}
 	}
 
+	//In this genesis not used
 	//Genesis escrowreclaim
-	for debonder, staker := range gen.Staking.DebondingDelegations {
-
-		for staker, shareArr := range staker {
-
-			for i := range shareArr {
-
-				txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "reclaim", debonder, staker, shareArr[i].Shares.String())))
-
-				txs = append(txs, dmodels.Transaction{
-					BlockLevel:          genesisHeight,
-					BlockHash:           hex.EncodeToString(genesisBlockHash[:]),
-					Hash:                hex.EncodeToString(txHash[:]),
-					Time:                gen.GenesisTime,
-					Amount:              0,
-					EscrowAmount:        0,
-					EscrowReclaimAmount: shareArr[i].Shares.ToBigInt().Uint64(),
-					EscrowAccount:       staker,
-					Type:                "reclaimescrow",
-					Sender:              debonder,
-					Receiver:            oasis.SystemAddress.String(),
-					Nonce:               0,
-					Fee:                 0,
-					GasLimit:            0,
-					GasPrice:            0,
-				})
-
-			}
-		}
-	}
+	//for debonder, staker := range gen.Staking.DebondingDelegations {
+	//
+	//	for staker, shareArr := range staker {
+	//
+	//		for i := range shareArr {
+	//
+	//			txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "reclaim", debonder, staker, shareArr[i].Shares.String())))
+	//
+	//			txs = append(txs, dmodels.Transaction{
+	//				BlockLevel:          genesisHeight,
+	//				BlockHash:           hex.EncodeToString(genesisBlockHash[:]),
+	//				Hash:                hex.EncodeToString(txHash[:]),
+	//				Time:                gen.GenesisTime,
+	//				Amount:              0,
+	//				EscrowAmount:        0,
+	//				EscrowReclaimAmount: shareArr[i].Shares.ToBigInt().Uint64(),
+	//				EscrowAccount:       staker,
+	//				Type:                "reclaimescrow",
+	//				Sender:              debonder,
+	//				Receiver:            (api.Address)(oasis.SystemAddress).String(),
+	//				Nonce:               0,
+	//				Fee:                 0,
+	//				GasLimit:            0,
+	//				GasPrice:            0,
+	//			})
+	//
+	//		}
+	//	}
+	//}
 
 	err = cli.DAO.CreateTransfers(txs)
 	if err != nil {
@@ -176,11 +176,6 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 
 		txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "registernode", node.ID.String())))
 
-		entityBytes, err := node.EntityID.MarshalBinary()
-		if err != nil {
-			return err
-		}
-
 		consensusIDBytes, err := node.Consensus.ID.MarshalBinary()
 		if err != nil {
 			return err
@@ -196,8 +191,9 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 			Hash:             hex.EncodeToString(txHash[:]),
 			Time:             gen.GenesisTime,
 			ID:               node.ID.String(),
+			Address:          api.NewAddress(node.ID).String(),
 			EntityID:         node.EntityID.String(),
-			EntityAddress:    crypto.AddressHash(entityBytes).String(),
+			EntityAddress:    api.NewAddress(node.EntityID).String(),
 			Expiration:       node.Expiration,
 			P2PID:            node.P2P.ID.String(),
 			ConsensusID:      node.Consensus.ID.String(),
@@ -233,6 +229,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 			Hash:                   hex.EncodeToString(txHash[:]),
 			Time:                   gen.GenesisTime,
 			ID:                     entity.ID.String(),
+			Address:                api.NewAddress(entity.ID).String(),
 			Nodes:                  nodes,
 			AllowEntitySignedNodes: entity.AllowEntitySignedNodes,
 		}

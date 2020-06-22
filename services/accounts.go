@@ -2,25 +2,25 @@ package services
 
 import (
 	"context"
-	"github.com/oasislabs/oasis-core/go/common/crypto/signature"
-	"github.com/oasislabs/oasis-core/go/staking/api"
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+	"github.com/oasisprotocol/oasis-core/go/staking/api"
 	"oasisTracker/services/render"
 	"oasisTracker/smodels"
 )
 
 func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, err error) {
-	pb := signature.PublicKey{}
 
-	err = pb.UnmarshalText([]byte(accountID))
+	adr := api.NewAddress(signature.PublicKey{})
+	err = adr.UnmarshalText([]byte(accountID))
 	if err != nil {
 		return sAcc, err
 	}
 
 	//Get last account state
-	acc, err := s.nodeAPI.AccountInfo(context.Background(), &api.OwnerQuery{
+	acc, err := s.nodeAPI.Account(context.Background(), &api.OwnerQuery{
 		//Latest
 		Height: 0,
-		Owner:  pb,
+		Owner:  adr,
 	})
 	if err != nil {
 		return sAcc, err
@@ -42,8 +42,8 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 				continue
 			}
 
-			if value[0] > kind {
-				kind = value[0]
+			if *value[0].Global > kind {
+				kind = *value[0].Global
 			}
 		}
 
@@ -80,7 +80,7 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 	//Entity account
 	case resp.IsEntity(accountID):
 		ent := resp.GetEntity()
-		sAcc.EntityAddress = ent.EntityID
+		sAcc.EntityAddress = ent.EntityAddress
 
 		depositorsCount, err := s.dao.GetEntityActiveDepositorsCount(accountID)
 		if err != nil {
@@ -106,7 +106,7 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 		sAcc.Validator = &smodels.ValidatorInfo{
 			CommissionScheduleRules: smodels.TestNetGenesis,
 			Status:                  status,
-			NodeAddress:             ent.NodeID,
+			NodeAddress:             ent.Address,
 			ConsensusAddress:        ent.ConsensusAddress,
 			DepositorsCount:         depositorsCount,
 			BlocksCount:             ent.BlocksCount,

@@ -19,7 +19,7 @@ require (
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/mailru/go-clickhouse v1.3.0
 	github.com/mitchellh/mapstructure v1.3.0
-	github.com/oasislabs/oasis-core/go v0.0.0-20200506180820-c12748013a80
+	github.com/oasisprotocol/oasis-core/go v0.0.0-20200618144736-02a945839e9b
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prataprc/gson v0.0.0-20181107060252-71739fac98d6
 	github.com/rs/cors v1.7.0
@@ -27,11 +27,11 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.4.2
 	github.com/tendermint/go-amino v0.15.0
-	github.com/tendermint/tendermint v0.32.8
+	github.com/tendermint/tendermint v0.33.4
 	github.com/urfave/negroni v1.0.0
 	github.com/wedancedalot/decimal v0.0.0-20180831135040-d09bcccc62ea
 	github.com/wedancedalot/squirrel v0.0.0-20181205145720-8a2fefa67662
 	go.uber.org/zap v1.15.0
-	golang.org/x/crypto v0.0.0-20200423211502-4bdfaf469ed5
+	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37
 	google.golang.org/grpc v1.29.1
 )
