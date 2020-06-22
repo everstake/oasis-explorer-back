@@ -107,7 +107,7 @@ paths:
           description: Query compatibility endpoint for account
           schema:
             items:
-              $ref: '#/definitions/ValidatorsRow'
+              $ref: '#/definitions/ValidatorRow'
             type: array
         '400':
           description: Bad request
@@ -115,6 +115,168 @@ paths:
           description: Not Found
         '500':
           description: Internal error
+      tags:
+        - Accounts
+  '/data/validator/{account_id}':
+    get:
+      operationId: getValidatorInfo
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          type: string
+        - in: query
+          name: limit
+          type: integer
+          default: 50
+          minimum: 1
+          maximum: 500
+        - in: query
+          name: offset
+          description: Offset
+          type: integer
+          default: 0
+          minimum: 0
+      responses:
+        '200':
+          description: Query compatibility endpoint for blocks
+          schema:
+            items:
+              $ref: '#/definitions/ValidatorRow'
+            type: array
+          headers:
+            X-Total-Count:
+              description: The total number of data entries.
+              type: integer
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+      tags:
+        - Accounts
+  '/data/validator/{account_id}/delegators':
+    get:
+      operationId: getValidatorDelegatorsList
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          type: string
+        - in: query
+          name: limit
+          type: integer
+          default: 50
+          minimum: 1
+          maximum: 500
+        - in: query
+          name: offset
+          description: Offset
+          type: integer
+          default: 0
+          minimum: 0
+      responses:
+        '200':
+          description: Query compatibility endpoint for blocks
+          schema:
+            items:
+              $ref: '#/definitions/ValidatorDelegator'
+            type: array
+          headers:
+            X-Total-Count:
+              description: The total number of data entries.
+              type: integer
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+      tags:
+        - Accounts
+  '/chart/validator_stat/{account_id}':
+    get:
+      operationId: getValidatorStatChart
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          type: string
+        - in: query
+          name: frame
+          type: string
+          enum: [D]
+          required: true
+        - in: query
+          name: from
+          type: integer
+          format: int64
+          required: true
+        - in: query
+          name: to
+          type: integer
+          format: int64
+          required: true
+      responses:
+        '200':
+          description: Query compatibility endpoint for blocks
+          schema:
+            items:
+              $ref: '#/definitions/ValidatorStat'
+            type: array
+          headers:
+            X-Total-Count:
+              description: The total number of data entries.
+              type: integer
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+      tags:
+        - Accounts
+  '/chart/balance/{account_id}':
+    get:
+      operationId: getAccountBalanceChart
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          type: string
+        - in: query
+          name: frame
+          type: string
+          enum: [D]
+          required: true
+        - in: query
+          name: from
+          type: integer
+          format: int64
+          required: true
+        - in: query
+          name: to
+          type: integer
+          format: int64
+          required: true
+      responses:
+        '200':
+          description: Query compatibility endpoint for blocks
+          schema:
+            items:
+              $ref: '#/definitions/BalanceChart'
+            type: array
+          headers:
+            X-Total-Count:
+              description: The total number of data entries.
+              type: integer
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
       tags:
         - Accounts
   '/data/blocks':
@@ -392,6 +554,16 @@ definitions:
       max_bound_steps:
         format: int64
         type: integer
+  ValidatorDelegator:
+    properties:
+      account_id:
+        type: string
+      escrow_amount:
+        format: int64
+        type: integer
+      delegate_since:
+        format: int64
+        type: integer
   AccountsRow:
     properties:
       address:
@@ -429,7 +601,7 @@ definitions:
       - escrow_balance
       - debonding_balance
     type: object
-  ValidatorsRow:
+  ValidatorRow:
     properties:
       account_id:
         type: string
@@ -467,6 +639,20 @@ definitions:
       - status
       - escrow_balance
     type: object
+  ValidatorStat:
+    properties:
+      timestamp:
+        format: int64
+        type: integer
+      availability_score:
+        format: int64
+        type: integer
+      blocks_count:
+        format: int64
+        type: integer
+      signatures_count:
+        format: int64
+        type: integer
   BlocksRow:
     properties:
       timestamp:
@@ -548,5 +734,24 @@ definitions:
       escrow_ratio:
         type: number
         format: float64
+    required:
+      - timestamp
+  BalanceChart:
+    properties:
+      timestamp:
+        type: integer
+        format: int64
+      total_balance:
+        type: integer
+        format: int64
+      escrow_balance:
+        type: integer
+        format: int64
+      debonding_balance:
+        type: integer
+        format: int64
+      self_stake_balance:
+        type: integer
+        format: int64
     required:
       - timestamp
