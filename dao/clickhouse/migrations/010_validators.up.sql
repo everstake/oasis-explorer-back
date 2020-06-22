@@ -88,7 +88,6 @@ CREATE TABLE IF NOT EXISTS public_validators
 CREATE VIEW IF NOT EXISTS validator_entity_view AS
 select reg_entity_address,
        anyLast(reg_consensus_address) reg_consensus_address,
-       anyLast(reg_consensus_address) reg_consensus_address,
        max(blk_lvl)         blk_lvl,
        min(created_time)    created_time,
        max(reg_expiration)  reg_expiration,
