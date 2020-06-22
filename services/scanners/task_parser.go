@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"github.com/fxamacker/cbor/v2"
-	"github.com/oasislabs/oasis-core/go/common/crypto/signature"
-	consensusAPI "github.com/oasislabs/oasis-core/go/consensus/api"
-	stakingAPI "github.com/oasislabs/oasis-core/go/staking/api"
+	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
+	consensusAPI "github.com/oasisprotocol/oasis-core/go/consensus/api"
+	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/types"
 	"google.golang.org/grpc"
@@ -205,6 +205,11 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 			accountBalanceUpdates = append(accountBalanceUpdates, balanceUpdates...)
 		}
 
+		receiver := raw.Body.To.String()
+		if txType.Type() == dmodels.TransactionTypeAddEscrow || txType.Type() == dmodels.TransactionTypeReclaimEscrow {
+			receiver = raw.Body.EscrowTx.Account.String()
+		}
+
 		dTxs[i] = dmodels.Transaction{
 			BlockLevel: uint64(block.Header.Height),
 			//Todo change to lower
@@ -215,10 +220,9 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 			Amount:              raw.Body.Transfer.Tokens.ToBigInt().Uint64(),
 			EscrowAmount:        raw.Body.EscrowTx.Tokens.ToBigInt().Uint64(),
 			EscrowReclaimAmount: raw.Body.EscrowTx.Shares.ToBigInt().Uint64(),
-			EscrowAccount:       raw.Body.EscrowTx.Account.String(),
 			Type:                txType.Type(),
-			Sender:              tx.Signature.PublicKey.String(),
-			Receiver:            raw.Body.To.String(),
+			Sender:              stakingAPI.NewAddress(tx.Signature.PublicKey).String(),
+			Receiver:            receiver,
 			Nonce:               raw.Nonce,
 			Fee:                 raw.Fee.Amount.ToBigInt().Uint64(),
 			GasLimit:            uint64(raw.Fee.Gas),
@@ -238,16 +242,16 @@ func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
 		return nil
 	}
 
-	accounts, err := p.stakingAPI.Accounts(p.ctx, block.Header.Height)
+	addresses, err := p.stakingAPI.Addresses(p.ctx, block.Header.Height)
 	if err != nil {
 		return err
 	}
 
-	updates := make([]dmodels.AccountBalance, 0, len(accounts))
+	updates := make([]dmodels.AccountBalance, 0, len(addresses))
 
-	for i := range accounts {
+	for i := range addresses {
 
-		balance, err := p.getAccountBalance(block.Header.Height, accounts[i])
+		balance, err := p.getAccountBalance(block.Header.Height, addresses[i])
 		if err != nil {
 			return err
 		}
@@ -262,16 +266,17 @@ func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
 }
 
 func (p *ParserTask) parseAccountBalances(block oasis.Block, tx oasis.TxRaw, rawTX oasis.UntrustedRawValue) ([]dmodels.AccountBalance, error) {
-	accounts := []signature.PublicKey{tx.Signature.PublicKey, rawTX.Body.EscrowTx.Account, rawTX.Body.To}
-	updates := make([]dmodels.AccountBalance, 0, len(accounts))
+	addresses := []stakingAPI.Address{stakingAPI.NewAddress(tx.Signature.PublicKey), rawTX.Body.EscrowTx.Account, rawTX.Body.To}
 
-	for i := range accounts {
+	updates := make([]dmodels.AccountBalance, 0, len(addresses))
+
+	for i := range addresses {
 		//Skip system address
-		if accounts[i].Equal(oasis.SystemAddress) {
+		if (address.Address)(addresses[i]).Equal(oasis.SystemAddress) {
 			continue
 		}
 
-		balance, err := p.getAccountBalance(block.Header.Height, accounts[i])
+		balance, err := p.getAccountBalance(block.Header.Height, addresses[i])
 		if err != nil {
 			return updates, err
 		}
@@ -283,18 +288,18 @@ func (p *ParserTask) parseAccountBalances(block oasis.Block, tx oasis.TxRaw, raw
 	return updates, nil
 }
 
-func (p *ParserTask) getAccountBalance(height int64, pubKey signature.PublicKey) (balance dmodels.AccountBalance, err error) {
+func (p *ParserTask) getAccountBalance(height int64, address stakingAPI.Address) (balance dmodels.AccountBalance, err error) {
 
-	accInfo, err := p.stakingAPI.AccountInfo(p.ctx, &stakingAPI.OwnerQuery{
+	accInfo, err := p.stakingAPI.Account(p.ctx, &stakingAPI.OwnerQuery{
 		Height: height,
-		Owner:  pubKey,
+		Owner:  address,
 	})
 	if err != nil {
 		return balance, err
 	}
 
 	return dmodels.AccountBalance{
-		Account:               pubKey.String(),
+		Account:               address.String(),
 		Height:                height,
 		Nonce:                 accInfo.General.Nonce,
 		GeneralBalance:        accInfo.General.Balance.ToBigInt().Uint64(),
@@ -321,11 +326,6 @@ func (p *ParserTask) parseNodeRegistryTransaction(txType dmodels.TransactionMeth
 		physicalAddress = regNode.Consensus.Addresses[0].Address.String()
 	}
 
-	entityBytes, err := regNode.EntityID.MarshalBinary()
-	if err != nil {
-		return registerTx, err
-	}
-
 	consensusIDBytes, err := regNode.Consensus.ID.MarshalBinary()
 	if err != nil {
 		return registerTx, err
@@ -335,8 +335,9 @@ func (p *ParserTask) parseNodeRegistryTransaction(txType dmodels.TransactionMeth
 		BlockLevel:       uint64(block.Header.Height),
 		Time:             block.Header.Time,
 		ID:               regNode.ID.String(),
+		Address:          stakingAPI.NewAddress(regNode.ID).String(),
 		EntityID:         regNode.EntityID.String(),
-		EntityAddress:    crypto.AddressHash(entityBytes).String(),
+		EntityAddress:    stakingAPI.NewAddress(regNode.EntityID).String(),
 		Expiration:       regNode.Expiration,
 		P2PID:            regNode.P2P.ID.String(),
 		ConsensusID:      regNode.Consensus.ID.String(),
@@ -366,6 +367,7 @@ func (p *ParserTask) parseEntityRegistryTransaction(txType dmodels.TransactionMe
 		BlockLevel:             uint64(block.Header.Height),
 		Time:                   block.Header.Time,
 		ID:                     regEntity.ID.String(),
+		Address:                stakingAPI.NewAddress(regEntity.ID).String(),
 		Nodes:                  nodes,
 		AllowEntitySignedNodes: regEntity.AllowEntitySignedNodes,
 	}, nil

@@ -1,9 +1,10 @@
 package oasis
 
 import (
-	"github.com/oasislabs/oasis-core/go/common/crypto/signature"
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/tendermint/tendermint/crypto"
-	cmn "github.com/tendermint/tendermint/libs/common"
+	"github.com/tendermint/tendermint/libs/bytes"
 	tmtypes "github.com/tendermint/tendermint/types"
 	"time"
 )
@@ -11,10 +12,11 @@ import (
 const EpochBlocksNumber = 600
 
 //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
-var SystemAddress = signature.PublicKey{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+var SystemPublicKey = signature.PublicKey{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+var SystemAddress = address.Address{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 type Block struct {
-	Hash       cmn.HexBytes    `cbor:"-"`
+	Hash       bytes.HexBytes  `cbor:"-"`
 	Header     tmtypes.Header  `cbor:"header"`
 	LastCommit BlockLastCommit `cbor:"last_commit"`
 }
@@ -38,23 +40,23 @@ type Signature struct {
 }
 
 type BlockID struct {
-	Hash  cmn.HexBytes `cbor:"hash"`
-	Parts Parts        `cbor:"parts"`
+	Hash  bytes.HexBytes `cbor:"hash"`
+	Parts Parts          `cbor:"parts"`
 }
 
 type BlockHeader struct {
 	ChainID            string         `cbor:"chain_id"`
-	EvidenceHash       cmn.HexBytes   `cbor:"evidence_hash"`
-	ConsensusHash      cmn.HexBytes   `cbor:"consensus_hash"`
-	LastCommitHash     cmn.HexBytes   `cbor:"last_commit_hash"`
-	NextValidatorsHash cmn.HexBytes   `cbor:"next_validators_hash"`
+	EvidenceHash       bytes.HexBytes `cbor:"evidence_hash"`
+	ConsensusHash      bytes.HexBytes `cbor:"consensus_hash"`
+	LastCommitHash     bytes.HexBytes `cbor:"last_commit_hash"`
+	NextValidatorsHash bytes.HexBytes `cbor:"next_validators_hash"`
 	Height             int64          `cbor:"height"`
-	AppHash            cmn.HexBytes   `cbor:"app_hash"`
+	AppHash            bytes.HexBytes `cbor:"app_hash"`
 	Time               time.Time      `cbor:"time"`
-	ValidatorsHash     cmn.HexBytes   `cbor:"validators_hash"`
+	ValidatorsHash     bytes.HexBytes `cbor:"validators_hash"`
 	ProposerAddress    crypto.Address `cbor:"proposer_address"`
-	DataHash           cmn.HexBytes   `cbor:"data_hash"`
-	LastResultsHash    cmn.HexBytes   `cbor:"last_results_hash"`
+	DataHash           bytes.HexBytes `cbor:"data_hash"`
+	LastResultsHash    bytes.HexBytes `cbor:"last_results_hash"`
 
 	NumTxs   int64 `cbor:"num_txs"`
 	TotalTxs int64 `cbor:"total_txs"`
@@ -64,13 +66,13 @@ type BlockHeader struct {
 }
 
 type LastBlockID struct {
-	Hash  cmn.HexBytes `cbor:"hash"`
-	Parts Parts        `cbor:"parts"`
+	Hash  bytes.HexBytes `cbor:"hash"`
+	Parts Parts          `cbor:"parts"`
 }
 
 type Parts struct {
-	Hash  cmn.HexBytes `cbor:"hash"`
-	Total int          `cbor:"total"`
+	Hash  bytes.HexBytes `cbor:"hash"`
+	Total int            `cbor:"total"`
 }
 
 type Version struct {

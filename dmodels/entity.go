@@ -16,11 +16,11 @@ func (c EntityNodesContainer) IsEmpty() bool {
 }
 
 func (c EntityNodesContainer) IsNode(accountID string) bool {
-	return len(c.Nodes) == 1 && c.Nodes[0].NodeID == accountID
+	return len(c.Nodes) == 1 && c.Nodes[0].Address == accountID
 }
 
 func (c EntityNodesContainer) IsEntity(accountID string) bool {
-	return len(c.Nodes) > 0 && c.Nodes[0].EntityID == accountID
+	return len(c.Nodes) > 0 && c.Nodes[0].EntityAddress == accountID
 }
 
 func (c EntityNodesContainer) GetEntityAddress() string {
@@ -28,7 +28,7 @@ func (c EntityNodesContainer) GetEntityAddress() string {
 		return ""
 	}
 
-	return c.Nodes[0].EntityID
+	return c.Nodes[0].EntityAddress
 }
 
 func (c EntityNodesContainer) GetEntity() (resp EntityNode) {
@@ -63,7 +63,9 @@ func (c EntityNodesContainer) GetEntity() (resp EntityNode) {
 
 type EntityNode struct {
 	EntityID             string    `db="reg_entity_id"`
+	EntityAddress        string    `db="reg_entity_address"`
 	NodeID               string    `db="reg_id"`
+	Address              string    `db="reg_address"`
 	ConsensusAddress     string    `db="reg_consensus_address"`
 	LastRegBlock         uint64    `db="blk_lvl"`
 	CreatedTime          time.Time `db="created_time"`

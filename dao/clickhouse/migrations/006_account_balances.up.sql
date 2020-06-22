@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS account_balance (
     blk_lvl UInt64,
     blk_time DateTime,
-    acb_account FixedString(44),
+    acb_account FixedString(46),
     acb_nonce UInt64,
     acb_general_balance UInt64,
     acb_escrow_balance_active UInt64,

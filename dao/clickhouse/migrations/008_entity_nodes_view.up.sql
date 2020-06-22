@@ -1,20 +1,20 @@
 CREATE VIEW IF NOT EXISTS entity_depositors_view AS
 select *, add.input - remove.output balance from (
-  select tx_escrow_account, tx_sender, min(tx_time) escrow_since, sum(tx_escrow_amount) input
+  select tx_receiver, tx_sender, min(tx_time) escrow_since, sum(tx_escrow_amount) input
   from transactions
   where tx_type = 'addescrow'
-  group by  tx_escrow_account, tx_sender) add
+  group by  tx_receiver, tx_sender) add
    ANY
        LEFT JOIN (
-         select tx_escrow_account, tx_sender, sum(tx_escrow_reclaim_amount) output
+         select tx_receiver, tx_sender, sum(tx_escrow_reclaim_amount) output
          from transactions
          where tx_type = 'reclaimescrow'
-         group by tx_escrow_account, tx_sender) remove USING tx_escrow_account, tx_sender;
+         group by tx_receiver, tx_sender) remove USING tx_receiver, tx_sender;
 
 CREATE VIEW IF NOT EXISTS entity_active_depositors_counter_view AS
-  SELECT tx_escrow_account reg_entity_id, count() depositors_num from entity_depositors_view
+  SELECT tx_receiver reg_entity_address, count() depositors_num from entity_depositors_view
   where balance > 0
-  group by tx_escrow_account;
+  group by tx_receiver;
 
 CREATE VIEW IF NOT EXISTS entity_nodes_view AS
 select *

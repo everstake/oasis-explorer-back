@@ -23,7 +23,7 @@ func (cl Clickhouse) CreateTransfers(transfers []dmodels.Transaction) error {
 	}
 
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_hash, tx_time, tx_hash, tx_amount, tx_escrow_amount,  tx_escrow_reclaim_amount, tx_escrow_account, tx_type, tx_sender, tx_receiver, tx_nonce, tx_fee, tx_gas_limit, tx_gas_price)"+
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_hash, tx_time, tx_hash, tx_amount, tx_escrow_amount,  tx_escrow_reclaim_amount, tx_type, tx_sender, tx_receiver, tx_nonce, tx_fee, tx_gas_limit, tx_gas_price)"+
 			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.TransactionsTable))
 	if err != nil {
 		return err
@@ -44,7 +44,6 @@ func (cl Clickhouse) CreateTransfers(transfers []dmodels.Transaction) error {
 			transfers[i].Amount,
 			transfers[i].EscrowAmount,
 			transfers[i].EscrowReclaimAmount,
-			transfers[i].EscrowAccount,
 			transfers[i].Type,
 			transfers[i].Sender,
 			transfers[i].Receiver,
@@ -76,8 +75,8 @@ func (cl Clickhouse) CreateRegisterNodeTransactions(txs []dmodels.NodeRegistryTr
 	}
 
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (blk_lvl, tx_time, tx_hash, reg_id, reg_entity_id, reg_entity_address, reg_expiration, reg_p2p_id, reg_consensus_id, reg_consensus_address, reg_physical_address, reg_roles)"+
-			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.RegisterNodeTable))
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, tx_time, tx_hash, reg_id, reg_address, reg_entity_id, reg_entity_address, reg_expiration, reg_p2p_id, reg_consensus_id, reg_consensus_address, reg_physical_address, reg_roles)"+
+			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.RegisterNodeTable))
 	if err != nil {
 		return err
 	}
@@ -94,6 +93,7 @@ func (cl Clickhouse) CreateRegisterNodeTransactions(txs []dmodels.NodeRegistryTr
 			txs[i].Time,
 			txs[i].Hash,
 			txs[i].ID,
+			txs[i].Address,
 			txs[i].EntityID,
 			txs[i].EntityAddress,
 			txs[i].Expiration,
@@ -127,8 +127,8 @@ func (cl Clickhouse) CreateRegisterEntityTransactions(txs []dmodels.EntityRegist
 	}
 
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (blk_lvl, tx_time, tx_hash, reg_entity_id, reg_nodes, reg_allow_entity_signed_nodes)"+
-			"VALUES (?, ?, ?, ?, ?, ?)", dmodels.RegisterEntityTable))
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, tx_time, tx_hash, reg_entity_id, reg_entity_address, reg_nodes, reg_allow_entity_signed_nodes)"+
+			"VALUES (?, ?, ?, ?, ?, ?, ?)", dmodels.RegisterEntityTable))
 	if err != nil {
 		return err
 	}
@@ -145,6 +145,7 @@ func (cl Clickhouse) CreateRegisterEntityTransactions(txs []dmodels.EntityRegist
 			txs[i].Time,
 			txs[i].Hash,
 			txs[i].ID,
+			txs[i].Address,
 			clickhouse.Array(txs[i].Nodes),
 			txs[i].AllowEntitySignedNodes,
 		)
@@ -220,7 +221,7 @@ func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]d
 	for rows.Next() {
 		row := dmodels.Transaction{}
 
-		err := rows.Scan(&row.BlockLevel, &row.BlockHash, &row.Time, &row.Hash, &row.Amount, &row.EscrowAmount, &row.EscrowReclaimAmount, &row.EscrowAccount, &row.Type, &row.Sender, &row.Receiver, &row.Nonce, &row.Fee, &row.GasLimit, &row.GasPrice)
+		err := rows.Scan(&row.BlockLevel, &row.BlockHash, &row.Time, &row.Hash, &row.Amount, &row.EscrowAmount, &row.EscrowReclaimAmount, &row.Type, &row.Sender, &row.Receiver, &row.Nonce, &row.Fee, &row.GasLimit, &row.GasPrice)
 		if err != nil {
 			return resp, err
 		}

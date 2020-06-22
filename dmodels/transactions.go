@@ -54,7 +54,6 @@ type Transaction struct {
 	Amount              uint64          `db:"tx_amount"`
 	EscrowAmount        uint64          `db:"tx_escrow_amount"`
 	EscrowReclaimAmount uint64          `db:"tx_escrow_reclaim_amount"`
-	EscrowAccount       string          `db:"tx_escrow_account"`
 	Type                TransactionType `db:"tx_type"`
 	Sender              string          `db:"tx_sender"`
 	Receiver            string          `db:"tx_receiver"`
@@ -69,6 +68,7 @@ type NodeRegistryTransaction struct {
 	Hash             string    `db:"tx_hash"`
 	Time             time.Time `db:"tx_time"`
 	ID               string
+	Address          string
 	EntityID         string
 	EntityAddress    string
 	Expiration       uint64
@@ -84,6 +84,7 @@ type EntityRegistryTransaction struct {
 	Hash                   string    `db:"tx_hash"`
 	Time                   time.Time `db:"tx_time"`
 	ID                     string
+	Address                string
 	Nodes                  []string
 	AllowEntitySignedNodes bool
 }
