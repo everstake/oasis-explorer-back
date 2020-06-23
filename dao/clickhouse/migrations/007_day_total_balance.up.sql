@@ -14,4 +14,4 @@ select start_of_period,
        sum(escrow_debonding_active) escrow_debonding_active
 from account_day_balance_view
 GROUP BY start_of_period
-ORDER BY start_of_period desc;
+ORDER BY start_of_period asc;
