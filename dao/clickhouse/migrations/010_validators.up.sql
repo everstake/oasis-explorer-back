@@ -111,7 +111,7 @@ from (
                     from register_node_transactions
                     group by reg_entity_address ) val_lvl USING reg_entity_address) validator
               ANY
-              LEFT JOIN (SELECT acb_account reg_entity_address, acb_escrow_balance_active, depositors_num
+              LEFT JOIN (SELECT acb_account reg_entity_address, acb_escrow_balance_active, acb_general_balance, acb_escrow_balance_share, acb_escrow_debonding_active, depositors_num
                          from account_last_balance_view ANY
                                 LEFT JOIN entity_active_depositors_counter_view USING reg_entity_address
          ) b USING reg_entity_address
@@ -120,6 +120,7 @@ from (
           OR reg_expiration >= (select max(blk_epoch) from blocks)) prep
        ANY
        LEFT JOIN public_validators USING reg_entity_address;
+
 
 CREATE VIEW IF NOT EXISTS day_max_block_lvl_view AS
 select toStartOfDay(blk_created_at) day, max(blk_lvl) blk_lvl

@@ -1,22 +1,22 @@
 --Last registered unique entity
-CREATE VIEW IF NOT EXISTS oasis.entity_register_view AS
+CREATE VIEW IF NOT EXISTS entity_register_view AS
 select *
 from (
       select reg_entity_id, max(blk_lvl) blk_lvl
-      from oasis.register_entity_transactions
+      from register_entity_transactions
       group by reg_entity_id) m
  ANY
-       LEFT JOIN oasis.register_entity_transactions USING reg_entity_id, blk_lvl;
+       LEFT JOIN register_entity_transactions USING reg_entity_id, blk_lvl;
 
 --Last registered unique node
-CREATE VIEW IF NOT EXISTS oasis.node_registry_view AS
+CREATE VIEW IF NOT EXISTS node_registry_view AS
 select *
 from (
       select reg_id, max(blk_lvl) blk_lvl
-      from oasis.register_node_transactions
+      from register_node_transactions
       group by reg_id) m
  ANY
-       LEFT JOIN oasis.register_node_transactions USING reg_id, blk_lvl;
+       LEFT JOIN register_node_transactions USING reg_id, blk_lvl;
 
 
 ---
@@ -28,7 +28,8 @@ SELECT
     min(blk_time) created_at,
     anyLastState(acb_general_balance) acb_general_balance,
     anyLastState(acb_escrow_balance_active) acb_escrow_balance_active,
-    anyLastState(acb_escrow_balance_share) acb_escrow_balance_share
+    anyLastState(acb_escrow_balance_share) acb_escrow_balance_share,
+    anyLastState(acb_escrow_debonding_active) acb_escrow_debonding_active
 FROM account_balance
 GROUP BY acb_account;
 
@@ -38,7 +39,8 @@ SELECT
     min(created_at) created_at,
     anyLastMerge(acb_general_balance) acb_general_balance,
     anyLastMerge(acb_escrow_balance_active) acb_escrow_balance_active,
-    anyLastMerge(acb_escrow_balance_share) acb_escrow_balance_share
+    anyLastMerge(acb_escrow_balance_share) acb_escrow_balance_share,
+    anyLastMerge(acb_escrow_debonding_active) acb_escrow_debonding_active
 FROM account_balance_merge_mv
 GROUP BY acb_account;
 

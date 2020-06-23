@@ -21,7 +21,7 @@ type ValidatorParams struct {
 
 type Validator struct {
 	Account        string              `json:"account_id"`
-	AccountName    string              `json:"account_name"`
+	AccountName    string              `json:"account_name,omitempty"`
 	Fee            uint64              `json:"fee"`
 	EscrowBalance  uint64              `json:"escrow_balance"`
 	AvailableScore uint64              `json:"available_score"`
