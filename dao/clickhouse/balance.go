@@ -42,7 +42,7 @@ func (cl Clickhouse) GetBalanceChartData(accountID string, params smodels.ChartP
 		Where(sq.Eq{"acb_account": accountID}).
 		Where(sq.GtOrEq{"start_of_period": params.From}).
 		Where(sq.LtOrEq{"start_of_period": params.To}).
-		OrderBy("start_of_period desc")
+		OrderBy("start_of_period asc")
 
 	rawSql, args, err := q.ToSql()
 	if err != nil {
