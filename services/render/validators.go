@@ -17,13 +17,17 @@ func ValidatorsList(accs []dmodels.Validator) []smodels.Validator {
 func Validator(a dmodels.Validator) smodels.Validator {
 
 	return smodels.Validator{
-		Account:        a.EntityID,
-		AccountName:    a.ValidatorName,
-		Fee:            a.ValidatorFee,
-		EscrowBalance:  a.EscrowBalance,
-		AvailableScore: a.AvailabilityScore,
-		CreatedAt:      a.ValidateSince.Unix(),
-		MediaInfo:      ValidatorMediaInfo(a.ValidatorMediaInfo),
+		Account:            a.EntityID,
+		AccountName:        a.ValidatorName,
+		NodeID:             a.NodeAddress,
+		Fee:                a.ValidatorFee,
+		GeneralBalance:     a.GeneralBalance,
+		EscrowBalance:      a.EscrowBalance,
+		EscrowBalanceShare: a.EscrowBalanceShare,
+		DebondingBalance:   a.DebondingBalance,
+		AvailableScore:     a.AvailabilityScore,
+		CreatedAt:          a.ValidateSince.Unix(),
+		MediaInfo:          ValidatorMediaInfo(a.ValidatorMediaInfo),
 		ValidatorInfo: smodels.ValidatorInfo{
 			Status:          a.Status,
 			DepositorsCount: a.DepositorsNum,
