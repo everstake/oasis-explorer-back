@@ -70,7 +70,7 @@ func (s *ServiceFacade) GetValidatorStatsChartData(accountID string, params smod
 	}
 
 	for i := range stats {
-		stats[i].AvailabilityScore = calcAvailabilityScore(0, 0, validators[0].StartBlockLevel, 0)
+		stats[i].AvailabilityScore = calcAvailabilityScore(stats[i].BlocksCount, stats[i].SignaturesCount, validators[0].StartBlockLevel, stats[i].LastBlock)
 	}
 
 	return render.ValidatorStatList(stats), nil

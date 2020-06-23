@@ -44,9 +44,9 @@ type ValidatorMediaInfo struct {
 
 type ValidatorStats struct {
 	Timestamp         int64  `json:"timestamp"`
-	AvailabilityScore uint64 `json:"availability_score,omitempty"`
-	BlocksCount       uint64 `json:"blocks_count,omitempty"`
-	SignaturesCount   uint64 `json:"signatures_count,omitempty"`
+	AvailabilityScore uint64 `json:"availability_score"`
+	BlocksCount       uint64 `json:"blocks_count"`
+	SignaturesCount   uint64 `json:"signatures_count"`
 }
 
 type Delegator struct {
