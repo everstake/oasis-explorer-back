@@ -25,6 +25,10 @@ type (
 		GetBalanceChartData(accountID string, params smodels.ChartParams) ([]smodels.BalanceChartData, error)
 		GetEscrowRatioChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
 		GetValidatorStatsChartData(accountID string, params smodels.ChartParams) ([]smodels.ValidatorStats, error)
+		GetTotalAccountsCountChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
+		GetAvgBlockTimeChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
+		GetFeeVolumeChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
+		GetOperationsCountChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
 	}
 
 	ServiceFacade struct {
