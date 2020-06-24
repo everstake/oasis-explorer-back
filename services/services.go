@@ -29,6 +29,7 @@ type (
 		GetAvgBlockTimeChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
 		GetFeeVolumeChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
 		GetOperationsCountChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
+		GetReclaimAmountChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
 	}
 
 	ServiceFacade struct {

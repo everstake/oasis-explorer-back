@@ -29,6 +29,7 @@ type ChartData struct {
 	AvgBlockTime      float64 `json:"avg_block_time,omitempty"`
 	Fees              uint64  `json:"fees,omitempty"`
 	OperationsCount   uint64  `json:"operations_count,omitempty"`
+	ReclaimAmount     uint64  `json:"reclaim_amount,omitempty"`
 }
 
 type BalanceChartData struct {
