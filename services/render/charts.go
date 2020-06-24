@@ -23,6 +23,7 @@ func ChartElement(chd dmodels.ChartData) smodels.ChartData {
 		AvgBlockTime:      chd.AvgBlockTime,
 		Fees:              chd.Fees,
 		OperationsCount:   chd.OperationsCount,
+		ReclaimAmount:     chd.ReclaimAmount,
 	}
 }
 

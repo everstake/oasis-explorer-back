@@ -38,6 +38,7 @@ type (
 		GetAvgBlockTimeChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error)
 		GetFeeVolumeChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error)
 		GetOperationsCountChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error)
+		GetReclaimAmountChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error)
 
 		GetTopEscrowAccounts(uint64) ([]dmodels.AccountBalance, error)
 		GetLastDayTotalBalance() (dmodels.DayBalance, error)
