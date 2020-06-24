@@ -629,7 +629,7 @@ definitions:
         format: int64
         type: integer
       media_info:
-        $ref: '#/definitions/ValidatorInfo'
+        $ref: '#/definitions/ValidatorMegiaInfo'
       available_score:
         format: int64
         type: integer
