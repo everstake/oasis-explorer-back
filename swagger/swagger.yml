@@ -441,10 +441,6 @@ paths:
             items:
               $ref: '#/definitions/ChartsData'
             type: array
-          headers:
-            X-Total-Count:
-              description: The total number of data entries.
-              type: integer
         '400':
           description: Bad request
         '404':
@@ -479,10 +475,142 @@ paths:
             items:
               $ref: '#/definitions/ChartsData'
             type: array
-          headers:
-            X-Total-Count:
-              description: The total number of data entries.
-              type: integer
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+      tags:
+        - Charts
+  '/chart/accounts/count':
+    get:
+      operationId: getAccountsCount
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: frame
+          type: string
+          enum: [D]
+          required: true
+        - in: query
+          name: from
+          type: integer
+          format: int64
+          required: true
+        - in: query
+          name: to
+          type: integer
+          format: int64
+          required: true
+      responses:
+        '200':
+          description: Query compatibility endpoint for escrow ratio chart
+          schema:
+            items:
+              $ref: '#/definitions/ChartsData'
+            type: array
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+      tags:
+        - Charts
+  '/chart/blocks/avg_time':
+    get:
+      operationId: getBlocksAvgTime
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: frame
+          type: string
+          enum: [H,D]
+          required: true
+        - in: query
+          name: from
+          type: integer
+          format: int64
+          required: true
+        - in: query
+          name: to
+          type: integer
+          format: int64
+          required: true
+      responses:
+        '200':
+          description: Query compatibility endpoint for escrow ratio chart
+          schema:
+            items:
+              $ref: '#/definitions/ChartsData'
+            type: array
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+      tags:
+        - Charts
+  '/chart/fees/volume':
+    get:
+      operationId: getFeeVolume
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: frame
+          type: string
+          enum: [H,D]
+          required: true
+        - in: query
+          name: from
+          type: integer
+          format: int64
+          required: true
+        - in: query
+          name: to
+          type: integer
+          format: int64
+          required: true
+      responses:
+        '200':
+          description: Query compatibility endpoint for escrow ratio chart
+          schema:
+            items:
+              $ref: '#/definitions/ChartsData'
+            type: array
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+      tags:
+        - Charts
+  '/chart/operations/count':
+    get:
+      operationId: getOperationsCount
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: frame
+          type: string
+          enum: [H,D]
+          required: true
+        - in: query
+          name: from
+          type: integer
+          format: int64
+          required: true
+        - in: query
+          name: to
+          type: integer
+          format: int64
+          required: true
+      responses:
+        '200':
+          description: Query compatibility endpoint for escrow ratio chart
+          schema:
+            items:
+              $ref: '#/definitions/ChartsData'
+            type: array
         '400':
           description: Bad request
         '404':
@@ -734,6 +862,18 @@ definitions:
       escrow_ratio:
         type: number
         format: float64
+      avg_block_time:
+        type: number
+        format: float64
+      accounts_count:
+        type: integer
+        format: int64
+      fees:
+        type: integer
+        format: int64
+      operations_count:
+        type: integer
+        format: int64
     required:
       - timestamp
   BalanceChart:
