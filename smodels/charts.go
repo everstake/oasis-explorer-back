@@ -9,7 +9,8 @@ type ChartParams struct {
 type ChartFrame string
 
 const (
-	FrameDay ChartFrame = "D"
+	FrameHour ChartFrame = "H"
+	FrameDay  ChartFrame = "D"
 )
 
 func (p ChartParams) Validate() error {
@@ -24,6 +25,10 @@ type ChartData struct {
 	Timestamp         int64   `json:"timestamp"`
 	TransactionVolume string  `json:"transaction_volume,omitempty"`
 	EscrowRatio       float64 `json:"escrow_ratio,omitempty"`
+	AccountsCount     uint64  `json:"accounts_count,omitempty"`
+	AvgBlockTime      float64 `json:"avg_block_time,omitempty"`
+	Fees              uint64  `json:"fees,omitempty"`
+	OperationsCount   uint64  `json:"operations_count,omitempty"`
 }
 
 type BalanceChartData struct {
