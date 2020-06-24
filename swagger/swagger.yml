@@ -370,6 +370,10 @@ paths:
           name: receiver
           description: Receiver address
           type: string
+        - in: query
+          name: account_id
+          description: Get transactions by account
+          type: string
         - collectionFormat: multi
           in: query
           items:
@@ -607,12 +611,25 @@ definitions:
         type: string
       account_name:
         type: string
+      node_id:
+        type: string
       fee:
         format: int64
         type: integer
       escrow_balance:
         format: int64
         type: integer
+      escrow_shares:
+        format: int64
+        type: integer
+      general_balance:
+        format: int64
+        type: integer
+      gebonding_balance:
+        format: int64
+        type: integer
+      media_info:
+        $ref: '#/definitions/ValidatorInfo'
       available_score:
         format: int64
         type: integer
@@ -639,6 +656,18 @@ definitions:
       - status
       - escrow_balance
     type: object
+  ValidatorMegiaInfo:
+    properties:
+      website_link:
+        type: string
+      email_address:
+        type: string
+      twitter_acc:
+        type: string
+      tg_chat:
+        type: string
+      medium_link:
+        type: string
   ValidatorStat:
     properties:
       timestamp:
