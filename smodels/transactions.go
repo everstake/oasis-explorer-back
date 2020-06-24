@@ -21,6 +21,8 @@ type TransactionsParams struct {
 	OperationKind []string `schema:"operation_kind"`
 	Sender        string
 	Receiver      string
+	//Get transaction by account
+	AccountID string `schema:"account_id"`
 }
 
 type Transaction struct {

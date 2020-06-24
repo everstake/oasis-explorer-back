@@ -194,6 +194,10 @@ func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]d
 		q = q.Where(sq.Lt{"tx_time": params.To})
 	}
 
+	if params.AccountID != "" {
+		q = q.Where(sq.Or{sq.Eq{"tx_sender": params.AccountID}, sq.Eq{"tx_receiver": params.AccountID}})
+	}
+
 	if params.Sender != "" {
 		q = q.Where(sq.Eq{"tx_sender": params.Sender})
 	}
