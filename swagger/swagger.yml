@@ -508,7 +508,7 @@ paths:
           required: true
       responses:
         '200':
-          description: Query compatibility endpoint for escrow ratio chart
+          description: Query compatibility endpoint for account count chart
           schema:
             items:
               $ref: '#/definitions/ChartsData'
@@ -542,7 +542,7 @@ paths:
           required: true
       responses:
         '200':
-          description: Query compatibility endpoint for escrow ratio chart
+          description: Query compatibility endpoint for blocks avg time chart
           schema:
             items:
               $ref: '#/definitions/ChartsData'
@@ -576,7 +576,7 @@ paths:
           required: true
       responses:
         '200':
-          description: Query compatibility endpoint for escrow ratio chart
+          description: Query compatibility endpoint for fees volume chart
           schema:
             items:
               $ref: '#/definitions/ChartsData'
@@ -610,7 +610,7 @@ paths:
           required: true
       responses:
         '200':
-          description: Query compatibility endpoint for escrow ratio chart
+          description: Query compatibility endpoint for operations count chart
           schema:
             items:
               $ref: '#/definitions/ChartsData'
@@ -644,10 +644,34 @@ paths:
           required: true
       responses:
         '200':
-          description: Query compatibility endpoint for escrow ratio chart
+          description: Query compatibility endpoint for reclaim txs amount by day
           schema:
             items:
               $ref: '#/definitions/ChartsData'
+            type: array
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+      tags:
+        - Charts
+  '/chart/top_escrow_ratio':
+    get:
+      operationId: getTopEscrowRatio
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: limit
+          type: integer
+          format: int64
+          default: 10
+      responses:
+        '200':
+          description: Query compatibility endpoint for top escrow ratio accounts
+          schema:
+            items:
+              $ref: '#/definitions/AccountEscrowRatio'
             type: array
         '400':
           description: Bad request
@@ -961,3 +985,12 @@ definitions:
         format: int64
     required:
       - timestamp
+  AccountEscrowRatio:
+    properties:
+      account_id:
+        type: string
+      account_name:
+        type: string
+      escrow_ratio:
+        type: number
+        format: float64

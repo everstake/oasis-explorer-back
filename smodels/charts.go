@@ -32,6 +32,12 @@ type ChartData struct {
 	ReclaimAmount     uint64  `json:"reclaim_amount,omitempty"`
 }
 
+type TopEscrowRatioChart struct {
+	AccountID   string  `json:"account_id"`
+	AccountName string  `json:"account_name,omitempty"`
+	EsrowRatio  float64 `json:"esrow_ratio"`
+}
+
 type BalanceChartData struct {
 	Timestamp        int64  `json:"timestamp"`
 	TotalBalance     uint64 `json:"total_balance"`

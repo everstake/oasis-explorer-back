@@ -75,6 +75,30 @@ func (s *ServiceFacade) GetReclaimAmountChartData(params smodels.ChartParams) ([
 	return render.ChartData(data), nil
 }
 
+func (s *ServiceFacade) GetTopEscrowRatioChart(params smodels.CommonParams) (resp []smodels.TopEscrowRatioChart, err error) {
+	totalBalance, err := s.dao.GetLastDayTotalBalance()
+	if err != nil {
+		return resp, err
+	}
+
+	topAccounts, err := s.dao.GetTopEscrowAccounts(params.Limit)
+	if err != nil {
+		return resp, err
+	}
+
+	for i := range topAccounts {
+
+		resp = append(resp, smodels.TopEscrowRatioChart{
+			AccountID:   topAccounts[i].Account,
+			AccountName: topAccounts[i].AccountName,
+			EsrowRatio:  float64(topAccounts[i].EscrowBalanceActive) / float64(totalBalance.EscrowBalanceActive),
+		})
+
+	}
+
+	return resp, nil
+}
+
 func (s *ServiceFacade) GetBalanceChartData(accountID string, params smodels.ChartParams) ([]smodels.BalanceChartData, error) {
 
 	data, err := s.dao.GetBalanceChartData(accountID, params)
