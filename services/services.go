@@ -21,6 +21,7 @@ type (
 		GetValidatorInfo(string) (smodels.Validator, error)
 		GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, error)
 		GetValidatorDelegators(validatorID string, params smodels.CommonParams) ([]smodels.Delegator, error)
+
 		GetChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
 		GetBalanceChartData(accountID string, params smodels.ChartParams) ([]smodels.BalanceChartData, error)
 		GetEscrowRatioChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
@@ -30,6 +31,7 @@ type (
 		GetFeeVolumeChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
 		GetOperationsCountChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
 		GetReclaimAmountChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
+		GetTopEscrowRatioChart(params smodels.CommonParams) (resp []smodels.TopEscrowRatioChart, err error)
 	}
 
 	ServiceFacade struct {

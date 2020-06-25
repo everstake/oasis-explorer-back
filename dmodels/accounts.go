@@ -18,6 +18,7 @@ type AccountTime struct {
 
 type AccountBalance struct {
 	Account               string    `db:"acb_account"`
+	AccountName           string    `db:"pvl_name"`
 	Time                  time.Time `db:"blk_time"`
 	Height                int64     `db:"blk_lvl"`
 	Nonce                 uint64    `db:"acb_nonce"`

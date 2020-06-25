@@ -186,6 +186,33 @@ func (api *API) GetReclaimAmountChart(w http.ResponseWriter, r *http.Request) {
 	Json(w, data)
 }
 
+func (api *API) GetTopEscrowRatioChart(w http.ResponseWriter, r *http.Request) {
+
+	params := smodels.CommonParams{
+		Limit: 10,
+	}
+	err := api.queryDecoder.Decode(&params, r.URL.Query())
+	if err != nil {
+		response.JsonError(w, apperrors.New(apperrors.ErrBadRequest))
+		return
+	}
+
+	err = params.Validate()
+	if err != nil {
+		response.JsonError(w, apperrors.New(apperrors.ErrBadParam, err.Error()))
+		return
+	}
+
+	data, err := api.services.GetTopEscrowRatioChart(params)
+	if err != nil {
+		log.Error("GetChartData api error", zap.Error(err))
+		response.JsonError(w, err)
+		return
+	}
+
+	Json(w, data)
+}
+
 func (api *API) GetValidatorStats(w http.ResponseWriter, r *http.Request) {
 	urlAcc, ok := mux.Vars(r)["account_id"]
 	if !ok || urlAcc == "" {

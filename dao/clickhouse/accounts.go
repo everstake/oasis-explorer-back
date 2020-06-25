@@ -86,6 +86,7 @@ func (cl Clickhouse) GetTopEscrowAccounts(limit uint64) (resp []dmodels.AccountB
 
 	q := sq.Select("*").
 		From(dmodels.AccountLastBalanceView).
+		JoinClause("ANY LEFT JOIN (SELECT reg_entity_address acb_account, pvl_name from public_validators) s USING acb_account").
 		OrderBy("acb_escrow_balance_active desc").
 		Limit(limit)
 
@@ -103,7 +104,7 @@ func (cl Clickhouse) GetTopEscrowAccounts(limit uint64) (resp []dmodels.AccountB
 	for rows.Next() {
 		row := dmodels.AccountBalance{}
 
-		err := rows.Scan(&row.Account, &row.Time, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.EscrowDebondingActive)
+		err := rows.Scan(&row.Account, &row.Time, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.EscrowDebondingActive, &row.AccountName)
 		if err != nil {
 			return resp, err
 		}
