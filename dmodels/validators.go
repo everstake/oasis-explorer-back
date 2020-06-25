@@ -5,9 +5,10 @@ import (
 )
 
 const (
-	ValidatorsTable    = "validators_list_view"
-	ValidatorStatsView = "validator_day_stats_view"
-	DepositorsView     = "entity_depositors_view"
+	ValidatorsTable       = "validators_list_view"
+	PublicValidatorsTable = "public_validators"
+	ValidatorStatsView    = "validator_day_stats_view"
+	DepositorsView        = "entity_depositors_view"
 )
 
 type Validator struct {

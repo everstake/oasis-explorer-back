@@ -84,3 +84,19 @@ func Delegator(s dmodels.Delegator) smodels.Delegator {
 		DelegateSince: s.DelegateSince.Unix(),
 	}
 }
+
+func PublicValidatorSearch(sts []dmodels.Validator) []smodels.ValidatorEntity {
+	stats := make([]smodels.ValidatorEntity, len(sts))
+	for i := range sts {
+		stats[i] = ValidatorEntity(sts[i])
+	}
+	return stats
+}
+
+func ValidatorEntity(s dmodels.Validator) smodels.ValidatorEntity {
+
+	return smodels.ValidatorEntity{
+		Account:     s.EntityID,
+		AccountName: s.ValidatorName,
+	}
+}
