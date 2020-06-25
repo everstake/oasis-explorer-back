@@ -117,6 +117,26 @@ paths:
           description: Internal error
       tags:
         - Accounts
+  '/data/validators/search':
+    get:
+      operationId: getPublicValidatorsSearchList
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Query compatibility endpoint for account
+          schema:
+            items:
+              $ref: '#/definitions/ValidatorEntity'
+            type: array
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+        '500':
+          description: Internal error
+      tags:
+        - Accounts
   '/data/validator/{account_id}':
     get:
       operationId: getValidatorInfo
@@ -994,3 +1014,9 @@ definitions:
       escrow_ratio:
         type: number
         format: float64
+  ValidatorEntity:
+    properties:
+      account_id:
+        type: string
+      account_name:
+        type: string
