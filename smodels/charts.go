@@ -28,7 +28,7 @@ type ChartData struct {
 
 type BalanceChartData struct {
 	Timestamp        int64  `json:"timestamp"`
-	TotalBalance     uint64 `json:"total_balance"`
+	GeneralBalance   uint64 `json:"general_balance"`
 	EscrowBalance    uint64 `json:"escrow_balance"`
 	DebondingBalance uint64 `json:"debonding_balance"`
 	SelfStakeBalance uint64 `json:"self_stake_balance"`
