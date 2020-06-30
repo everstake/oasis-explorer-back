@@ -39,7 +39,7 @@ func BalanceChartElement(bcd dmodels.BalanceChartData) smodels.BalanceChartData 
 
 	return smodels.BalanceChartData{
 		Timestamp:        bcd.BeginOfPeriod.Unix(),
-		TotalBalance:     bcd.GeneralBalance,
+		GeneralBalance:   bcd.GeneralBalance,
 		EscrowBalance:    bcd.EscrowBalance,
 		DebondingBalance: bcd.DebondingBalance,
 		SelfStakeBalance: 0,
