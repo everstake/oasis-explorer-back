@@ -169,12 +169,10 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 	//Genesis nodes
 	for i := range gen.Registry.Nodes {
 		node := oasis.RegisterNode{}
-		err = cbor.Unmarshal(gen.Registry.Nodes[i].UntrustedRawValue, &node)
+		err = cbor.Unmarshal(gen.Registry.Nodes[i].Blob, &node)
 		if err != nil {
 			return err
 		}
-
-		txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "registernode", node.ID.String())))
 
 		consensusIDBytes, err := node.Consensus.ID.MarshalBinary()
 		if err != nil {
@@ -188,7 +186,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 
 		nodes[i] = dmodels.NodeRegistryTransaction{
 			BlockLevel:       genesisHeight,
-			Hash:             hex.EncodeToString(txHash[:]),
+			Hash:             gen.Registry.Nodes[i].Hash().String(),
 			Time:             gen.GenesisTime,
 			ID:               node.ID.String(),
 			Address:          api.NewAddress(node.ID).String(),
@@ -212,12 +210,10 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 	//Genesis nodes
 	for i := range gen.Registry.Entities {
 		entity := oasis.RegisterEntity{}
-		err = cbor.Unmarshal(gen.Registry.Entities[i].UntrustedRawValue, &entity)
+		err = cbor.Unmarshal(gen.Registry.Entities[i].Blob, &entity)
 		if err != nil {
 			return err
 		}
-
-		txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "registerentity", entity.ID.String())))
 
 		nodes := make([]string, len(entity.Nodes))
 		for i := range entity.Nodes {
@@ -226,7 +222,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 
 		entities[i] = dmodels.EntityRegistryTransaction{
 			BlockLevel:             genesisHeight,
-			Hash:                   hex.EncodeToString(txHash[:]),
+			Hash:                   gen.Registry.Entities[i].Hash().String(),
 			Time:                   gen.GenesisTime,
 			ID:                     entity.ID.String(),
 			Address:                api.NewAddress(entity.ID).String(),

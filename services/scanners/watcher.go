@@ -105,7 +105,7 @@ func (m *Watcher) addReSyncTask(currentHeight int64) error {
 		Title:         parserBaseTask,
 		StartHeight:   startHeight,
 		CurrentHeight: startHeight,
-		EndHeight:     uint64(currentHeight - 1),
+		EndHeight:     uint64(currentHeight),
 		Batch:         m.cfg.Scanner.BatchSize,
 	})
 	if err != nil {
@@ -118,7 +118,7 @@ func (m *Watcher) addReSyncTask(currentHeight int64) error {
 		Title:         parserBalancesSnapshotTask,
 		StartHeight:   startHeight,
 		CurrentHeight: startHeight,
-		EndHeight:     uint64(currentHeight - 1),
+		EndHeight:     uint64(currentHeight),
 		//1 Epoch = 600 blocks
 		Batch: 20000,
 	})

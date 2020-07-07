@@ -32,13 +32,17 @@ type (
 
 		GetChartsData(params smodels.ChartParams) ([]dmodels.ChartData, error)
 		GetEscrowRatioChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error)
+		GetBalanceChartData(accountID string, params smodels.ChartParams) (resp []dmodels.BalanceChartData, err error)
 
 		GetTopEscrowAccounts(uint64) ([]dmodels.AccountBalance, error)
 		GetLastDayTotalBalance() (dmodels.DayBalance, error)
 
 		GetAccountValidatorInfo(accountID string) (resp dmodels.EntityNodesContainer, err error)
 		GetEntityActiveDepositorsCount(accountID string) (count uint64, err error)
+
 		GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.Validator, err error)
+		GetValidatorDayStats(string, smodels.ChartParams) (resp []dmodels.ValidatorStats, err error)
+		GetValidatorDelegators(validatorID string, params smodels.CommonParams) ([]dmodels.Delegator, error)
 	}
 
 	ParserDAO interface {

@@ -2,8 +2,8 @@ package smodels
 
 import (
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/staking/api"
-	"oasisTracker/dmodels/oasis"
 	"time"
 )
 
@@ -16,8 +16,8 @@ type GenesisDocument struct {
 }
 
 type Registry struct {
-	Entities []oasis.TxRaw `json:"entities"`
-	Nodes    []oasis.TxRaw `json:"nodes"`
+	Entities []transaction.SignedTransaction `json:"entities"`
+	Nodes    []transaction.SignedTransaction `json:"nodes"`
 }
 type Staking struct {
 	Ledger      map[api.Address]api.Account                  `json:"ledger"`

@@ -10,11 +10,6 @@ import (
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 )
 
-type TxRaw struct {
-	UntrustedRawValue []byte              `json:"untrusted_raw_value"`
-	Signature         signature.Signature `cbor:"signature"`
-}
-
 type UntrustedRawValue struct {
 	Fee    tx.Fee `cbor:"fee"`
 	Nonce  uint64 `cbor:"nonce"`

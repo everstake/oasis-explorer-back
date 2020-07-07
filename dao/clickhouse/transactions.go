@@ -7,7 +7,6 @@ import (
 	"log"
 	"oasisTracker/dmodels"
 	"oasisTracker/smodels"
-	"strings"
 )
 
 func (cl Clickhouse) CreateTransfers(transfers []dmodels.Transaction) error {
@@ -184,10 +183,6 @@ func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]d
 	}
 
 	if len(params.BlockID) > 0 {
-		//Todo choose common case
-		for i := range params.BlockID {
-			params.BlockID[i] = strings.ToUpper(params.BlockID[i])
-		}
 		q = q.Where(sq.Eq{"blk_hash": params.BlockID})
 	}
 
@@ -197,6 +192,10 @@ func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]d
 
 	if params.To > 0 {
 		q = q.Where(sq.Lt{"tx_time": params.To})
+	}
+
+	if params.AccountID != "" {
+		q = q.Where(sq.Or{sq.Eq{"tx_sender": params.AccountID}, sq.Eq{"tx_receiver": params.AccountID}})
 	}
 
 	if params.Sender != "" {

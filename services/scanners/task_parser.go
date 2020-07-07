@@ -7,6 +7,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	consensusAPI "github.com/oasisprotocol/oasis-core/go/consensus/api"
+	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/types"
@@ -154,7 +155,7 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 
 	accountBalanceUpdates := make([]dmodels.AccountBalance, 0, len(txs))
 	for i := range txs {
-		tx := oasis.TxRaw{}
+		tx := transaction.SignedTransaction{}
 
 		err = cbor.Unmarshal(txs[i], &tx)
 		if err != nil {
@@ -162,7 +163,7 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 		}
 
 		raw := oasis.UntrustedRawValue{}
-		err = cbor.Unmarshal(tx.UntrustedRawValue, &raw)
+		err = cbor.Unmarshal(tx.Blob, &raw)
 		if err != nil {
 			return err
 		}
@@ -211,11 +212,9 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 		}
 
 		dTxs[i] = dmodels.Transaction{
-			BlockLevel: uint64(block.Header.Height),
-			//Todo change to lower
-			//Upper case
-			BlockHash:           block.Hash.String(),
-			Hash:                hex.EncodeToString(types.Tx(txs[i]).Hash()),
+			BlockLevel:          uint64(block.Header.Height),
+			BlockHash:           hex.EncodeToString(block.Hash),
+			Hash:                tx.Hash().String(),
 			Time:                block.Header.Time,
 			Amount:              raw.Body.Transfer.Tokens.ToBigInt().Uint64(),
 			EscrowAmount:        raw.Body.EscrowTx.Tokens.ToBigInt().Uint64(),
@@ -265,7 +264,7 @@ func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
 	return nil
 }
 
-func (p *ParserTask) parseAccountBalances(block oasis.Block, tx oasis.TxRaw, rawTX oasis.UntrustedRawValue) ([]dmodels.AccountBalance, error) {
+func (p *ParserTask) parseAccountBalances(block oasis.Block, tx transaction.SignedTransaction, rawTX oasis.UntrustedRawValue) ([]dmodels.AccountBalance, error) {
 	addresses := []stakingAPI.Address{stakingAPI.NewAddress(tx.Signature.PublicKey), rawTX.Body.EscrowTx.Account, rawTX.Body.To}
 
 	updates := make([]dmodels.AccountBalance, 0, len(addresses))

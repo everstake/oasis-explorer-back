@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS public_validators
   reg_entity_address FixedString(46),
   pvl_name      String,
   pvl_fee       UInt64,
-  pvl_address   String
+  pvl_info   String
 ) ENGINE ReplacingMergeTree()
     PARTITION BY reg_entity_id
     ORDER BY (reg_entity_id);
@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS public_validators
 CREATE VIEW IF NOT EXISTS validator_entity_view AS
 select reg_entity_address,
        anyLast(reg_consensus_address) reg_consensus_address,
+       anyLast(reg_address) node_address,
        max(blk_lvl)         blk_lvl,
        min(created_time)    created_time,
        max(reg_expiration)  reg_expiration,
@@ -111,7 +112,7 @@ from (
                     from register_node_transactions
                     group by reg_entity_address ) val_lvl USING reg_entity_address) validator
               ANY
-              LEFT JOIN (SELECT acb_account reg_entity_address, acb_escrow_balance_active, depositors_num
+              LEFT JOIN (SELECT acb_account reg_entity_address, acb_escrow_balance_active, acb_general_balance, acb_escrow_balance_share, acb_escrow_debonding_active, depositors_num
                          from account_last_balance_view ANY
                                 LEFT JOIN entity_active_depositors_counter_view USING reg_entity_address
          ) b USING reg_entity_address
@@ -121,3 +122,16 @@ from (
        ANY
        LEFT JOIN public_validators USING reg_entity_address;
 
+
+CREATE VIEW IF NOT EXISTS day_max_block_lvl_view AS
+select toStartOfDay(blk_created_at) day, max(blk_lvl) blk_lvl
+from blocks
+group by day;
+
+CREATE VIEW validator_day_stats_view AS
+SELECT *
+from (select *
+      from validator_block_signatures_day_count_view ANY
+             LEFT JOIN validator_blocks_day_count_view USING reg_consensus_address, day) pr
+       ANY
+       LEFT JOIN day_max_block_lvl_view USING day;

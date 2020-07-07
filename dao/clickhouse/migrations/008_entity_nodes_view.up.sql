@@ -1,6 +1,6 @@
 CREATE VIEW IF NOT EXISTS entity_depositors_view AS
 select *, add.input - remove.output balance from (
-  select tx_receiver, tx_sender, sum(tx_escrow_amount) input
+  select tx_receiver, tx_sender, min(tx_time) escrow_since, sum(tx_escrow_amount) input
   from transactions
   where tx_type = 'addescrow'
   group by  tx_receiver, tx_sender) add
