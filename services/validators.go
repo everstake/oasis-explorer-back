@@ -24,6 +24,16 @@ func (s *ServiceFacade) GetValidatorInfo(accountID string) (val smodels.Validato
 	return validators[0], nil
 }
 
+func (s *ServiceFacade) GetPublicValidatorsSearchList() (list []smodels.ValidatorEntity, err error) {
+
+	val, err := s.dao.PublicValidatorsSearchList()
+	if err != nil {
+		return nil, err
+	}
+
+	return render.PublicValidatorSearch(val), nil
+}
+
 func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, error) {
 	blk, err := s.dao.GetLastBlock()
 	if err != nil {

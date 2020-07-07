@@ -37,6 +37,17 @@ func (api *API) GetValidatorsList(w http.ResponseWriter, r *http.Request) {
 	Json(w, validators)
 }
 
+func (api *API) GetPublicValidatorsSearchList(w http.ResponseWriter, r *http.Request) {
+	validators, err := api.services.GetPublicValidatorsSearchList()
+	if err != nil {
+		log.Error("GetValidatorList api error", zap.Error(err))
+		response.JsonError(w, err)
+		return
+	}
+
+	Json(w, validators)
+}
+
 func (api *API) GetValidatorInfo(w http.ResponseWriter, r *http.Request) {
 	urlAcc, ok := mux.Vars(r)["account_id"]
 	if !ok || urlAcc == "" {

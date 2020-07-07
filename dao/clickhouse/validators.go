@@ -109,3 +109,32 @@ func (cl Clickhouse) GetValidatorDelegators(validatorID string, params smodels.C
 
 	return resp, nil
 }
+
+func (cl Clickhouse) PublicValidatorsSearchList() (resp []dmodels.Validator, err error) {
+	q := sq.Select("reg_entity_address,pvl_name").
+		From(dmodels.PublicValidatorsTable)
+
+	rawSql, args, err := q.ToSql()
+	if err != nil {
+		return resp, err
+	}
+
+	rows, err := cl.db.conn.Query(rawSql, args...)
+	if err != nil {
+		return resp, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		row := dmodels.Validator{}
+
+		err := rows.Scan(&row.EntityID, &row.ValidatorName)
+		if err != nil {
+			return resp, err
+		}
+
+		resp = append(resp, row)
+	}
+
+	return resp, nil
+}

@@ -34,6 +34,11 @@ type Validator struct {
 	ValidatorInfo
 }
 
+type ValidatorEntity struct {
+	Account     string `json:"account_id"`
+	AccountName string `json:"account_name"`
+}
+
 type ValidatorMediaInfo struct {
 	WebsiteLink  string `json:"website_link,omitempty"`
 	EmailAddress string `json:"email_address,omitempty"`
