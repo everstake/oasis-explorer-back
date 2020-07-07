@@ -19,6 +19,11 @@ func ChartElement(chd dmodels.ChartData) smodels.ChartData {
 		Timestamp:         chd.BeginOfPeriod.Unix(),
 		TransactionVolume: chd.TransactionVolume,
 		EscrowRatio:       chd.EscrowRatio,
+		AccountsCount:     chd.AccountNumber,
+		AvgBlockTime:      chd.AvgBlockTime,
+		Fees:              chd.Fees,
+		OperationsCount:   chd.OperationsCount,
+		ReclaimAmount:     chd.ReclaimAmount,
 	}
 }
 

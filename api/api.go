@@ -102,9 +102,15 @@ func (api *API) initialize(handlerArr ...negroni.Handler) {
 		{Path: "/data/blocks", Method: http.MethodGet, Func: api.GetBlocksList},
 		{Path: "/data/transactions", Method: http.MethodGet, Func: api.GetTransactionsList},
 		{Path: "/chart/transactions_volume", Method: http.MethodGet, Func: api.GetTransactionsVolume},
+		{Path: "/chart/reclaim_amount", Method: http.MethodGet, Func: api.GetReclaimAmountChart},
 		{Path: "/chart/escrow_ratio", Method: http.MethodGet, Func: api.GetEscrowRatio},
+		{Path: "/chart/top_escrow_ratio", Method: http.MethodGet, Func: api.GetTopEscrowRatioChart},
 		{Path: "/chart/validator_stat/{account_id}", Method: http.MethodGet, Func: api.GetValidatorStats},
 		{Path: "/chart/balance/{account_id}", Method: http.MethodGet, Func: api.GetBalanceChart},
+		{Path: "/chart/accounts/count", Method: http.MethodGet, Func: api.GetTotalAccountsCountChart},
+		{Path: "/chart/blocks/avg_time", Method: http.MethodGet, Func: api.GetAvgBlockTimeChart},
+		{Path: "/chart/fees/volume", Method: http.MethodGet, Func: api.GetFeeVolumeChart},
+		{Path: "/chart/operations/count", Method: http.MethodGet, Func: api.GetOperationsCountChart},
 	})
 
 	api.server = &http.Server{Addr: fmt.Sprintf(":%d", api.cfg.API.ListenOnPort), Handler: api.router}

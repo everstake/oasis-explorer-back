@@ -9,6 +9,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"oasisTracker/conf"
 	"oasisTracker/dao/clickhouse/client"
+	"oasisTracker/smodels"
 	"strings"
 )
 
@@ -84,6 +85,15 @@ func makeMigration(conn *sql.DB, migrationDir string, dbName string) error {
 		}
 	}
 	return nil
+}
+
+func getFrameFunc(frame smodels.ChartFrame) string {
+	switch frame {
+	case smodels.FrameHour:
+		return "toStartOfHour"
+	}
+
+	return "toStartOfDay"
 }
 
 type (
