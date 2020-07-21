@@ -43,8 +43,10 @@ type ValidatorMediaInfo struct {
 	WebsiteLink  string `json:"website_link,omitempty"`
 	EmailAddress string `json:"email_address,omitempty"`
 	TwitterAcc   string `json:"twitter_acc,omitempty"`
+	FacebookAcc  string `json:"facebook_acc,omitempty"`
 	TGChat       string `json:"tg_chat,omitempty"`
 	MediumLink   string `json:"medium_link,omitempty"`
+	Logotype     string `json:"logotype,omitempty"`
 }
 
 type ValidatorStats struct {
