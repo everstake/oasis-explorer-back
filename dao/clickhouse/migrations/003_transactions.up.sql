@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS transactions (
     tx_escrow_amount UInt64,
     tx_escrow_reclaim_amount UInt64,
     tx_type  String,
+    tx_status UInt8,
+    tx_error  String,
     tx_sender FixedString(46),
     tx_receiver FixedString(46),
     tx_nonce UInt64,

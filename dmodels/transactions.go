@@ -55,6 +55,8 @@ type Transaction struct {
 	EscrowAmount        uint64          `db:"tx_escrow_amount"`
 	EscrowReclaimAmount uint64          `db:"tx_escrow_reclaim_amount"`
 	Type                TransactionType `db:"tx_type"`
+	Status              bool            `db:"tx_status"`
+	Error               string          `db:"tx_error"`
 	Sender              string          `db:"tx_sender"`
 	Receiver            string          `db:"tx_receiver"`
 	Nonce               uint64          `db:"tx_nonce"`
