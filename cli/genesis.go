@@ -118,6 +118,8 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 				EscrowAmount:        share.Shares.ToBigInt().Uint64(),
 				EscrowReclaimAmount: 0,
 				Type:                "addescrow",
+				Status:              true,
+				Error:               "",
 				Sender:              delegateAddress.String(),
 				Receiver:            receiverAddress,
 				Nonce:               0,
