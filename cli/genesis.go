@@ -104,10 +104,10 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 	txs := make([]dmodels.Transaction, 0, len(gen.Staking.Delegations)) //+len(gen.Staking.DebondingDelegations)
 
 	//Genesis delegations
-	for delegateAddress, receiver := range gen.Staking.Delegations {
+	for receiverAddress, senders := range gen.Staking.Delegations {
 
-		for receiverAddress, share := range receiver {
-			txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "delegation", delegateAddress, receiver, share.Shares.String())))
+		for senderAddress, share := range senders {
+			txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "delegation", receiverAddress, senderAddress, share.Shares.String())))
 
 			txs = append(txs, dmodels.Transaction{
 				BlockLevel:          genesisHeight,
@@ -118,8 +118,10 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 				EscrowAmount:        share.Shares.ToBigInt().Uint64(),
 				EscrowReclaimAmount: 0,
 				Type:                "addescrow",
-				Sender:              delegateAddress.String(),
-				Receiver:            receiverAddress,
+				Status:              true,
+				Error:               "",
+				Sender:              senderAddress,
+				Receiver:            receiverAddress.String(),
 				Nonce:               0,
 				Fee:                 0,
 				GasLimit:            0,

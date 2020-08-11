@@ -10,7 +10,6 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/types"
 	"google.golang.org/grpc"
 	"oasisTracker/dmodels"
 	"oasisTracker/dmodels/oasis"
@@ -144,20 +143,20 @@ func (p *ParserTask) parseBlockSignatures(block oasis.Block) error {
 }
 
 func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
-	txs, err := p.consensusAPI.GetTransactions(p.ctx, block.Header.Height)
+	txsWithResults, err := p.consensusAPI.GetTransactionsWithResults(p.ctx, block.Header.Height)
 	if err != nil {
 		return err
 	}
 
-	dTxs := make([]dmodels.Transaction, len(txs))
+	dTxs := make([]dmodels.Transaction, len(txsWithResults.Transactions))
 	var nodeRegisterTxs []dmodels.NodeRegistryTransaction
 	var entityRegisterTxs []dmodels.EntityRegistryTransaction
 
-	accountBalanceUpdates := make([]dmodels.AccountBalance, 0, len(txs))
-	for i := range txs {
-		tx := transaction.SignedTransaction{}
+	accountBalanceUpdates := make([]dmodels.AccountBalance, 0, len(txsWithResults.Transactions))
+	tx := transaction.SignedTransaction{}
 
-		err = cbor.Unmarshal(txs[i], &tx)
+	for i := range txsWithResults.Transactions {
+		err = cbor.Unmarshal(txsWithResults.Transactions[i], &tx)
 		if err != nil {
 			return err
 		}
@@ -180,8 +179,7 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 		}
 
 		if nodeRegisterTx.ID != "" {
-			//Make hash from origin []byte
-			nodeRegisterTx.Hash = hex.EncodeToString(types.Tx(txs[i]).Hash())
+			nodeRegisterTx.Hash = tx.Hash().String()
 			nodeRegisterTxs = append(nodeRegisterTxs, nodeRegisterTx)
 		}
 
@@ -192,8 +190,7 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 		}
 
 		if entityRegisterTx.ID != "" {
-			//Make hash from origin []byte
-			entityRegisterTx.Hash = hex.EncodeToString(types.Tx(txs[i]).Hash())
+			entityRegisterTx.Hash = tx.Hash().String()
 			entityRegisterTxs = append(entityRegisterTxs, entityRegisterTx)
 		}
 
@@ -208,24 +205,31 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 
 		receiver := raw.Body.To.String()
 		if txType.Type() == dmodels.TransactionTypeAddEscrow || txType.Type() == dmodels.TransactionTypeReclaimEscrow {
-			receiver = raw.Body.EscrowTx.Account.String()
+			receiver = raw.Body.Account.String()
 		}
 
 		dTxs[i] = dmodels.Transaction{
-			BlockLevel:          uint64(block.Header.Height),
-			BlockHash:           hex.EncodeToString(block.Hash),
-			Hash:                tx.Hash().String(),
-			Time:                block.Header.Time,
-			Amount:              raw.Body.Transfer.Tokens.ToBigInt().Uint64(),
-			EscrowAmount:        raw.Body.EscrowTx.Tokens.ToBigInt().Uint64(),
-			EscrowReclaimAmount: raw.Body.EscrowTx.Shares.ToBigInt().Uint64(),
-			Type:                txType.Type(),
-			Sender:              stakingAPI.NewAddress(tx.Signature.PublicKey).String(),
-			Receiver:            receiver,
-			Nonce:               raw.Nonce,
-			Fee:                 raw.Fee.Amount.ToBigInt().Uint64(),
-			GasLimit:            uint64(raw.Fee.Gas),
-			GasPrice:            raw.Fee.GasPrice().ToBigInt().Uint64(),
+			BlockLevel: uint64(block.Header.Height),
+			BlockHash:  hex.EncodeToString(block.Hash),
+			Hash:       tx.Hash().String(),
+			Time:       block.Header.Time,
+			//Same field
+			//Todo probably merge to single field
+			Amount:              raw.Body.Amount.ToBigInt().Uint64(),
+			EscrowAmount:        raw.Body.Amount.ToBigInt().Uint64(),
+			EscrowReclaimAmount: raw.Body.Shares.ToBigInt().Uint64(),
+
+			//Save tx status and error if presented
+			Status: txsWithResults.Results[i].IsSuccess(),
+			Error:  txsWithResults.Results[i].Error.Message,
+
+			Type:     txType.Type(),
+			Sender:   stakingAPI.NewAddress(tx.Signature.PublicKey).String(),
+			Receiver: receiver,
+			Nonce:    raw.Nonce,
+			Fee:      raw.Fee.Amount.ToBigInt().Uint64(),
+			GasLimit: uint64(raw.Fee.Gas),
+			GasPrice: raw.Fee.GasPrice().ToBigInt().Uint64(),
 		}
 	}
 
@@ -265,7 +269,7 @@ func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
 }
 
 func (p *ParserTask) parseAccountBalances(block oasis.Block, tx transaction.SignedTransaction, rawTX oasis.UntrustedRawValue) ([]dmodels.AccountBalance, error) {
-	addresses := []stakingAPI.Address{stakingAPI.NewAddress(tx.Signature.PublicKey), rawTX.Body.EscrowTx.Account, rawTX.Body.To}
+	addresses := []stakingAPI.Address{stakingAPI.NewAddress(tx.Signature.PublicKey), rawTX.Body.Account, rawTX.Body.To}
 
 	updates := make([]dmodels.AccountBalance, 0, len(addresses))
 

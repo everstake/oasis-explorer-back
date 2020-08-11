@@ -29,5 +29,7 @@ func Transaction(tx dmodels.Transaction) smodels.Transaction {
 		Timestamp:           tx.Time.Unix(),
 		To:                  tx.Receiver,
 		Type:                string(tx.Type),
+		Status:              tx.Status,
+		Error:               tx.Error,
 	}
 }

@@ -22,8 +22,8 @@ func (cl Clickhouse) CreateTransfers(transfers []dmodels.Transaction) error {
 	}
 
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_hash, tx_time, tx_hash, tx_amount, tx_escrow_amount,  tx_escrow_reclaim_amount, tx_type, tx_sender, tx_receiver, tx_nonce, tx_fee, tx_gas_limit, tx_gas_price)"+
-			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.TransactionsTable))
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_hash, tx_time, tx_hash, tx_amount, tx_escrow_amount,  tx_escrow_reclaim_amount, tx_type, tx_status, tx_error, tx_sender, tx_receiver, tx_nonce, tx_fee, tx_gas_limit, tx_gas_price)"+
+			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.TransactionsTable))
 	if err != nil {
 		return err
 	}
@@ -44,6 +44,8 @@ func (cl Clickhouse) CreateTransfers(transfers []dmodels.Transaction) error {
 			transfers[i].EscrowAmount,
 			transfers[i].EscrowReclaimAmount,
 			transfers[i].Type,
+			transfers[i].Status,
+			transfers[i].Error,
 			transfers[i].Sender,
 			transfers[i].Receiver,
 			transfers[i].Nonce,
@@ -220,7 +222,7 @@ func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]d
 	for rows.Next() {
 		row := dmodels.Transaction{}
 
-		err := rows.Scan(&row.BlockLevel, &row.BlockHash, &row.Time, &row.Hash, &row.Amount, &row.EscrowAmount, &row.EscrowReclaimAmount, &row.Type, &row.Sender, &row.Receiver, &row.Nonce, &row.Fee, &row.GasLimit, &row.GasPrice)
+		err := rows.Scan(&row.BlockLevel, &row.BlockHash, &row.Time, &row.Hash, &row.Amount, &row.EscrowAmount, &row.EscrowReclaimAmount, &row.Type, &row.Status, &row.Error, &row.Sender, &row.Receiver, &row.Nonce, &row.Fee, &row.GasLimit, &row.GasPrice)
 		if err != nil {
 			return resp, err
 		}

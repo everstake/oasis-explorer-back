@@ -18,25 +18,25 @@ type UntrustedRawValue struct {
 }
 
 type TxBody struct {
-	staking.Transfer
-	staking.Burn
+	//staking.Transfer
+	To staking.Address `json:"to"`
+
+	//staking.Transfer staking.Burn staking.Escrow
+	Amount quantity.Quantity `json:"amount"`
+
 	staking.AmendCommissionSchedule
+
 	//staking.Escrow staking.ReclaimEscrow
-	EscrowTx
+	Account staking.Address `json:"account"`
+
+	//staking.ReclaimEscrow
+	Shares quantity.Quantity `json:"shares"`
 
 	// RegisterEntity RegisterRuntime RegisterNode
 	RegisterTx
 
 	//UnfreezeNode
 	registry.UnfreezeNode
-}
-
-type EscrowTx struct {
-	Account staking.Address `json:"escrow_account"`
-	//Escrow
-	Tokens quantity.Quantity `json:"escrow_tokens"`
-	//ReclaimEscrow
-	Shares quantity.Quantity `json:"reclaim_shares"`
 }
 
 type RegisterTx struct {

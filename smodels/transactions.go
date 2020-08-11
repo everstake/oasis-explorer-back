@@ -39,4 +39,6 @@ type Transaction struct {
 	Timestamp           int64  `json:"timestamp,omitempty"`
 	To                  string `json:"to,omitempty"`
 	Type                string `json:"type,omitempty"`
+	Status              bool   `json:"status"`
+	Error               string `json:"error,omitempty"`
 }
