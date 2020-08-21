@@ -263,7 +263,8 @@ func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
 	}
 
 	updates := make([]dmodels.AccountBalance, 0, len(entities))
-	rewards := make([]dmodels.Reward, len(entities))
+	rewards := make([]dmodels.Reward, 0, len(entities))
+	var rewardsAmount uint64
 
 	var entityAddress stakingAPI.Address
 	for i := range entities {
@@ -283,13 +284,18 @@ func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
 			return err
 		}
 
-		rewards[i] = dmodels.Reward{
-			EntityAddress: entityAddress.String(),
-			BlockLevel:    block.Header.Height,
-			Epoch:         uint64(epoch),
-			//Todo check
-			Amount:    (balance.EscrowBalanceActive - prevBalance.EscrowBalanceActive) + (balance.GeneralBalance - prevBalance.GeneralBalance),
-			CreatedAt: block.Header.Time,
+		//Todo check txs
+		rewardsAmount = (balance.EscrowBalanceActive - prevBalance.EscrowBalanceActive) + (balance.GeneralBalance - prevBalance.GeneralBalance)
+
+		if rewardsAmount > 0 {
+			rewards = append(rewards, dmodels.Reward{
+				EntityAddress: entityAddress.String(),
+				BlockLevel:    block.Header.Height,
+				Epoch:         uint64(epoch),
+
+				Amount:    rewardsAmount,
+				CreatedAt: block.Header.Time,
+			})
 		}
 	}
 

@@ -96,6 +96,41 @@ func (s *ServiceFacade) GetValidatorDelegators(validatorID string, params smodel
 	return render.DelegatorList(delegators), nil
 }
 
+func (s *ServiceFacade) GetValidatorBlocks(validatorID string, params smodels.CommonParams) ([]smodels.Block, error) {
+	entity, err := s.dao.GetAccountValidatorInfo(validatorID)
+	if err != nil {
+		return nil, err
+	}
+
+	blocks, err := s.dao.GetBlocksList(smodels.BlockParams{
+		CommonParams: params,
+		Proposer:     []string{entity.GetEntity().ConsensusAddress},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return render.Blocks(blocks), nil
+}
+
+func (s *ServiceFacade) GetValidatorRewards(validatorID string, params smodels.CommonParams) ([]smodels.Reward, error) {
+	rewards, err := s.dao.GetValidatorRewards(validatorID, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return render.Rewards(rewards), nil
+}
+
+func (s *ServiceFacade) GetValidatorRewardsStat(validatorID string) (stat smodels.RewardStat, err error) {
+	rewardsStat, err := s.dao.GetValidatorRewardsStat(validatorID)
+	if err != nil {
+		return stat, err
+	}
+
+	return render.RewardStat(rewardsStat), nil
+}
+
 func calcAvailabilityScore(blocks, signatures, nodeRegisterBlock, currentHeight uint64) uint64 {
 
 	availabilityScore := signatures

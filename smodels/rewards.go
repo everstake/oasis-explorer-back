@@ -1,39 +1,16 @@
 package smodels
 
-import (
-	"oasisTracker/dmodels"
-	"sync"
-)
-
-type RewardsContainer struct {
-	rewards []dmodels.Reward
-	mu      *sync.Mutex
+type Reward struct {
+	BlockLevel int64  `json:"block_level"`
+	Epoch      uint64 `json:"epoch"`
+	Amount     uint64 `json:"amount"`
+	CreatedAt  int64  `json:"created_at"`
 }
 
-func NewRewardsContainer() *RewardsContainer {
-	return &RewardsContainer{
-		mu:      &sync.Mutex{},
-		rewards: []dmodels.Reward{},
-	}
-}
-
-func (c *RewardsContainer) Add(rewards []dmodels.Reward) {
-	if len(rewards) == 0 {
-		return
-	}
-	c.mu.Lock()
-	c.rewards = append(c.rewards, rewards...)
-	c.mu.Unlock()
-}
-
-func (c *RewardsContainer) Rewards() []dmodels.Reward {
-	return c.rewards
-}
-
-func (c *RewardsContainer) IsEmpty() bool {
-	return len(c.rewards) == 0
-}
-
-func (c *RewardsContainer) Flush() {
-	c.rewards = []dmodels.Reward{}
+type RewardStat struct {
+	EntityAddress string `json:"entity_address"`
+	TotalAmount   uint64 `json:"total_reward"`
+	DayAmount     uint64 `json:"day_reward"`
+	WeekAmount    uint64 `json:"week_reward"`
+	MonthAmount   uint64 `json:"month_reward"`
 }

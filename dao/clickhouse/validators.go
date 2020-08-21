@@ -32,7 +32,7 @@ func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []d
 	for rows.Next() {
 		row := dmodels.Validator{}
 
-		err := rows.Scan(&row.EntityID, &row.ConsensusAddress, &row.NodeAddress, &row.ValidateSince, &row.StartBlockLevel, &row.BlocksCount, &row.SignaturesCount, &row.EscrowBalance, &row.GeneralBalance, &row.EscrowBalanceShare, &row.DebondingBalance, &row.DepositorsNum, &row.IsActive, &row.ValidatorName, &row.ValidatorFee, &row.ValidatorMediaInfo)
+		err = rows.Scan(&row.EntityID, &row.ConsensusAddress, &row.NodeAddress, &row.ValidateSince, &row.StartBlockLevel, &row.BlocksCount, &row.SignaturesCount, &row.EscrowBalance, &row.GeneralBalance, &row.EscrowBalanceShare, &row.DebondingBalance, &row.DepositorsNum, &row.IsActive, &row.ValidatorName, &row.ValidatorFee, &row.ValidatorMediaInfo)
 		if err != nil {
 			return resp, err
 		}
@@ -66,7 +66,7 @@ func (cl Clickhouse) GetValidatorDayStats(consensusAddress string, params smodel
 	for rows.Next() {
 		row := dmodels.ValidatorStats{}
 
-		err := rows.Scan(&row.BeginOfPeriod, &row.SignaturesCount, &row.BlocksCount, &row.LastBlock)
+		err = rows.Scan(&row.BeginOfPeriod, &row.SignaturesCount, &row.BlocksCount, &row.LastBlock)
 		if err != nil {
 			return resp, err
 		}
@@ -99,7 +99,7 @@ func (cl Clickhouse) GetValidatorDelegators(validatorID string, params smodels.C
 	for rows.Next() {
 		row := dmodels.Delegator{}
 
-		err := rows.Scan(&row.Address, &row.DelegateSince, &row.EscrowAmount)
+		err = rows.Scan(&row.Address, &row.DelegateSince, &row.EscrowAmount)
 		if err != nil {
 			return resp, err
 		}
@@ -128,7 +128,7 @@ func (cl Clickhouse) PublicValidatorsSearchList() (resp []dmodels.Validator, err
 	for rows.Next() {
 		row := dmodels.Validator{}
 
-		err := rows.Scan(&row.EntityID, &row.ValidatorName)
+		err = rows.Scan(&row.EntityID, &row.ValidatorName)
 		if err != nil {
 			return resp, err
 		}

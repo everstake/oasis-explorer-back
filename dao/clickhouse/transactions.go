@@ -222,7 +222,7 @@ func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]d
 	for rows.Next() {
 		row := dmodels.Transaction{}
 
-		err := rows.Scan(&row.BlockLevel, &row.BlockHash, &row.Time, &row.Hash, &row.Amount, &row.EscrowAmount, &row.EscrowReclaimAmount, &row.Type, &row.Status, &row.Error, &row.Sender, &row.Receiver, &row.Nonce, &row.Fee, &row.GasLimit, &row.GasPrice)
+		err = rows.Scan(&row.BlockLevel, &row.BlockHash, &row.Time, &row.Hash, &row.Amount, &row.EscrowAmount, &row.EscrowReclaimAmount, &row.Type, &row.Status, &row.Error, &row.Sender, &row.Receiver, &row.Nonce, &row.Fee, &row.GasLimit, &row.GasPrice)
 		if err != nil {
 			return resp, err
 		}
