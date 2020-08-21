@@ -8,6 +8,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	consensusAPI "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
+	registryAPI "github.com/oasisprotocol/oasis-core/go/registry/api"
 	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/tendermint/tendermint/crypto"
 	"google.golang.org/grpc"
@@ -22,14 +23,16 @@ type ParserTask struct {
 	ctx             context.Context
 	consensusAPI    consensusAPI.ClientBackend
 	stakingAPI      stakingAPI.Backend
+	registryAPI     registryAPI.Backend
 	parserContainer *ParseContainer
 }
 
 func NewParserTask(ctx context.Context, conn *grpc.ClientConn, parserContainer *ParseContainer) (*ParserTask, error) {
 	consensusAPI := consensusAPI.NewConsensusClient(conn)
 	stakingAPI := stakingAPI.NewStakingClient(conn)
+	registryAPI := registryAPI.NewRegistryClient(conn)
 
-	return &ParserTask{ctx: ctx, consensusAPI: consensusAPI, stakingAPI: stakingAPI, parserContainer: parserContainer}, nil
+	return &ParserTask{ctx: ctx, consensusAPI: consensusAPI, stakingAPI: stakingAPI, registryAPI: registryAPI, parserContainer: parserContainer}, nil
 }
 
 func (p *ParserTask) ParseBase(blockID uint64) error {
@@ -245,25 +248,53 @@ func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
 		return nil
 	}
 
-	addresses, err := p.stakingAPI.Addresses(p.ctx, block.Header.Height)
+	entities, err := p.registryAPI.GetEntities(p.ctx, block.Header.Height)
 	if err != nil {
 		return err
 	}
 
-	updates := make([]dmodels.AccountBalance, 0, len(addresses))
+	if len(entities) == 0 {
+		return nil
+	}
 
-	for i := range addresses {
+	epoch, err := p.consensusAPI.GetEpoch(p.ctx, block.Header.Height)
+	if err != nil {
+		return err
+	}
 
-		balance, err := p.getAccountBalance(block.Header.Height, addresses[i])
+	updates := make([]dmodels.AccountBalance, 0, len(entities))
+	rewards := make([]dmodels.Reward, len(entities))
+
+	var entityAddress stakingAPI.Address
+	for i := range entities {
+
+		entityAddress = stakingAPI.NewAddress(entities[i].ID)
+
+		balance, err := p.getAccountBalance(block.Header.Height, entityAddress)
 		if err != nil {
 			return err
 		}
 
 		balance.Time = block.Header.Time
 		updates = append(updates, balance)
+
+		prevBalance, err := p.getAccountBalance(block.Header.Height-1, entityAddress)
+		if err != nil {
+			return err
+		}
+
+		rewards[i] = dmodels.Reward{
+			EntityAddress: entityAddress.String(),
+			BlockLevel:    block.Header.Height,
+			Epoch:         uint64(epoch),
+			//Todo check
+			Amount:    (balance.EscrowBalanceActive - prevBalance.EscrowBalanceActive) + (balance.GeneralBalance - prevBalance.GeneralBalance),
+			CreatedAt: block.Header.Time,
+		}
 	}
 
 	p.parserContainer.balances.Add(updates)
+	p.parserContainer.rewards.Add(rewards)
 
 	return nil
 }

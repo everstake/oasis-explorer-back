@@ -59,6 +59,7 @@ type (
 		CreateTransfers(transfers []dmodels.Transaction) error
 		CreateRegisterNodeTransactions(txs []dmodels.NodeRegistryTransaction) error
 		CreateRegisterEntityTransactions(txs []dmodels.EntityRegistryTransaction) error
+		CreateRewards(txs []dmodels.Reward) error
 	}
 
 	daoImpl struct {
