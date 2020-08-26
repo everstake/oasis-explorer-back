@@ -119,7 +119,7 @@ from (
        GROUP BY reg_entity_address) g
        any
        left join (
-         select reg_consensus_address, day_signatures, blk_lvl max_day_block, blk_count day_blocks
+         select reg_consensus_address, day_signatures, blk_lvl max_day_block, blk_count day_blocks, day_signed_blocks
                   from validator_day_stats_view
                   where day = toStartOfDay(now())) sigs USING reg_consensus_address;
 
