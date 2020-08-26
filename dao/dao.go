@@ -44,12 +44,15 @@ type (
 		GetLastDayTotalBalance() (dmodels.DayBalance, error)
 
 		GetAccountValidatorInfo(accountID string) (resp dmodels.EntityNodesContainer, err error)
+		GetEntity(string) (dmodels.EntityRegistryTransaction, error)
 		GetEntityActiveDepositorsCount(accountID string) (count uint64, err error)
 
 		GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.Validator, err error)
 		PublicValidatorsSearchList() (resp []dmodels.Validator, err error)
 		GetValidatorDayStats(string, smodels.ChartParams) (resp []dmodels.ValidatorStats, err error)
 		GetValidatorDelegators(validatorID string, params smodels.CommonParams) ([]dmodels.Delegator, error)
+		GetValidatorRewards(validatorID string, params smodels.CommonParams) ([]dmodels.Reward, error)
+		GetValidatorRewardsStat(validatorID string) (resp dmodels.RewardsStat, err error)
 	}
 
 	ParserDAO interface {
@@ -59,6 +62,7 @@ type (
 		CreateTransfers(transfers []dmodels.Transaction) error
 		CreateRegisterNodeTransactions(txs []dmodels.NodeRegistryTransaction) error
 		CreateRegisterEntityTransactions(txs []dmodels.EntityRegistryTransaction) error
+		CreateRewards(txs []dmodels.Reward) error
 	}
 
 	daoImpl struct {

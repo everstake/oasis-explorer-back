@@ -31,6 +31,7 @@ type BlockParams struct {
 	CommonParams
 	BlockID    []string `schema:"block_id"`
 	BlockLevel []int64  `schema:"block_level"`
+	Proposer   []string `schema:"proposer"`
 	//Time range
 	From uint64
 	To   uint64

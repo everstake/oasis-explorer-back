@@ -12,26 +12,37 @@ const (
 )
 
 type Validator struct {
-	EntityID           string    `db:"reg_entity_id"`
-	ConsensusAddress   string    `db:"reg_consensus_address"`
-	NodeAddress        string    `db:"node_address"`
-	ValidateSince      time.Time `db:"created_time"`
-	StartBlockLevel    uint64    `db:"start_blk_lvl"`
-	LastBlockTime      time.Time `db:"last_block_time"`
-	BlocksCount        uint64    `db:"blocks"`
-	LastSignatureTime  uint64    `db:"last_signature_time"`
-	SignaturesCount    uint64    `db:"signatures"`
-	GeneralBalance     uint64    `db:"acb_general_balance"`
-	EscrowBalance      uint64    `db:"acb_escrow_balance_active"`
-	EscrowBalanceShare uint64    `db:"acb_escrow_balance_share"`
-	DebondingBalance   uint64    `db:"acb_escrow_debonding_active"`
-	DepositorsNum      uint64    `db:"depositors_num"`
-	IsActive           bool      `db:"is_active"`
-	ValidatorName      string    `db:"pvl_name"`
-	ValidatorFee       uint64    `db:"pvl_fee"`
-	ValidatorMediaInfo string    `db:"pvl_info"`
-	AvailabilityScore  uint64    `db:"-"`
-	Status             string    `db:"-"`
+	EntityID          string    `db:"reg_entity_id"`
+	ConsensusAddress  string    `db:"reg_consensus_address"`
+	NodeAddress       string    `db:"node_address"`
+	ValidateSince     time.Time `db:"created_time"`
+	StartBlockLevel   uint64    `db:"start_blk_lvl"`
+	LastBlockTime     time.Time `db:"last_block_time"`
+	LastSignatureTime uint64    `db:"last_signature_time"`
+
+	ProposedBlocksCount uint64 `db:"blocks"`
+
+	SignaturesCount uint64 `db:"signatures"`
+	//Total signed blocks
+	SignedBlocksCount uint64 `db:"signed_blocks"`
+	LastBlockLevel    uint64 `db:"max_day_block"`
+	//Day
+	DaySignaturesCount uint64 `db:"day_signatures"`
+	DaySignedBlocks    uint64 `db:"day_signed_blocks"`
+	DayBlocksCount     uint64 `db:"day_blocks"`
+
+	GeneralBalance     uint64  `db:"acb_general_balance"`
+	EscrowBalance      uint64  `db:"acb_escrow_balance_active"`
+	EscrowBalanceShare uint64  `db:"acb_escrow_balance_share"`
+	DebondingBalance   uint64  `db:"acb_escrow_debonding_active"`
+	DepositorsNum      uint64  `db:"depositors_num"`
+	IsActive           bool    `db:"is_active"`
+	ValidatorName      string  `db:"pvl_name"`
+	ValidatorFee       uint64  `db:"pvl_fee"`
+	ValidatorMediaInfo string  `db:"pvl_info"`
+	DayUptime          float64 `db:"-"`
+	TotalUptime        float64 `db:"-"`
+	Status             string  `db:"-"`
 }
 
 type ValidatorStats struct {
