@@ -51,7 +51,9 @@ func (cl Clickhouse) GetValidatorRewards(validatorID string, params smodels.Comm
 	q := sq.Select("*").
 		From(dmodels.RewardsTable).
 		Where(sq.Eq{"reg_entity_address": validatorID}).
-		OrderBy("blk_lvl desc")
+		OrderBy("blk_lvl desc").
+		Limit(params.Limit).
+		Offset(params.Offset)
 
 	rawSql, args, err := q.ToSql()
 	if err != nil {
