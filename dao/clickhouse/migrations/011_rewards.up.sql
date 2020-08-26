@@ -8,30 +8,30 @@ CREATE TABLE IF NOT EXISTS rewards (
 PARTITION BY toYYYYMMDD(created_at)
 ORDER BY (reg_entity_address, blk_lvl);
 
-CREATE VIEW validator_rewards_stat_view AS
+CREATE VIEW IF NOT EXISTS validator_rewards_stat_view AS
 select *
 from (
        select *
        from (select reg_entity_address, sum(rwd_amount) total_amount
-             from oasis.rewards
+             from rewards
              group by reg_entity_address) total
               ANY
               LEFT JOIN (select reg_entity_address, sum(rwd_amount) day_amount
-                         from oasis.rewards
+                         from rewards
                          where created_at >= toStartOfDay(now())
-                         group by reg_entity_address) USING reg_entity_address
-       )
+                         group by reg_entity_address) dayreward USING reg_entity_address
+       ) daystat
        ANY
        LEFT JOIN (
   select *
   from (
          select reg_entity_address, sum(rwd_amount) week_amount
-         from oasis.rewards
+         from rewards
          where created_at >= toStartOfWeek(now())
          group by reg_entity_address) week
          ANY
          LEFT JOIN (select reg_entity_address, sum(rwd_amount) month_amount
-                    from oasis.rewards
+                    from rewards
                     where created_at >= toStartOfMonth(now())
-                    group by reg_entity_address) USING reg_entity_address
-  ) USING reg_entity_address;
+                    group by reg_entity_address) weekreward USING reg_entity_address
+  ) weekstat USING reg_entity_address;

@@ -31,6 +31,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS validator_block_signatures_count_mv
 select sig_validator_address reg_consensus_address,
        toStartOfDay(sig_timestamp) day,
        max(sig_timestamp) last_signature_time,
+       count(distinct (blk_lvl))   blocks,
        count()                     signatures
 from block_signatures
 group by reg_consensus_address, day;
@@ -39,13 +40,15 @@ CREATE VIEW IF NOT EXISTS validator_block_signatures_day_count_view AS
 select reg_consensus_address,
        day,
        max(last_signature_time) last_signature_time,
-       sum(signatures)                     signatures
+       sum(blocks)   day_signed_blocks,
+       sum(signatures)                     day_signatures
 from validator_block_signatures_count_mv
 group by reg_consensus_address, day;
 
 CREATE VIEW IF NOT EXISTS validator_block_signatures_count_view AS
 SELECT reg_consensus_address,
        max(last_signature_time) last_signature_time,
+       sum(blocks)     signed_blocks,
        sum(signatures) signatures
 FROM validator_block_signatures_count_mv
 GROUP BY reg_consensus_address;
@@ -85,18 +88,40 @@ CREATE TABLE IF NOT EXISTS public_validators
     PARTITION BY reg_entity_id
     ORDER BY (reg_entity_id);
 
+
+CREATE VIEW IF NOT EXISTS day_max_block_lvl_view AS
+select toStartOfDay(blk_created_at) day, count() blk_count, max(blk_lvl) blk_lvl
+from blocks
+group by day;
+
+CREATE VIEW IF NOT EXISTS validator_day_stats_view AS
+SELECT *
+from (select *
+      from validator_block_signatures_day_count_view ANY
+             LEFT JOIN validator_blocks_day_count_view USING reg_consensus_address, day) pr
+       ANY
+       LEFT JOIN day_max_block_lvl_view USING day;
+
 CREATE VIEW IF NOT EXISTS validator_entity_view AS
-select reg_entity_address,
-       anyLast(reg_consensus_address) reg_consensus_address,
-       anyLast(reg_address) node_address,
-       max(blk_lvl)         blk_lvl,
-       min(created_time)    created_time,
-       max(reg_expiration)  reg_expiration,
-       max(last_block_time) last_block_time,
-       sum(blocks)          blocks,
-       sum(signatures)      signatures
-from entity_nodes_view
-GROUP BY reg_entity_address;
+select *
+from (
+       select reg_entity_address,
+              anyLast(reg_consensus_address) reg_consensus_address,
+              anyLast(reg_address)           node_address,
+              max(blk_lvl)                   blk_lvl,
+              min(created_time)              created_time,
+              max(reg_expiration)            reg_expiration,
+              max(last_block_time)           last_block_time,
+              sum(blocks)                    blocks,
+              sum(signed_blocks)             signed_blocks,
+              sum(signatures)                signatures
+       from entity_nodes_view
+       GROUP BY reg_entity_address) g
+       any
+       left join (
+         select reg_consensus_address, day_signatures, blk_lvl max_day_block, blk_count day_blocks
+                  from validator_day_stats_view
+                  where day = toStartOfDay(now())) sigs USING reg_consensus_address;
 
 
 CREATE VIEW IF NOT EXISTS validators_list_view AS
@@ -121,17 +146,3 @@ from (
           OR reg_expiration >= (select max(blk_epoch) from blocks)) prep
        ANY
        LEFT JOIN public_validators USING reg_entity_address;
-
-
-CREATE VIEW IF NOT EXISTS day_max_block_lvl_view AS
-select toStartOfDay(blk_created_at) day, max(blk_lvl) blk_lvl
-from blocks
-group by day;
-
-CREATE VIEW validator_day_stats_view AS
-SELECT *
-from (select *
-      from validator_block_signatures_day_count_view ANY
-             LEFT JOIN validator_blocks_day_count_view USING reg_consensus_address, day) pr
-       ANY
-       LEFT JOIN day_max_block_lvl_view USING day;

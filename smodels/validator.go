@@ -20,17 +20,19 @@ type ValidatorParams struct {
 }
 
 type Validator struct {
-	Account            string              `json:"account_id"`
-	AccountName        string              `json:"account_name,omitempty"`
-	NodeID             string              `json:"node_id"`
-	Fee                uint64              `json:"fee"`
-	EscrowBalance      uint64              `json:"escrow_balance"`
-	EscrowBalanceShare uint64              `json:"escrow_shares"`
-	GeneralBalance     uint64              `json:"general_balance"`
-	DebondingBalance   uint64              `json:"debonding_balance"`
-	AvailableScore     uint64              `json:"available_score"`
-	CreatedAt          int64               `json:"validate_since"`
-	MediaInfo          *ValidatorMediaInfo `json:"media_info"`
+	Account            string  `json:"account_id"`
+	AccountName        string  `json:"account_name,omitempty"`
+	NodeID             string  `json:"node_id"`
+	Fee                uint64  `json:"fee"`
+	EscrowBalance      uint64  `json:"escrow_balance"`
+	EscrowBalanceShare uint64  `json:"escrow_shares"`
+	GeneralBalance     uint64  `json:"general_balance"`
+	DebondingBalance   uint64  `json:"debonding_balance"`
+	DayUptime          float64 `json:"day_uptime"`
+	TotalUptime        float64 `json:"total_uptime"`
+
+	CreatedAt int64               `json:"validate_since"`
+	MediaInfo *ValidatorMediaInfo `json:"media_info"`
 	ValidatorInfo
 }
 

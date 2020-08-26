@@ -35,11 +35,6 @@ func (s *ServiceFacade) GetPublicValidatorsSearchList() (list []smodels.Validato
 }
 
 func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, error) {
-	blk, err := s.dao.GetLastBlock()
-	if err != nil {
-		return nil, err
-	}
-
 	resp, err := s.dao.GetValidatorsList(listParams)
 	if err != nil {
 		return nil, err
@@ -47,7 +42,8 @@ func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]
 
 	for i := range resp {
 
-		resp[i].AvailabilityScore = calcAvailabilityScore(resp[i].BlocksCount, resp[i].SignaturesCount, resp[i].StartBlockLevel, blk.Height)
+		resp[i].DayUptime = float64(resp[i].DaySignedBlocks) / float64(resp[i].DayBlocksCount)
+		resp[i].TotalUptime = float64(resp[i].SignedBlocksCount) / float64(resp[i].LastBlockLevel)
 
 		if !resp[i].IsActive {
 			resp[i].Status = smodels.StatusInActive
