@@ -45,7 +45,7 @@ func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []d
 
 func (cl Clickhouse) GetValidatorDayStats(consensusAddress string, params smodels.ChartParams) (resp []dmodels.ValidatorStats, err error) {
 
-	q := sq.Select("day,signatures,blocks,blk_lvl").
+	q := sq.Select("day, day_signatures, blocks, blk_lvl, day_signed_blocks/blk_count uptime").
 		From(dmodels.ValidatorStatsView).
 		OrderBy("day asc").
 		Where(sq.Eq{"reg_consensus_address": consensusAddress}).
@@ -66,7 +66,7 @@ func (cl Clickhouse) GetValidatorDayStats(consensusAddress string, params smodel
 	for rows.Next() {
 		row := dmodels.ValidatorStats{}
 
-		err = rows.Scan(&row.BeginOfPeriod, &row.SignaturesCount, &row.BlocksCount, &row.LastBlock)
+		err = rows.Scan(&row.BeginOfPeriod, &row.SignaturesCount, &row.BlocksCount, &row.LastBlock, &row.Uptime)
 		if err != nil {
 			return resp, err
 		}

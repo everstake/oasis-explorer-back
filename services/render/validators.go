@@ -64,6 +64,7 @@ func ValidatorStat(s dmodels.ValidatorStats) smodels.ValidatorStats {
 	return smodels.ValidatorStats{
 		Timestamp:         s.BeginOfPeriod.Unix(),
 		AvailabilityScore: s.AvailabilityScore,
+		Uptime:            s.Uptime,
 		BlocksCount:       s.BlocksCount,
 		SignaturesCount:   s.SignaturesCount,
 	}

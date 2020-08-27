@@ -49,6 +49,7 @@ type ValidatorStats struct {
 	BeginOfPeriod     time.Time
 	LastBlock         uint64
 	AvailabilityScore uint64
+	Uptime            float64
 	BlocksCount       uint64
 	SignaturesCount   uint64
 }
