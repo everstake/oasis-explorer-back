@@ -42,7 +42,7 @@ func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]
 
 	for i := range resp {
 
-		resp[i].DayUptime = float64(resp[i].DaySignedBlocks) / float64(resp[i].DayBlocksCount)
+		resp[i].DayUptime = float64(resp[i].DaySignedBlocks) / float64(resp[i].DayBlocksCount+1)
 		resp[i].TotalUptime = float64(resp[i].SignedBlocksCount) / float64(resp[i].LastBlockLevel)
 
 		if !resp[i].IsActive {
