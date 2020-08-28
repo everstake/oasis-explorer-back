@@ -47,6 +47,7 @@ func (cl Clickhouse) GetValidatorDayStats(consensusAddress string, params smodel
 
 	q := sq.Select("day, day_signatures, blocks, blk_lvl, day_signed_blocks/blk_count uptime").
 		From(dmodels.ValidatorStatsView).
+		JoinClause("ANY LEFT JOIN day_max_block_lvl_view USING day").
 		OrderBy("day asc").
 		Where(sq.Eq{"reg_consensus_address": consensusAddress}).
 		Where(sq.GtOrEq{"day": params.From}).
