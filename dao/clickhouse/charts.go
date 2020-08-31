@@ -75,11 +75,10 @@ func (cl Clickhouse) GetEscrowRatioChartData(params smodels.ChartParams) (resp [
 
 func (cl Clickhouse) GetTotalAccountsCountChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error) {
 
-	q := sq.Select("start_of_period, count(distinct(acb_account)) accounts_number").
-		From(dmodels.AccountBalanceTable).
-		Where(sq.GtOrEq{"blk_time": params.From}).
-		Where(sq.LtOrEq{"blk_time": params.To}).
-		GroupBy("toStartOfDay(blk_time) as start_of_period").
+	q := sq.Select("start_of_period, accounts_number").
+		From(dmodels.DayAccountsCountView).
+		Where(sq.GtOrEq{"start_of_period": params.From}).
+		Where(sq.LtOrEq{"start_of_period": params.To}).
 		OrderBy("start_of_period asc")
 
 	rawSql, args, err := q.ToSql()
