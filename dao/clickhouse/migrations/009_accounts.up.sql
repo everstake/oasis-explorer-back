@@ -26,6 +26,7 @@ POPULATE AS
 SELECT
     acb_account,
     min(blk_time) created_at,
+    max(acb_nonce) acb_nonce,
     anyLastState(acb_general_balance) acb_general_balance,
     anyLastState(acb_escrow_balance_active) acb_escrow_balance_active,
     anyLastState(acb_escrow_balance_share) acb_escrow_balance_share,
@@ -37,6 +38,7 @@ CREATE VIEW IF NOT EXISTS account_last_balance_view AS
 SELECT
     acb_account,
     min(created_at) created_at,
+    max(acb_nonce) acb_nonce,
     anyLastMerge(acb_general_balance) acb_general_balance,
     anyLastMerge(acb_escrow_balance_active) acb_escrow_balance_active,
     anyLastMerge(acb_escrow_balance_share) acb_escrow_balance_share,
@@ -61,7 +63,7 @@ FROM account_operations_amount_mv
 GROUP BY acb_account;
 
 CREATE VIEW IF NOT EXISTS account_list_view AS
-select acb_account, created_at, operations_amount, acb_general_balance general_balance, acb_escrow_balance_active escrow_balance, acb_escrow_balance_share escrow_share, tx_receiver delegate, entity.blk_lvl entity, prp.blk_lvl node from (
+select acb_account, created_at, operations_amount, acb_nonce nonce, acb_general_balance general_balance, acb_escrow_balance_active escrow_balance, acb_escrow_balance_share escrow_share, tx_receiver delegate, entity.blk_lvl entity, prp.blk_lvl node from (
 select *
 from (select *
       --All accounts list with
