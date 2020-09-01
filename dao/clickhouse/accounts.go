@@ -104,7 +104,7 @@ func (cl Clickhouse) GetTopEscrowAccounts(limit uint64) (resp []dmodels.AccountB
 	for rows.Next() {
 		row := dmodels.AccountBalance{}
 
-		err := rows.Scan(&row.Account, &row.Time, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.EscrowDebondingActive, &row.AccountName)
+		err := rows.Scan(&row.Account, &row.Time, &row.Nonce, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.EscrowDebondingActive, &row.AccountName)
 		if err != nil {
 			return resp, err
 		}
