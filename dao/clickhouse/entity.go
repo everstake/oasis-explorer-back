@@ -83,7 +83,7 @@ func (cl Clickhouse) GetAccountValidatorInfo(accountAddress string) (resp dmodel
 	for rows.Next() {
 		row := dmodels.EntityNode{}
 
-		err = rows.Scan(&row.EntityID, &row.EntityAddress, &row.NodeID, &row.Address, &row.ConsensusAddress, &row.CreatedTime, &row.LastRegBlock, &row.Expiration, &row.LastBlockTime, &row.BlocksCount, &row.LastSignatureTime, &row.BlockSignaturesCount)
+		err = rows.Scan(&row.EntityID, &row.EntityAddress, &row.NodeID, &row.Address, &row.ConsensusAddress, &row.CreatedTime, &row.LastRegBlock, &row.Expiration, &row.LastBlockTime, &row.BlocksCount, &row.LastSignatureTime, &row.BlocksSigned, &row.BlockSignaturesCount)
 		if err != nil {
 			return resp, err
 		}
