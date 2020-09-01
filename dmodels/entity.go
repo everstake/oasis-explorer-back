@@ -72,6 +72,7 @@ type EntityNode struct {
 	Expiration           uint64    `db="reg_expiration"`
 	BlocksCount          uint64    `db="blocks"`
 	LastBlockTime        time.Time `db="last_block_time"`
+	BlocksSigned         uint64    `db="signed_blocks"`
 	BlockSignaturesCount uint64    `db="signatures"`
 	LastSignatureTime    time.Time `db="last_signature_time"`
 }
