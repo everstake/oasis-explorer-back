@@ -22,6 +22,9 @@ type (
 		GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, error)
 		GetPublicValidatorsSearchList() ([]smodels.ValidatorEntity, error)
 		GetValidatorDelegators(validatorID string, params smodels.CommonParams) ([]smodels.Delegator, error)
+		GetValidatorBlocks(validatorID string, params smodels.CommonParams) ([]smodels.Block, error)
+		GetValidatorRewards(validatorID string, params smodels.CommonParams) ([]smodels.Reward, error)
+		GetValidatorRewardsStat(validatorID string) (stat smodels.RewardStat, err error)
 
 		GetChartData(params smodels.ChartParams) ([]smodels.ChartData, error)
 		GetBalanceChartData(accountID string, params smodels.ChartParams) ([]smodels.BalanceChartData, error)

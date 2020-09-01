@@ -49,6 +49,7 @@ type (
 		blockSignatures *smodels.BlockSignatureContainer
 		txs             *smodels.TxsContainer
 		balances        *smodels.AccountsContainer
+		rewards         *smodels.RewardsContainer
 	}
 )
 
@@ -70,6 +71,7 @@ func NewParser(ctx context.Context, cfg conf.Scanner, d dao.ParserDAO) (*Parser,
 			blockSignatures: smodels.NewBlockSignatureContainer(),
 			txs:             smodels.NewTxsContainer(),
 			balances:        smodels.NewAccountsContainer(),
+			rewards:         smodels.NewRewardsContainer(),
 		},
 	}, nil
 }
@@ -147,6 +149,18 @@ func (p *Parser) Save() (err error) {
 		log.Print("Save time Balances: ", time.Since(tm))
 
 		p.container.balances.Flush()
+	}
+
+	if !p.container.rewards.IsEmpty() {
+		tm := time.Now()
+		err = p.dao.CreateRewards(p.container.rewards.Rewards())
+		if err != nil {
+			return fmt.Errorf("dao.CreateRewards: %s", err.Error())
+		}
+
+		log.Print("Save time Rewards: ", time.Since(tm))
+
+		p.container.rewards.Flush()
 	}
 
 	return nil

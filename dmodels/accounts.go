@@ -7,6 +7,7 @@ const (
 	AccountListTable             = "account_list_view"
 	DayTotalBalanceView          = "day_total_balance_view"
 	AccountDayBalanceView        = "account_day_balance_view"
+	DayAccountsCountView         = "day_accounts_view"
 	TopEscrowBalanceAccountsView = "top_escrow_balance_accounts_view"
 	AccountLastBalanceView       = "account_last_balance_view"
 )
@@ -33,6 +34,7 @@ type AccountList struct {
 	Account             string    `db:"acb_account"`
 	CreatedAt           time.Time `db:"created_at"`
 	OperationsAmount    uint64    `db:"operations_amount"`
+	Nonce               uint64    `db:"nonce"`
 	GeneralBalance      uint64    `db:"general_balance"`
 	EscrowBalanceActive uint64    `db:"escrow_balance"`
 	EscrowBalanceShare  uint64    `db:"escrow_share"`

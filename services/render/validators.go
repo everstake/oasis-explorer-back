@@ -25,13 +25,14 @@ func Validator(a dmodels.Validator) smodels.Validator {
 		EscrowBalance:      a.EscrowBalance,
 		EscrowBalanceShare: a.EscrowBalanceShare,
 		DebondingBalance:   a.DebondingBalance,
-		AvailableScore:     a.AvailabilityScore,
+		DayUptime:          a.DayUptime,
+		TotalUptime:        a.TotalUptime,
 		CreatedAt:          a.ValidateSince.Unix(),
 		MediaInfo:          ValidatorMediaInfo(a.ValidatorMediaInfo),
 		ValidatorInfo: smodels.ValidatorInfo{
 			Status:          a.Status,
 			DepositorsCount: a.DepositorsNum,
-			BlocksCount:     a.BlocksCount,
+			BlocksCount:     a.ProposedBlocksCount,
 			SignaturesCount: a.SignaturesCount,
 		},
 	}
@@ -63,6 +64,7 @@ func ValidatorStat(s dmodels.ValidatorStats) smodels.ValidatorStats {
 	return smodels.ValidatorStats{
 		Timestamp:         s.BeginOfPeriod.Unix(),
 		AvailabilityScore: s.AvailabilityScore,
+		Uptime:            s.Uptime,
 		BlocksCount:       s.BlocksCount,
 		SignaturesCount:   s.SignaturesCount,
 	}

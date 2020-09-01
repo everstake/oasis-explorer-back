@@ -35,11 +35,6 @@ func (s *ServiceFacade) GetPublicValidatorsSearchList() (list []smodels.Validato
 }
 
 func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, error) {
-	blk, err := s.dao.GetLastBlock()
-	if err != nil {
-		return nil, err
-	}
-
 	resp, err := s.dao.GetValidatorsList(listParams)
 	if err != nil {
 		return nil, err
@@ -47,7 +42,8 @@ func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]
 
 	for i := range resp {
 
-		resp[i].AvailabilityScore = calcAvailabilityScore(resp[i].BlocksCount, resp[i].SignaturesCount, resp[i].StartBlockLevel, blk.Height)
+		resp[i].DayUptime = float64(resp[i].DaySignedBlocks) / float64(resp[i].DayBlocksCount+1)
+		resp[i].TotalUptime = float64(resp[i].SignedBlocksCount) / float64(resp[i].LastBlockLevel)
 
 		if !resp[i].IsActive {
 			resp[i].Status = smodels.StatusInActive
@@ -94,6 +90,41 @@ func (s *ServiceFacade) GetValidatorDelegators(validatorID string, params smodel
 	}
 
 	return render.DelegatorList(delegators), nil
+}
+
+func (s *ServiceFacade) GetValidatorBlocks(validatorID string, params smodels.CommonParams) ([]smodels.Block, error) {
+	entity, err := s.dao.GetAccountValidatorInfo(validatorID)
+	if err != nil {
+		return nil, err
+	}
+
+	blocks, err := s.dao.GetBlocksList(smodels.BlockParams{
+		CommonParams: params,
+		Proposer:     []string{entity.GetEntity().ConsensusAddress},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return render.Blocks(blocks), nil
+}
+
+func (s *ServiceFacade) GetValidatorRewards(validatorID string, params smodels.CommonParams) ([]smodels.Reward, error) {
+	rewards, err := s.dao.GetValidatorRewards(validatorID, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return render.Rewards(rewards), nil
+}
+
+func (s *ServiceFacade) GetValidatorRewardsStat(validatorID string) (stat smodels.RewardStat, err error) {
+	rewardsStat, err := s.dao.GetValidatorRewardsStat(validatorID)
+	if err != nil {
+		return stat, err
+	}
+
+	return render.RewardStat(rewardsStat), nil
 }
 
 func calcAvailabilityScore(blocks, signatures, nodeRegisterBlock, currentHeight uint64) uint64 {

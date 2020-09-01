@@ -111,6 +111,10 @@ func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlo
 		q = q.Where(sq.Eq{"blk_hash": params.BlockID})
 	}
 
+	if len(params.Proposer) > 0 {
+		q = q.Where(sq.Eq{"blk_proposer_address": params.Proposer})
+	}
+
 	if params.From > 0 {
 		q = q.Where(sq.GtOrEq{"blk_created_at": params.From})
 	}

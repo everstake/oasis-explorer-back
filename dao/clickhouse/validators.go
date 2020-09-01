@@ -8,7 +8,7 @@ import (
 
 func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.Validator, err error) {
 
-	q := sq.Select("reg_entity_address,reg_consensus_address,node_address,created_time,start_blk_lvl,blocks,signatures, acb_escrow_balance_active, acb_general_balance,acb_escrow_balance_share,acb_escrow_debonding_active,depositors_num,is_active,pvl_name,pvl_fee,pvl_info").
+	q := sq.Select("reg_entity_address,reg_consensus_address,node_address,created_time,start_blk_lvl,blocks,signatures, signed_blocks, max_day_block, day_signatures, day_signed_blocks, day_blocks, acb_escrow_balance_active, acb_general_balance,acb_escrow_balance_share,acb_escrow_debonding_active,depositors_num,is_active,pvl_name,pvl_fee,pvl_info").
 		From(dmodels.ValidatorsTable).
 		OrderBy("acb_escrow_balance_active desc").
 		Limit(params.Limit).
@@ -32,7 +32,7 @@ func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []d
 	for rows.Next() {
 		row := dmodels.Validator{}
 
-		err := rows.Scan(&row.EntityID, &row.ConsensusAddress, &row.NodeAddress, &row.ValidateSince, &row.StartBlockLevel, &row.BlocksCount, &row.SignaturesCount, &row.EscrowBalance, &row.GeneralBalance, &row.EscrowBalanceShare, &row.DebondingBalance, &row.DepositorsNum, &row.IsActive, &row.ValidatorName, &row.ValidatorFee, &row.ValidatorMediaInfo)
+		err = rows.Scan(&row.EntityID, &row.ConsensusAddress, &row.NodeAddress, &row.ValidateSince, &row.StartBlockLevel, &row.ProposedBlocksCount, &row.SignaturesCount, &row.SignedBlocksCount, &row.LastBlockLevel, &row.DaySignaturesCount, &row.DaySignedBlocks, &row.DayBlocksCount, &row.EscrowBalance, &row.GeneralBalance, &row.EscrowBalanceShare, &row.DebondingBalance, &row.DepositorsNum, &row.IsActive, &row.ValidatorName, &row.ValidatorFee, &row.ValidatorMediaInfo)
 		if err != nil {
 			return resp, err
 		}
@@ -45,8 +45,9 @@ func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []d
 
 func (cl Clickhouse) GetValidatorDayStats(consensusAddress string, params smodels.ChartParams) (resp []dmodels.ValidatorStats, err error) {
 
-	q := sq.Select("day,signatures,blocks,blk_lvl").
+	q := sq.Select("day, day_signatures, blocks, blk_lvl, day_signed_blocks/blk_count uptime").
 		From(dmodels.ValidatorStatsView).
+		JoinClause("ANY LEFT JOIN day_max_block_lvl_view USING day").
 		OrderBy("day asc").
 		Where(sq.Eq{"reg_consensus_address": consensusAddress}).
 		Where(sq.GtOrEq{"day": params.From}).
@@ -66,7 +67,7 @@ func (cl Clickhouse) GetValidatorDayStats(consensusAddress string, params smodel
 	for rows.Next() {
 		row := dmodels.ValidatorStats{}
 
-		err := rows.Scan(&row.BeginOfPeriod, &row.SignaturesCount, &row.BlocksCount, &row.LastBlock)
+		err = rows.Scan(&row.BeginOfPeriod, &row.SignaturesCount, &row.BlocksCount, &row.LastBlock, &row.Uptime)
 		if err != nil {
 			return resp, err
 		}
@@ -99,7 +100,7 @@ func (cl Clickhouse) GetValidatorDelegators(validatorID string, params smodels.C
 	for rows.Next() {
 		row := dmodels.Delegator{}
 
-		err := rows.Scan(&row.Address, &row.DelegateSince, &row.EscrowAmount)
+		err = rows.Scan(&row.Address, &row.DelegateSince, &row.EscrowAmount)
 		if err != nil {
 			return resp, err
 		}
@@ -128,7 +129,7 @@ func (cl Clickhouse) PublicValidatorsSearchList() (resp []dmodels.Validator, err
 	for rows.Next() {
 		row := dmodels.Validator{}
 
-		err := rows.Scan(&row.EntityID, &row.ValidatorName)
+		err = rows.Scan(&row.EntityID, &row.ValidatorName)
 		if err != nil {
 			return resp, err
 		}

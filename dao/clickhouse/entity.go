@@ -34,6 +34,34 @@ func (cl Clickhouse) GetEntityActiveDepositorsCount(accountAddress string) (coun
 	return count, nil
 }
 
+func (cl Clickhouse) GetEntity(address string) (resp dmodels.EntityRegistryTransaction, err error) {
+	q := sq.Select("*").
+		From(dmodels.RegisterEntityTable).
+		Where(sq.Eq{"reg_entity_address": address}).
+		OrderBy("blk_lvl desc").
+		Limit(1)
+
+	rawSql, args, err := q.ToSql()
+	if err != nil {
+		return resp, err
+	}
+
+	rows, err := cl.db.conn.Query(rawSql, args...)
+	if err != nil {
+		return resp, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		err := rows.Scan(&resp.BlockLevel, &resp.Time, &resp.Hash, &resp.ID, &resp.Address, &resp.Nodes, &resp.AllowEntitySignedNodes)
+		if err != nil {
+			return resp, err
+		}
+	}
+
+	return resp, nil
+}
+
 func (cl Clickhouse) GetAccountValidatorInfo(accountAddress string) (resp dmodels.EntityNodesContainer, err error) {
 
 	q := sq.Select("*").
@@ -55,7 +83,7 @@ func (cl Clickhouse) GetAccountValidatorInfo(accountAddress string) (resp dmodel
 	for rows.Next() {
 		row := dmodels.EntityNode{}
 
-		err := rows.Scan(&row.EntityID, &row.EntityAddress, &row.NodeID, &row.Address, &row.ConsensusAddress, &row.CreatedTime, &row.LastRegBlock, &row.Expiration, &row.LastBlockTime, &row.BlocksCount, &row.LastSignatureTime, &row.BlockSignaturesCount)
+		err = rows.Scan(&row.EntityID, &row.EntityAddress, &row.NodeID, &row.Address, &row.ConsensusAddress, &row.CreatedTime, &row.LastRegBlock, &row.Expiration, &row.LastBlockTime, &row.BlocksCount, &row.LastSignatureTime, &row.BlocksSigned, &row.BlockSignaturesCount)
 		if err != nil {
 			return resp, err
 		}
