@@ -77,6 +77,7 @@ type AccountList struct {
 	Account            string `json:"account_id"`
 	CreatedAt          int64  `json:"created_at"`
 	OperationsAmount   uint64 `json:"operations_amount"`
+	OperationsNumber   uint64 `json:"operations_number"`
 	GeneralBalance     uint64 `json:"general_balance"`
 	EscrowBalance      uint64 `json:"escrow_balance"`
 	EscrowBalanceShare uint64 `json:"escrow_balance_share"`

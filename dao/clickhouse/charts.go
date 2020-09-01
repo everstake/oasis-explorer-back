@@ -13,6 +13,7 @@ func (cl Clickhouse) GetChartsData(params smodels.ChartParams) (resp []dmodels.C
 		From(dmodels.TransactionsTable).
 		Where(sq.GtOrEq{"tx_time": params.From}).
 		Where(sq.LtOrEq{"tx_time": params.To}).
+		Where("tx_status = 1").
 		GroupBy("toStartOfDay(tx_time) as start_of_period").
 		OrderBy("start_of_period asc")
 
