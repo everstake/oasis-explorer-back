@@ -100,7 +100,7 @@ select *
              LEFT JOIN validator_blocks_day_count_view USING reg_consensus_address, day;
 
 CREATE VIEW IF NOT EXISTS validator_entity_view AS
-select p.*, day_max_block_lvl_view.blk_lvl max_day_block, day_max_block_lvl_view.blk_count
+select p.*, day_max_block_lvl_view.blk_lvl max_day_block, day_max_block_lvl_view.blk_count day_blocks
 from (
        select *
        from (

@@ -84,7 +84,9 @@ func (cl Clickhouse) GetValidatorDelegators(validatorID string, params smodels.C
 		From(dmodels.DepositorsView).
 		OrderBy("balance desc").
 		Where(sq.Gt{"balance": 0}).
-		Where(sq.Eq{"tx_receiver": validatorID})
+		Where(sq.Eq{"tx_receiver": validatorID}).
+		Limit(params.Limit).
+		Offset(params.Offset)
 
 	rawSql, args, err := q.ToSql()
 	if err != nil {
