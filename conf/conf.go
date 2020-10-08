@@ -10,7 +10,7 @@ type (
 	Config struct {
 		API                API
 		LogLevel           string
-		Mysql              types.MysqlParams
+		Postgres           types.DBParams
 		Clickhouse         Clickhouse
 		CORSAllowedOrigins []string
 		Scanner            Scanner

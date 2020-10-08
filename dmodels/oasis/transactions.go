@@ -7,6 +7,7 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	tx "github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
+	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 )
 
@@ -37,6 +38,9 @@ type TxBody struct {
 
 	//UnfreezeNode
 	registry.UnfreezeNode
+
+	//ExecutorCommit
+	roothash.ExecutorCommit
 }
 
 type RegisterTx struct {

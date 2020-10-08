@@ -29,7 +29,7 @@ type Mysql struct {
 var errorsRegexp = regexp.MustCompile(`^Error (?P<code>\d+)`)
 
 // CreateConnection creates a mysql connection
-func CreateConnection(c *types.MysqlParams, debugMode bool) (*Mysql, error) {
+func CreateConnection(c *types.DBParams, debugMode bool) (*Mysql, error) {
 	db, err := sqlx.Connect("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true", c.User, c.Password, c.Host, c.Port, c.Database))
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func CreateConnection(c *types.MysqlParams, debugMode bool) (*Mysql, error) {
 }
 
 // Migrate makes migration for DB from migrationsDir
-func Migrate(c *types.MysqlParams, migrationsDir string) error {
+func Migrate(c *types.DBParams, migrationsDir string) error {
 	ex, err := os.Executable()
 	if err != nil {
 		return err

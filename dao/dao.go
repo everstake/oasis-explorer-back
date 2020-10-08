@@ -4,17 +4,18 @@ import (
 	"fmt"
 	"oasisTracker/conf"
 	"oasisTracker/dao/clickhouse"
-	"oasisTracker/dao/mysql"
+	"oasisTracker/dao/postgres"
 	"oasisTracker/dmodels"
 	"oasisTracker/smodels"
 )
 
 type (
 	DAO interface {
-		MySql
+		TaskDAO
 		GetParserDAO() (ParserDAO, error)
 	}
-	MySql interface {
+
+	TaskDAO interface {
 		CreateTask(task dmodels.Task) error
 		GetTasks(bool) (tasks []dmodels.Task, err error)
 		GetLastTask() (task dmodels.Task, found bool, err error)
@@ -67,14 +68,14 @@ type (
 
 	daoImpl struct {
 		*clickhouse.Clickhouse
-		*mysql.MysqlDAO
+		*postgres.DAO
 	}
 )
 
 func New(cfg conf.Config) (*daoImpl, error) {
-	m, err := mysql.New(cfg)
+	m, err := postgres.New(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("mysql.New: %s", err.Error())
+		return nil, fmt.Errorf("postgres.New: %s", err.Error())
 	}
 	ch, err := clickhouse.New(cfg)
 	if err != nil {
@@ -82,7 +83,7 @@ func New(cfg conf.Config) (*daoImpl, error) {
 	}
 	return &daoImpl{
 		Clickhouse: ch,
-		MysqlDAO:   m,
+		DAO:        m,
 	}, nil
 }
 
