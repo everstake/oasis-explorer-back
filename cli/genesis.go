@@ -132,35 +132,34 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 
 	//In this genesis not used
 	//Genesis escrowreclaim
-	//for debonder, staker := range gen.Staking.DebondingDelegations {
-	//
-	//	for staker, shareArr := range staker {
-	//
-	//		for i := range shareArr {
-	//
-	//			txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "reclaim", debonder, staker, shareArr[i].Shares.String())))
-	//
-	//			txs = append(txs, dmodels.Transaction{
-	//				BlockLevel:          genesisHeight,
-	//				BlockHash:           hex.EncodeToString(genesisBlockHash[:]),
-	//				Hash:                hex.EncodeToString(txHash[:]),
-	//				Time:                gen.GenesisTime,
-	//				Amount:              0,
-	//				EscrowAmount:        0,
-	//				EscrowReclaimAmount: shareArr[i].Shares.ToBigInt().Uint64(),
-	//				EscrowAccount:       staker,
-	//				Type:                "reclaimescrow",
-	//				Sender:              debonder,
-	//				Receiver:            (api.Address)(oasis.SystemAddress).String(),
-	//				Nonce:               0,
-	//				Fee:                 0,
-	//				GasLimit:            0,
-	//				GasPrice:            0,
-	//			})
-	//
-	//		}
-	//	}
-	//}
+	for debonder, staker := range gen.Staking.DebondingDelegations {
+
+		for staker, shareArr := range staker {
+
+			for i := range shareArr {
+
+				txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "reclaim", debonder, staker, shareArr[i].Shares.String())))
+
+				txs = append(txs, dmodels.Transaction{
+					BlockLevel:          genesisHeight,
+					BlockHash:           hex.EncodeToString(genesisBlockHash[:]),
+					Hash:                hex.EncodeToString(txHash[:]),
+					Time:                gen.GenesisTime,
+					Amount:              0,
+					EscrowAmount:        0,
+					EscrowReclaimAmount: shareArr[i].Shares.ToBigInt().Uint64(),
+					Receiver:            staker,
+					Type:                "reclaimescrow",
+					Sender:              debonder,
+					Nonce:               0,
+					Fee:                 0,
+					GasLimit:            0,
+					GasPrice:            0,
+				})
+
+			}
+		}
+	}
 
 	err = cli.DAO.CreateTransfers(txs)
 	if err != nil {
