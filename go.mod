@@ -10,7 +10,6 @@ require (
 	github.com/fxamacker/cbor v1.5.1
 	github.com/fxamacker/cbor/v2 v2.2.1-0.20200820021930-bafca87fa6db
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/goat-systems/go-tezos/v2 v2.9.0-alpha
 	github.com/golang-migrate/migrate/v4 v4.11.0
 	github.com/gorilla/mux v1.7.4
 	github.com/gorilla/schema v1.1.0
