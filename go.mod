@@ -30,6 +30,7 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.6.0
 	github.com/smartystreets/assertions v1.0.0 // indirect
+	github.com/superoo7/go-gecko v1.0.0
 	github.com/tendermint/go-amino v0.15.0
 	github.com/tendermint/tendermint v0.33.6
 	github.com/uber-go/atomic v1.4.0 // indirect

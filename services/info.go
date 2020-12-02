@@ -6,6 +6,8 @@ import (
 	"oasisTracker/smodels"
 )
 
+const usdCurrency = "usd"
+
 func (s *ServiceFacade) GetInfo() (info smodels.Info, err error) {
 
 	block, err := s.dao.GetLastBlock()
@@ -22,9 +24,19 @@ func (s *ServiceFacade) GetInfo() (info smodels.Info, err error) {
 		s.cache.Set(topEscrowCacheKey, ratio, cacheTTL)
 	}
 
+	marketInfo, err := s.marketDataProvider.GetTezosMarketData(usdCurrency)
+	if err != nil {
+		return info, err
+	}
+
 	return smodels.Info{
-		Height:    block.Height,
-		TopEscrow: ratio.(float64),
+		Height:      block.Height,
+		TopEscrow:   ratio.(float64),
+		Price:       marketInfo.GetPrice(),
+		PriceChange: marketInfo.GetPriceChange(),
+		MarketCap:   marketInfo.GetMarketCap(),
+		Volume:      marketInfo.GetVolume(),
+		Supply:      marketInfo.GetSupply(),
 	}, nil
 }
 
