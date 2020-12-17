@@ -1,12 +1,13 @@
 package clickhouse
 
 import (
+	"fmt"
 	sq "github.com/wedancedalot/squirrel"
 	"oasisTracker/dmodels"
 	"oasisTracker/smodels"
 )
 
-func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.Validator, err error) {
+func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.ValidatorView, err error) {
 
 	q := sq.Select("reg_entity_address,reg_consensus_address,node_address,created_time,start_blk_lvl,blocks,signatures, signed_blocks, max_day_block, day_signatures, day_signed_blocks, day_blocks, acb_escrow_balance_active, acb_general_balance,acb_escrow_balance_share,acb_escrow_debonding_active,depositors_num,is_active, pvl_name, pvl_fee, pvl_info").
 		From(dmodels.ValidatorsTable).
@@ -30,9 +31,9 @@ func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []d
 	defer rows.Close()
 
 	for rows.Next() {
-		row := dmodels.Validator{}
+		row := dmodels.ValidatorView{}
 
-		err = rows.Scan(&row.EntityID, &row.ConsensusAddress, &row.NodeAddress, &row.ValidateSince, &row.StartBlockLevel, &row.ProposedBlocksCount, &row.SignaturesCount, &row.SignedBlocksCount, &row.LastBlockLevel, &row.DaySignaturesCount, &row.DaySignedBlocks, &row.DayBlocksCount, &row.EscrowBalance, &row.GeneralBalance, &row.EscrowBalanceShare, &row.DebondingBalance, &row.DepositorsNum, &row.IsActive, &row.ValidatorName, &row.ValidatorFee, &row.ValidatorMediaInfo)
+		err = rows.Scan(&row.EntityID, &row.ConsensusAddress, &row.NodeAddress, &row.ValidateSince, &row.StartBlockLevel, &row.ProposedBlocksCount, &row.SignaturesCount, &row.SignedBlocksCount, &row.LastBlockLevel, &row.DaySignaturesCount, &row.DaySignedBlocks, &row.DayBlocksCount, &row.EscrowBalance, &row.GeneralBalance, &row.EscrowBalanceShare, &row.DebondingBalance, &row.DepositorsNum, &row.IsActive, &row.Name, &row.Fee, &row.Info)
 		if err != nil {
 			return resp, err
 		}
@@ -113,7 +114,7 @@ func (cl Clickhouse) GetValidatorDelegators(validatorID string, params smodels.C
 	return resp, nil
 }
 
-func (cl Clickhouse) PublicValidatorsSearchList() (resp []dmodels.Validator, err error) {
+func (cl Clickhouse) PublicValidatorsSearchList() (resp []dmodels.ValidatorView, err error) {
 	q := sq.Select("reg_entity_address,pvl_name").
 		From(dmodels.PublicValidatorsTable)
 
@@ -129,9 +130,9 @@ func (cl Clickhouse) PublicValidatorsSearchList() (resp []dmodels.Validator, err
 	defer rows.Close()
 
 	for rows.Next() {
-		row := dmodels.Validator{}
+		row := dmodels.ValidatorView{}
 
-		err = rows.Scan(&row.EntityID, &row.ValidatorName)
+		err = rows.Scan(&row.EntityID, &row.Name)
 		if err != nil {
 			return resp, err
 		}
@@ -140,4 +141,78 @@ func (cl Clickhouse) PublicValidatorsSearchList() (resp []dmodels.Validator, err
 	}
 
 	return resp, nil
+}
+
+func (cl Clickhouse) PublicValidatorsList() (resp []dmodels.PublicValidator, err error) {
+	q := sq.Select("reg_entity_id,reg_entity_address,pvl_name,pvl_fee,pvl_info").
+		From(dmodels.PublicValidatorsTable)
+
+	rawSql, args, err := q.ToSql()
+	if err != nil {
+		return resp, err
+	}
+
+	rows, err := cl.db.conn.Query(rawSql, args...)
+	if err != nil {
+		return resp, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		row := dmodels.PublicValidator{}
+
+		err = rows.Scan(&row.EntityID, &row.EntityAddress, &row.Name, &row.Fee, &row.Info)
+		if err != nil {
+			return resp, err
+		}
+
+		resp = append(resp, row)
+	}
+
+	return resp, nil
+}
+
+func (cl Clickhouse) UpdateValidators(list []dmodels.PublicValidator) (err error) {
+	if len(list) == 0 {
+		return nil
+	}
+
+	tx, err := cl.db.conn.Begin()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec("TRUNCATE TABLE public_validators")
+	if err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare(
+		fmt.Sprintf("INSERT INTO %s (reg_entity_id, reg_entity_address, pvl_name, pvl_fee, pvl_info) VALUES (?, ?, ?, ?, ?)", dmodels.PublicValidatorsTable))
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	for i := range list {
+
+		_, err = stmt.Exec(
+			list[i].EntityID,
+			list[i].EntityAddress,
+			list[i].Name,
+			list[i].Fee,
+			list[i].Info,
+		)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }

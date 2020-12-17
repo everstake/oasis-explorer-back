@@ -11,8 +11,17 @@ const (
 	DepositorsView        = "entity_depositors_view"
 )
 
-type Validator struct {
-	EntityID          string    `db:"reg_entity_id"`
+type PublicValidator struct {
+	EntityID      string  `db:"reg_entity_id"`
+	EntityAddress string  `db:"reg_entity_address"`
+	Name          string  `db:"pvl_name"`
+	Fee           float64 `db:"pvl_fee"`
+	Info          string  `db:"pvl_info"`
+}
+
+type ValidatorView struct {
+	PublicValidator
+
 	ConsensusAddress  string    `db:"reg_consensus_address"`
 	NodeAddress       string    `db:"node_address"`
 	ValidateSince     time.Time `db:"created_time"`
@@ -37,9 +46,6 @@ type Validator struct {
 	DebondingBalance   uint64  `db:"acb_escrow_debonding_active"`
 	DepositorsNum      uint64  `db:"depositors_num"`
 	IsActive           bool    `db:"is_active"`
-	ValidatorName      string  `db:"pvl_name"`
-	ValidatorFee       uint64  `db:"pvl_fee"`
-	ValidatorMediaInfo string  `db:"pvl_info"`
 	DayUptime          float64 `db:"-"`
 	TotalUptime        float64 `db:"-"`
 	Status             string  `db:"-"`

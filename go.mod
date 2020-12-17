@@ -21,9 +21,11 @@ require (
 	github.com/libp2p/go-sockaddr v0.1.0 // indirect
 	github.com/mailru/go-clickhouse v1.3.0
 	github.com/mitchellh/mapstructure v1.3.0
-	github.com/oasisprotocol/oasis-core/go v0.2011.1
+	github.com/oasisprotocol/metadata-registry-tools v0.0.0-20201214134339-83dd5b0ffdf7
+	github.com/oasisprotocol/oasis-core/go v0.2011.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prataprc/gson v0.0.0-20181107060252-71739fac98d6
+	github.com/roylee0704/gron v0.0.0-20160621042432-e78485adab46
 	github.com/rs/cors v1.7.0
 	github.com/rubenv/sql-migrate v0.0.0-20200429072036-ae26b214fa43
 	github.com/satori/go.uuid v1.2.0

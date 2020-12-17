@@ -82,12 +82,11 @@ CREATE TABLE IF NOT EXISTS public_validators
   reg_entity_id FixedString(44),
   reg_entity_address FixedString(46),
   pvl_name      String,
-  pvl_fee       UInt64,
+  pvl_fee       Float64,
   pvl_info   String
 ) ENGINE ReplacingMergeTree()
     PARTITION BY reg_entity_id
     ORDER BY (reg_entity_id);
-
 
 CREATE VIEW IF NOT EXISTS day_max_block_lvl_view AS
 select toStartOfDay(blk_created_at) day, count() blk_count, max(blk_lvl) blk_lvl
