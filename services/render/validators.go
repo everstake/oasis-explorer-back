@@ -6,7 +6,7 @@ import (
 	"oasisTracker/smodels"
 )
 
-func ValidatorsList(accs []dmodels.Validator) []smodels.Validator {
+func ValidatorsList(accs []dmodels.ValidatorView) []smodels.Validator {
 	accounts := make([]smodels.Validator, len(accs))
 	for i := range accs {
 		accounts[i] = Validator(accs[i])
@@ -14,13 +14,13 @@ func ValidatorsList(accs []dmodels.Validator) []smodels.Validator {
 	return accounts
 }
 
-func Validator(a dmodels.Validator) smodels.Validator {
+func Validator(a dmodels.ValidatorView) smodels.Validator {
 
 	return smodels.Validator{
 		Account:            a.EntityID,
-		AccountName:        a.ValidatorName,
+		AccountName:        a.Name,
 		NodeID:             a.NodeAddress,
-		Fee:                a.ValidatorFee,
+		Fee:                a.Fee,
 		GeneralBalance:     a.GeneralBalance,
 		EscrowBalance:      a.EscrowBalance,
 		EscrowBalanceShare: a.EscrowBalanceShare,
@@ -28,7 +28,7 @@ func Validator(a dmodels.Validator) smodels.Validator {
 		DayUptime:          a.DayUptime,
 		TotalUptime:        a.TotalUptime,
 		CreatedAt:          a.ValidateSince.Unix(),
-		MediaInfo:          ValidatorMediaInfo(a.ValidatorMediaInfo),
+		MediaInfo:          ValidatorMediaInfo(a.Info),
 		ValidatorInfo: smodels.ValidatorInfo{
 			Status:          a.Status,
 			DepositorsCount: a.DepositorsNum,
@@ -87,7 +87,7 @@ func Delegator(s dmodels.Delegator) smodels.Delegator {
 	}
 }
 
-func PublicValidatorSearch(sts []dmodels.Validator) []smodels.ValidatorEntity {
+func PublicValidatorSearch(sts []dmodels.ValidatorView) []smodels.ValidatorEntity {
 	stats := make([]smodels.ValidatorEntity, len(sts))
 	for i := range sts {
 		stats[i] = ValidatorEntity(sts[i])
@@ -95,10 +95,10 @@ func PublicValidatorSearch(sts []dmodels.Validator) []smodels.ValidatorEntity {
 	return stats
 }
 
-func ValidatorEntity(s dmodels.Validator) smodels.ValidatorEntity {
+func ValidatorEntity(s dmodels.ValidatorView) smodels.ValidatorEntity {
 
 	return smodels.ValidatorEntity{
 		Account:     s.EntityID,
-		AccountName: s.ValidatorName,
+		AccountName: s.Name,
 	}
 }

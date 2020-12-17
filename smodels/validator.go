@@ -23,7 +23,7 @@ type Validator struct {
 	Account            string  `json:"account_id"`
 	AccountName        string  `json:"account_name,omitempty"`
 	NodeID             string  `json:"node_id"`
-	Fee                uint64  `json:"fee"`
+	Fee                float64 `json:"fee"`
 	EscrowBalance      uint64  `json:"escrow_balance"`
 	EscrowBalanceShare uint64  `json:"escrow_shares"`
 	GeneralBalance     uint64  `json:"general_balance"`

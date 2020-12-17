@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/roylee0704/gron"
 	"go.uber.org/zap"
 	"log"
 	"oasisTracker/api"
@@ -46,8 +47,12 @@ func main() {
 
 	a := api.NewAPI(cfg, s)
 	mds := []modules.Module{a}
+	cron := gron.New()
+
+	services.AddToCron(cron, cfg, d)
 
 	if !*parserDisableFlag {
+
 		sm := scanners.NewManager(cfg, d)
 
 		wt, err := scanners.NewWatcher(cfg, d)
@@ -56,6 +61,9 @@ func main() {
 		}
 		mds = append(mds, wt, sm)
 	}
+
+	cron.Start()
+	defer cron.Stop()
 
 	modules.Run(mds)
 
