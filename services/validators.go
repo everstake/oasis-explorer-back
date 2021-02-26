@@ -7,6 +7,8 @@ import (
 	"oasisTracker/smodels"
 )
 
+const blocksBeforeStart = 699999
+
 func (s *ServiceFacade) GetValidatorInfo(accountID string) (val smodels.Validator, err error) {
 	validators, err := s.GetValidatorList(smodels.ValidatorParams{
 		CommonParams: smodels.CommonParams{Limit: 1},
@@ -42,8 +44,8 @@ func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]
 
 	for i := range resp {
 
-		resp[i].DayUptime = float64(resp[i].DaySignedBlocks) / float64(resp[i].DayBlocksCount+1)
-		resp[i].TotalUptime = float64(resp[i].SignedBlocksCount) / float64(resp[i].LastBlockLevel)
+		resp[i].DayUptime = float64(resp[i].DaySignedBlocks) / float64(resp[i].DayBlocksCount)
+		resp[i].TotalUptime = float64(resp[i].SignedBlocksCount) / float64(resp[i].LastBlockLevel-blocksBeforeStart)
 
 		if !resp[i].IsActive {
 			resp[i].Status = smodels.StatusInActive

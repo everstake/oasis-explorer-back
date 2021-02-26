@@ -197,14 +197,12 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 			entityRegisterTxs = append(entityRegisterTxs, entityRegisterTx)
 		}
 
-		//Epoch balance snapshots on another job
-		if !block.IsEpochBlock() {
-			balanceUpdates, err := p.parseAccountBalances(block, tx, raw)
-			if err != nil {
-				return err
-			}
-			accountBalanceUpdates = append(accountBalanceUpdates, balanceUpdates...)
+		//Save updated balances
+		balanceUpdates, err := p.parseAccountBalances(block, tx, raw)
+		if err != nil {
+			return err
 		}
+		accountBalanceUpdates = append(accountBalanceUpdates, balanceUpdates...)
 
 		receiver := raw.Body.To.String()
 		if txType.Type() == dmodels.TransactionTypeAddEscrow || txType.Type() == dmodels.TransactionTypeReclaimEscrow {
@@ -305,10 +303,10 @@ func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
 	return nil
 }
 
-func (p *ParserTask) parseAccountBalances(block oasis.Block, tx transaction.SignedTransaction, rawTX oasis.UntrustedRawValue) ([]dmodels.AccountBalance, error) {
+func (p *ParserTask) parseAccountBalances(block oasis.Block, tx transaction.SignedTransaction, rawTX oasis.UntrustedRawValue) (updates []dmodels.AccountBalance, err error) {
 	addresses := []stakingAPI.Address{stakingAPI.NewAddress(tx.Signature.PublicKey), rawTX.Body.Account, rawTX.Body.To}
 
-	updates := make([]dmodels.AccountBalance, 0, len(addresses))
+	updates = make([]dmodels.AccountBalance, 0, len(addresses))
 
 	for i := range addresses {
 		//Skip system address
@@ -338,15 +336,39 @@ func (p *ParserTask) getAccountBalance(height int64, address stakingAPI.Address)
 		return balance, err
 	}
 
+	delegations, err := p.stakingAPI.Delegations(p.ctx, &stakingAPI.OwnerQuery{
+		Height: height,
+		Owner:  address,
+	})
+
+	var delegationsBalance uint64
+	for _, balance := range delegations {
+		delegationsBalance += balance.Shares.ToBigInt().Uint64()
+	}
+
+	debondingDelegations, err := p.stakingAPI.DebondingDelegations(p.ctx, &stakingAPI.OwnerQuery{
+		Height: height,
+		Owner:  address,
+	})
+
+	var debondingDelegationsBalance uint64
+	for _, debondings := range debondingDelegations {
+		for _, value := range debondings {
+			debondingDelegationsBalance += value.Shares.ToBigInt().Uint64()
+		}
+	}
+
 	return dmodels.AccountBalance{
-		Account:               address.String(),
-		Height:                height,
-		Nonce:                 accInfo.General.Nonce,
-		GeneralBalance:        accInfo.General.Balance.ToBigInt().Uint64(),
-		EscrowBalanceActive:   accInfo.Escrow.Active.Balance.ToBigInt().Uint64(),
-		EscrowBalanceShare:    accInfo.Escrow.Active.TotalShares.ToBigInt().Uint64(),
-		EscrowDebondingActive: accInfo.Escrow.Debonding.Balance.ToBigInt().Uint64(),
-		EscrowDebondingShare:  accInfo.Escrow.Debonding.TotalShares.ToBigInt().Uint64(),
+		Account:                     address.String(),
+		Height:                      height,
+		Nonce:                       accInfo.General.Nonce,
+		GeneralBalance:              accInfo.General.Balance.ToBigInt().Uint64(),
+		EscrowBalanceActive:         accInfo.Escrow.Active.Balance.ToBigInt().Uint64(),
+		EscrowBalanceShare:          accInfo.Escrow.Active.TotalShares.ToBigInt().Uint64(),
+		EscrowDebondingActive:       accInfo.Escrow.Debonding.Balance.ToBigInt().Uint64(),
+		EscrowDebondingShare:        accInfo.Escrow.Debonding.TotalShares.ToBigInt().Uint64(),
+		DelegationsBalance:          delegationsBalance,
+		DebondingDelegationsBalance: debondingDelegationsBalance,
 	}, nil
 }
 

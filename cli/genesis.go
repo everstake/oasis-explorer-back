@@ -81,16 +81,32 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 	//Genesis balances
 	for accountAddress, balance := range gen.Staking.Ledger {
 
+		delegations := gen.Staking.Delegations[accountAddress]
+		var delegationsBalance uint64
+		for _, balance := range delegations {
+			delegationsBalance += balance.Shares.ToBigInt().Uint64()
+		}
+
+		debondingDelegations := gen.Staking.DebondingDelegations[accountAddress]
+		var debondingDelegationsBalance uint64
+		for _, debondings := range debondingDelegations {
+			for _, value := range debondings {
+				debondingDelegationsBalance += value.Shares.ToBigInt().Uint64()
+			}
+		}
+
 		balances[i] = dmodels.AccountBalance{
-			Account:               accountAddress.String(),
-			Time:                  gen.GenesisTime,
-			Height:                genesisHeight,
-			Nonce:                 balance.General.Nonce,
-			GeneralBalance:        balance.General.Balance.ToBigInt().Uint64(),
-			EscrowBalanceActive:   balance.Escrow.Active.Balance.ToBigInt().Uint64(),
-			EscrowBalanceShare:    balance.Escrow.Active.TotalShares.ToBigInt().Uint64(),
-			EscrowDebondingActive: balance.Escrow.Debonding.Balance.ToBigInt().Uint64(),
-			EscrowDebondingShare:  balance.Escrow.Debonding.TotalShares.ToBigInt().Uint64(),
+			Account:                     accountAddress.String(),
+			Time:                        gen.GenesisTime,
+			Height:                      genesisHeight,
+			Nonce:                       balance.General.Nonce,
+			GeneralBalance:              balance.General.Balance.ToBigInt().Uint64(),
+			EscrowBalanceActive:         balance.Escrow.Active.Balance.ToBigInt().Uint64(),
+			EscrowBalanceShare:          balance.Escrow.Active.TotalShares.ToBigInt().Uint64(),
+			EscrowDebondingActive:       balance.Escrow.Debonding.Balance.ToBigInt().Uint64(),
+			EscrowDebondingShare:        balance.Escrow.Debonding.TotalShares.ToBigInt().Uint64(),
+			DelegationsBalance:          delegationsBalance,
+			DebondingDelegationsBalance: debondingDelegationsBalance,
 		}
 
 		i++
@@ -132,35 +148,34 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 
 	//In this genesis not used
 	//Genesis escrowreclaim
-	//for debonder, staker := range gen.Staking.DebondingDelegations {
-	//
-	//	for staker, shareArr := range staker {
-	//
-	//		for i := range shareArr {
-	//
-	//			txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "reclaim", debonder, staker, shareArr[i].Shares.String())))
-	//
-	//			txs = append(txs, dmodels.Transaction{
-	//				BlockLevel:          genesisHeight,
-	//				BlockHash:           hex.EncodeToString(genesisBlockHash[:]),
-	//				Hash:                hex.EncodeToString(txHash[:]),
-	//				Time:                gen.GenesisTime,
-	//				Amount:              0,
-	//				EscrowAmount:        0,
-	//				EscrowReclaimAmount: shareArr[i].Shares.ToBigInt().Uint64(),
-	//				EscrowAccount:       staker,
-	//				Type:                "reclaimescrow",
-	//				Sender:              debonder,
-	//				Receiver:            (api.Address)(oasis.SystemAddress).String(),
-	//				Nonce:               0,
-	//				Fee:                 0,
-	//				GasLimit:            0,
-	//				GasPrice:            0,
-	//			})
-	//
-	//		}
-	//	}
-	//}
+	for debonder, staker := range gen.Staking.DebondingDelegations {
+
+		for staker, shareArr := range staker {
+
+			for i := range shareArr {
+
+				txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "reclaim", debonder, staker, shareArr[i].Shares.String())))
+
+				txs = append(txs, dmodels.Transaction{
+					BlockLevel:          genesisHeight,
+					BlockHash:           hex.EncodeToString(genesisBlockHash[:]),
+					Hash:                hex.EncodeToString(txHash[:]),
+					Time:                gen.GenesisTime,
+					Amount:              0,
+					EscrowAmount:        0,
+					EscrowReclaimAmount: shareArr[i].Shares.ToBigInt().Uint64(),
+					Receiver:            staker,
+					Type:                "reclaimescrow",
+					Sender:              debonder.String(),
+					Nonce:               0,
+					Fee:                 0,
+					GasLimit:            0,
+					GasPrice:            0,
+				})
+
+			}
+		}
+	}
 
 	err = cli.DAO.CreateTransfers(txs)
 	if err != nil {

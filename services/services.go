@@ -7,6 +7,7 @@ import (
 	grpcCommon "google.golang.org/grpc"
 	"oasisTracker/conf"
 	"oasisTracker/dao"
+	"oasisTracker/services/cmc"
 	"oasisTracker/smodels"
 	"time"
 )
@@ -39,10 +40,11 @@ type (
 	}
 
 	ServiceFacade struct {
-		cfg     conf.Config
-		dao     dao.ServiceDAO
-		nodeAPI api.Backend
-		cache   *cache.Cache
+		cfg                conf.Config
+		dao                dao.ServiceDAO
+		nodeAPI            api.Backend
+		cache              *cache.Cache
+		marketDataProvider cmc.MarketDataProvider
 	}
 )
 
@@ -60,9 +62,10 @@ func NewService(cfg conf.Config, dao dao.ServiceDAO) *ServiceFacade {
 	sAPI := api.NewStakingClient(grpcConn)
 
 	return &ServiceFacade{
-		cfg:     cfg,
-		dao:     dao,
-		nodeAPI: sAPI,
-		cache:   cache.New(cacheTTL, cacheTTL),
+		cfg:                cfg,
+		dao:                dao,
+		nodeAPI:            sAPI,
+		cache:              cache.New(cacheTTL, cacheTTL),
+		marketDataProvider: cmc.NewCoinGecko(),
 	}
 }

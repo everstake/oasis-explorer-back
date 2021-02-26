@@ -53,14 +53,47 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 	liquidBalance := acc.General.Balance.ToBigInt().Uint64()
 	escrowBalance := acc.Escrow.Active.Balance.ToBigInt().Uint64()
 
+	//Get last account delegations state
+	delegations, err := s.nodeAPI.Delegations(context.Background(), &api.OwnerQuery{
+		//Latest
+		Height: 0,
+		Owner:  adr,
+	})
+
+	var delegationsBalance, selfdelegation uint64
+	for address, balance := range delegations {
+		//Self delegation
+		if address.Equal(adr) {
+			selfdelegation = balance.Shares.ToBigInt().Uint64()
+		}
+		delegationsBalance += balance.Shares.ToBigInt().Uint64()
+	}
+
+	//Get last account debonding delegations state
+	debondingDelegations, err := s.nodeAPI.DebondingDelegations(context.Background(), &api.OwnerQuery{
+		//Latest
+		Height: 0,
+		Owner:  adr,
+	})
+
+	var debondingDelegationsBalance uint64
+	for _, debondings := range debondingDelegations {
+		for _, value := range debondings {
+			debondingDelegationsBalance += value.Shares.ToBigInt().Uint64()
+		}
+	}
+
 	sAcc = smodels.Account{
 		Address:          accountID,
 		LiquidBalance:    liquidBalance,
 		EscrowBalance:    escrowBalance,
 		DebondingBalance: acc.Escrow.Debonding.Balance.ToBigInt().Uint64(),
-		TotalBalance:     liquidBalance + escrowBalance,
-		Type:             accType,
-		Nonce:            &acc.General.Nonce,
+
+		DelegationsBalance:          delegationsBalance,
+		DebondingDelegationsBalance: debondingDelegationsBalance,
+		TotalBalance:                liquidBalance + (escrowBalance - selfdelegation) + delegationsBalance + debondingDelegationsBalance,
+		Type:                        accType,
+		Nonce:                       &acc.General.Nonce,
 
 		CreatedAt:  accountTime.CreatedAt,
 		LastActive: accountTime.LastActive,

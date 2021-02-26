@@ -23,6 +23,7 @@ type (
 
 func NewManager(cfg conf.Config, d dao.DAO) *Manager {
 	ctx, stop := context.WithCancel(context.Background())
+
 	return &Manager{
 		cfg:   cfg,
 		dao:   d,

@@ -4,17 +4,18 @@ import (
 	"fmt"
 	"oasisTracker/conf"
 	"oasisTracker/dao/clickhouse"
-	"oasisTracker/dao/mysql"
+	"oasisTracker/dao/postgres"
 	"oasisTracker/dmodels"
 	"oasisTracker/smodels"
 )
 
 type (
 	DAO interface {
-		MySql
+		TaskDAO
 		GetParserDAO() (ParserDAO, error)
 	}
-	MySql interface {
+
+	TaskDAO interface {
 		CreateTask(task dmodels.Task) error
 		GetTasks(bool) (tasks []dmodels.Task, err error)
 		GetLastTask() (task dmodels.Task, found bool, err error)
@@ -47,8 +48,8 @@ type (
 		GetEntity(string) (dmodels.EntityRegistryTransaction, error)
 		GetEntityActiveDepositorsCount(accountID string) (count uint64, err error)
 
-		GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.Validator, err error)
-		PublicValidatorsSearchList() (resp []dmodels.Validator, err error)
+		GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.ValidatorView, err error)
+		PublicValidatorsSearchList() (resp []dmodels.ValidatorView, err error)
 		GetValidatorDayStats(string, smodels.ChartParams) (resp []dmodels.ValidatorStats, err error)
 		GetValidatorDelegators(validatorID string, params smodels.CommonParams) ([]dmodels.Delegator, error)
 		GetValidatorRewards(validatorID string, params smodels.CommonParams) ([]dmodels.Reward, error)
@@ -63,33 +64,35 @@ type (
 		CreateRegisterNodeTransactions(txs []dmodels.NodeRegistryTransaction) error
 		CreateRegisterEntityTransactions(txs []dmodels.EntityRegistryTransaction) error
 		CreateRewards(txs []dmodels.Reward) error
+		//To resync from last block
+		GetLastBlock() (dmodels.Block, error)
 	}
 
-	daoImpl struct {
+	DaoImpl struct {
 		*clickhouse.Clickhouse
-		*mysql.MysqlDAO
+		*postgres.DAO
 	}
 )
 
-func New(cfg conf.Config) (*daoImpl, error) {
-	m, err := mysql.New(cfg)
+func New(cfg conf.Config) (*DaoImpl, error) {
+	m, err := postgres.New(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("mysql.New: %s", err.Error())
+		return nil, fmt.Errorf("postgres.New: %s", err.Error())
 	}
 	ch, err := clickhouse.New(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("clickhouse.New: %s", err.Error())
 	}
-	return &daoImpl{
+	return &DaoImpl{
 		Clickhouse: ch,
-		MysqlDAO:   m,
+		DAO:        m,
 	}, nil
 }
 
-func (d daoImpl) GetParserDAO() (ParserDAO, error) {
+func (d DaoImpl) GetParserDAO() (ParserDAO, error) {
 	return d.Clickhouse, nil
 }
 
-func (d daoImpl) GetServiceDAO() ServiceDAO {
+func (d DaoImpl) GetServiceDAO() ServiceDAO {
 	return d.Clickhouse
 }

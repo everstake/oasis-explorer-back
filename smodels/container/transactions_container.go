@@ -1,4 +1,4 @@
-package smodels
+package container
 
 import (
 	"oasisTracker/dmodels"
@@ -14,8 +14,7 @@ type TxsContainer struct {
 
 func NewTxsContainer() *TxsContainer {
 	return &TxsContainer{
-		mu:  &sync.Mutex{},
-		txs: []dmodels.Transaction{},
+		mu: &sync.Mutex{},
 	}
 }
 

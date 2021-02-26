@@ -11,8 +11,17 @@ const (
 	DepositorsView        = "entity_depositors_view"
 )
 
-type Validator struct {
-	EntityID          string    `db:"reg_entity_id"`
+type PublicValidator struct {
+	EntityID      string  `db:"reg_entity_id"`
+	EntityAddress string  `db:"reg_entity_address"`
+	Name          string  `db:"pvl_name"`
+	Fee           float64 `db:"pvl_fee"`
+	Info          string  `db:"pvl_info"`
+}
+
+type ValidatorView struct {
+	PublicValidator
+
 	ConsensusAddress  string    `db:"reg_consensus_address"`
 	NodeAddress       string    `db:"node_address"`
 	ValidateSince     time.Time `db:"created_time"`
@@ -31,18 +40,19 @@ type Validator struct {
 	DaySignedBlocks    uint64 `db:"day_signed_blocks"`
 	DayBlocksCount     uint64 `db:"day_blocks"`
 
-	GeneralBalance     uint64  `db:"acb_general_balance"`
-	EscrowBalance      uint64  `db:"acb_escrow_balance_active"`
-	EscrowBalanceShare uint64  `db:"acb_escrow_balance_share"`
-	DebondingBalance   uint64  `db:"acb_escrow_debonding_active"`
-	DepositorsNum      uint64  `db:"depositors_num"`
-	IsActive           bool    `db:"is_active"`
-	ValidatorName      string  `db:"pvl_name"`
-	ValidatorFee       uint64  `db:"pvl_fee"`
-	ValidatorMediaInfo string  `db:"pvl_info"`
-	DayUptime          float64 `db:"-"`
-	TotalUptime        float64 `db:"-"`
-	Status             string  `db:"-"`
+	GeneralBalance     uint64 `db:"acb_general_balance"`
+	EscrowBalance      uint64 `db:"acb_escrow_balance_active"`
+	EscrowBalanceShare uint64 `db:"acb_escrow_balance_share"`
+	DebondingBalance   uint64 `db:"acb_escrow_debonding_active"`
+
+	DelegationsBalance          uint64 `db:"acb_delegations_balance"`
+	DebondingDelegationsBalance uint64 `db:"acb_escrow_debonding_delegations_balance"`
+
+	DepositorsNum uint64  `db:"depositors_num"`
+	IsActive      bool    `db:"is_active"`
+	DayUptime     float64 `db:"-"`
+	TotalUptime   float64 `db:"-"`
+	Status        string  `db:"-"`
 }
 
 type ValidatorStats struct {

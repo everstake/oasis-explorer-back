@@ -10,10 +10,11 @@ type (
 	Config struct {
 		API                API
 		LogLevel           string
-		Mysql              types.MysqlParams
+		Postgres           types.DBParams
 		Clickhouse         Clickhouse
 		CORSAllowedOrigins []string
 		Scanner            Scanner
+		Cron               Cron
 	}
 	API struct {
 		ListenOnPort       uint64
@@ -23,6 +24,9 @@ type (
 		NodeRPS    uint64
 		BatchSize  uint64
 		NodeConfig string
+	}
+	Cron struct {
+		ParseValidatorsRegisterInterval uint64
 	}
 	Clickhouse struct {
 		Protocol string

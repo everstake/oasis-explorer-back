@@ -82,12 +82,11 @@ CREATE TABLE IF NOT EXISTS public_validators
   reg_entity_id FixedString(44),
   reg_entity_address FixedString(46),
   pvl_name      String,
-  pvl_fee       UInt64,
+  pvl_fee       Float64,
   pvl_info   String
 ) ENGINE ReplacingMergeTree()
     PARTITION BY reg_entity_id
     ORDER BY (reg_entity_id);
-
 
 CREATE VIEW IF NOT EXISTS day_max_block_lvl_view AS
 select toStartOfDay(blk_created_at) day, count() blk_count, max(blk_lvl) blk_lvl
@@ -100,7 +99,7 @@ select *
              LEFT JOIN validator_blocks_day_count_view USING reg_consensus_address, day;
 
 CREATE VIEW IF NOT EXISTS validator_entity_view AS
-select p.*, day_max_block_lvl_view.blk_lvl max_day_block, day_max_block_lvl_view.blk_count
+select p.*, day_max_block_lvl_view.blk_lvl max_day_block, day_max_block_lvl_view.blk_count day_blocks
 from (
        select *
        from (
@@ -139,7 +138,7 @@ from (
                     from register_node_transactions
                     group by reg_entity_address ) val_lvl USING reg_entity_address) validator
               ANY
-              LEFT JOIN (SELECT acb_account reg_entity_address, acb_escrow_balance_active, acb_general_balance, acb_escrow_balance_share, acb_escrow_debonding_active, depositors_num
+              LEFT JOIN (SELECT acb_account reg_entity_address, acb_escrow_balance_active, acb_general_balance, acb_escrow_balance_share, acb_escrow_debonding_active, acb_delegations_balance , acb_escrow_debonding_delegations_balance , depositors_num
                          from account_last_balance_view ANY
                                 LEFT JOIN entity_active_depositors_counter_view USING reg_entity_address
          ) b USING reg_entity_address

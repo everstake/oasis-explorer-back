@@ -3,9 +3,7 @@ package smodels
 import (
 	"fmt"
 	"github.com/oasisprotocol/oasis-core/go/staking/api"
-	"oasisTracker/dmodels"
 	"sort"
-	"sync"
 	"time"
 )
 
@@ -74,27 +72,33 @@ type AccountListParams struct {
 }
 
 type AccountList struct {
-	Account            string `json:"account_id"`
-	CreatedAt          int64  `json:"created_at"`
-	OperationsAmount   uint64 `json:"operations_amount"`
-	OperationsNumber   uint64 `json:"operations_number"`
-	GeneralBalance     uint64 `json:"general_balance"`
-	EscrowBalance      uint64 `json:"escrow_balance"`
-	EscrowBalanceShare uint64 `json:"escrow_balance_share"`
-	Delegate           string `json:"delegate"`
-	Type               string `json:"type"`
+	Account                     string `json:"account_id"`
+	CreatedAt                   int64  `json:"created_at"`
+	OperationsAmount            uint64 `json:"operations_amount"`
+	OperationsNumber            uint64 `json:"operations_number"`
+	GeneralBalance              uint64 `json:"general_balance"`
+	EscrowBalance               uint64 `json:"escrow_balance"`
+	EscrowBalanceShare          uint64 `json:"escrow_balance_share"`
+	DelegationsBalance          uint64 `json:"delegations_balance"`
+	DebondingDelegationsBalance uint64 `json:"debonding_delegations_balance"`
+	Delegate                    string `json:"delegate"`
+	Type                        string `json:"type"`
 }
 
 type Account struct {
-	Address          string    `json:"address"`
-	LiquidBalance    uint64    `json:"liquid_balance"`
-	EscrowBalance    uint64    `json:"escrow_balance"`
-	DebondingBalance uint64    `json:"debonding_balance"`
-	TotalBalance     uint64    `json:"total_balance"`
-	CreatedAt        time.Time `json:"created_at"`
-	LastActive       time.Time `json:"last_active"`
-	Nonce            *uint64   `json:"nonce"`
-	Type             string    `json:"type"`
+	Address          string `json:"address"`
+	LiquidBalance    uint64 `json:"liquid_balance"`
+	EscrowBalance    uint64 `json:"escrow_balance"`
+	DebondingBalance uint64 `json:"escrow_debonding_balance"`
+
+	DelegationsBalance          uint64 `json:"delegations_balance"`
+	DebondingDelegationsBalance uint64 `json:"debonding_delegations_balance"`
+
+	TotalBalance uint64    `json:"total_balance"`
+	CreatedAt    time.Time `json:"created_at"`
+	LastActive   time.Time `json:"last_active"`
+	Nonce        *uint64   `json:"nonce"`
+	Type         string    `json:"type"`
 
 	EntityAddress string         `json:"entity_address,omitempty"`
 	Validator     *ValidatorInfo `json:"validator"`
@@ -115,38 +119,4 @@ type ValidatorInfo struct {
 	DepositorsCount  uint64 `json:"depositors_count,omitempty"`
 	BlocksCount      uint64 `json:"blocks_count"`
 	SignaturesCount  uint64 `json:"signatures_count"`
-}
-
-type AccountsContainer struct {
-	balances []dmodels.AccountBalance
-	mu       *sync.Mutex
-}
-
-func NewAccountsContainer() *AccountsContainer {
-	return &AccountsContainer{
-		mu:       &sync.Mutex{},
-		balances: []dmodels.AccountBalance{},
-	}
-}
-
-func (c *AccountsContainer) Add(balances []dmodels.AccountBalance) {
-	if len(balances) == 0 {
-		return
-	}
-
-	c.mu.Lock()
-	c.balances = append(c.balances, balances...)
-	c.mu.Unlock()
-}
-
-func (c *AccountsContainer) Balances() []dmodels.AccountBalance {
-	return c.balances
-}
-
-func (c *AccountsContainer) IsEmpty() bool {
-	return len(c.balances) == 0
-}
-
-func (c *AccountsContainer) Flush() {
-	c.balances = []dmodels.AccountBalance{}
 }
