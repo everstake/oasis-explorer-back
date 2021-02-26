@@ -89,14 +89,19 @@ func (m *Watcher) Run() error {
 }
 
 func (m *Watcher) addReSyncTask(currentHeight int64) error {
-	task, isFound, err := m.dao.GetLastTask()
+	task, _, err := m.dao.GetLastTask()
 	if err != nil {
 		return fmt.Errorf("GetLastTask error: %s", err)
 	}
 
+	lastBlock, err := m.parser.dao.GetLastBlock()
+	if err != nil {
+		return fmt.Errorf("GetLastBlock error: %s", err)
+	}
+
 	startHeight := task.EndHeight + 1
-	if !isFound {
-		startHeight = 0
+	if lastBlock.Height > startHeight {
+		startHeight = lastBlock.Height + 1
 	}
 
 	//Blocks sync
