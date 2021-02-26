@@ -81,16 +81,32 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 	//Genesis balances
 	for accountAddress, balance := range gen.Staking.Ledger {
 
+		delegations := gen.Staking.Delegations[accountAddress]
+		var delegationsBalance uint64
+		for _, balance := range delegations {
+			delegationsBalance += balance.Shares.ToBigInt().Uint64()
+		}
+
+		debondingDelegations := gen.Staking.DebondingDelegations[accountAddress]
+		var debondingDelegationsBalance uint64
+		for _, debondings := range debondingDelegations {
+			for _, value := range debondings {
+				debondingDelegationsBalance += value.Shares.ToBigInt().Uint64()
+			}
+		}
+
 		balances[i] = dmodels.AccountBalance{
-			Account:               accountAddress.String(),
-			Time:                  gen.GenesisTime,
-			Height:                genesisHeight,
-			Nonce:                 balance.General.Nonce,
-			GeneralBalance:        balance.General.Balance.ToBigInt().Uint64(),
-			EscrowBalanceActive:   balance.Escrow.Active.Balance.ToBigInt().Uint64(),
-			EscrowBalanceShare:    balance.Escrow.Active.TotalShares.ToBigInt().Uint64(),
-			EscrowDebondingActive: balance.Escrow.Debonding.Balance.ToBigInt().Uint64(),
-			EscrowDebondingShare:  balance.Escrow.Debonding.TotalShares.ToBigInt().Uint64(),
+			Account:                     accountAddress.String(),
+			Time:                        gen.GenesisTime,
+			Height:                      genesisHeight,
+			Nonce:                       balance.General.Nonce,
+			GeneralBalance:              balance.General.Balance.ToBigInt().Uint64(),
+			EscrowBalanceActive:         balance.Escrow.Active.Balance.ToBigInt().Uint64(),
+			EscrowBalanceShare:          balance.Escrow.Active.TotalShares.ToBigInt().Uint64(),
+			EscrowDebondingActive:       balance.Escrow.Debonding.Balance.ToBigInt().Uint64(),
+			EscrowDebondingShare:        balance.Escrow.Debonding.TotalShares.ToBigInt().Uint64(),
+			DelegationsBalance:          delegationsBalance,
+			DebondingDelegationsBalance: debondingDelegationsBalance,
 		}
 
 		i++
@@ -150,7 +166,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 					EscrowReclaimAmount: shareArr[i].Shares.ToBigInt().Uint64(),
 					Receiver:            staker,
 					Type:                "reclaimescrow",
-					Sender:              debonder,
+					Sender:              debonder.String(),
 					Nonce:               0,
 					Fee:                 0,
 					GasLimit:            0,

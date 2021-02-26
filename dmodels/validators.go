@@ -40,15 +40,19 @@ type ValidatorView struct {
 	DaySignedBlocks    uint64 `db:"day_signed_blocks"`
 	DayBlocksCount     uint64 `db:"day_blocks"`
 
-	GeneralBalance     uint64  `db:"acb_general_balance"`
-	EscrowBalance      uint64  `db:"acb_escrow_balance_active"`
-	EscrowBalanceShare uint64  `db:"acb_escrow_balance_share"`
-	DebondingBalance   uint64  `db:"acb_escrow_debonding_active"`
-	DepositorsNum      uint64  `db:"depositors_num"`
-	IsActive           bool    `db:"is_active"`
-	DayUptime          float64 `db:"-"`
-	TotalUptime        float64 `db:"-"`
-	Status             string  `db:"-"`
+	GeneralBalance     uint64 `db:"acb_general_balance"`
+	EscrowBalance      uint64 `db:"acb_escrow_balance_active"`
+	EscrowBalanceShare uint64 `db:"acb_escrow_balance_share"`
+	DebondingBalance   uint64 `db:"acb_escrow_debonding_active"`
+
+	DelegationsBalance          uint64 `db:"acb_delegations_balance"`
+	DebondingDelegationsBalance uint64 `db:"acb_escrow_debonding_delegations_balance"`
+
+	DepositorsNum uint64  `db:"depositors_num"`
+	IsActive      bool    `db:"is_active"`
+	DayUptime     float64 `db:"-"`
+	TotalUptime   float64 `db:"-"`
+	Status        string  `db:"-"`
 }
 
 type ValidatorStats struct {

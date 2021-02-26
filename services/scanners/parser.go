@@ -12,6 +12,7 @@ import (
 	"oasisTracker/conf"
 	"oasisTracker/dao"
 	"oasisTracker/smodels"
+	"oasisTracker/smodels/container"
 	"strconv"
 	"time"
 )
@@ -45,13 +46,16 @@ type (
 	}
 
 	ParseContainer struct {
-		blocks          *smodels.BlocksContainer
-		blockSignatures *smodels.BlockSignatureContainer
-		txs             *smodels.TxsContainer
-		balances        *smodels.AccountsContainer
-		rewards         *smodels.RewardsContainer
+		blocks          *container.BlocksContainer
+		blockSignatures *container.BlockSignatureContainer
+		txs             *container.TxsContainer
+		balances        *container.AccountsContainer
+		rewards         *container.RewardsContainer
 	}
 )
+
+type Container interface {
+}
 
 func NewParser(ctx context.Context, cfg conf.Scanner, d dao.ParserDAO) (*Parser, error) {
 	grpcConn, err := grpc.Dial(cfg.NodeConfig, grpcCommon.WithInsecure())
@@ -67,11 +71,11 @@ func NewParser(ctx context.Context, cfg conf.Scanner, d dao.ParserDAO) (*Parser,
 		api:  cAPI,
 		dao:  d,
 		container: &ParseContainer{
-			blocks:          smodels.NewBlocksContainer(),
-			blockSignatures: smodels.NewBlockSignatureContainer(),
-			txs:             smodels.NewTxsContainer(),
-			balances:        smodels.NewAccountsContainer(),
-			rewards:         smodels.NewRewardsContainer(),
+			blocks:          container.NewBlocksContainer(),
+			blockSignatures: container.NewBlockSignatureContainer(),
+			txs:             container.NewTxsContainer(),
+			balances:        container.NewAccountsContainer(),
+			rewards:         container.NewRewardsContainer(),
 		},
 	}, nil
 }

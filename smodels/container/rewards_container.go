@@ -1,4 +1,4 @@
-package smodels
+package container
 
 import (
 	"oasisTracker/dmodels"
@@ -12,8 +12,7 @@ type RewardsContainer struct {
 
 func NewRewardsContainer() *RewardsContainer {
 	return &RewardsContainer{
-		mu:      &sync.Mutex{},
-		rewards: []dmodels.Reward{},
+		mu: &sync.Mutex{},
 	}
 }
 

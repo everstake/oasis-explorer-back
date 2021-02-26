@@ -17,14 +17,16 @@ func AccountList(accs []dmodels.AccountList) []smodels.AccountList {
 func AccountListElement(a dmodels.AccountList) smodels.AccountList {
 
 	return smodels.AccountList{
-		Account:            a.Account,
-		CreatedAt:          a.CreatedAt.Unix(),
-		OperationsAmount:   a.OperationsAmount,
-		OperationsNumber:   a.Nonce,
-		GeneralBalance:     a.GeneralBalance,
-		EscrowBalance:      a.EscrowBalanceActive,
-		EscrowBalanceShare: a.EscrowBalanceShare,
-		Delegate:           strings.Trim(a.Delegate, "\u0000"),
-		Type:               a.Type,
+		Account:                     a.Account,
+		CreatedAt:                   a.CreatedAt.Unix(),
+		OperationsAmount:            a.OperationsAmount,
+		OperationsNumber:            a.Nonce,
+		GeneralBalance:              a.GeneralBalance,
+		EscrowBalance:               a.EscrowBalanceActive,
+		EscrowBalanceShare:          a.EscrowBalanceShare,
+		DelegationsBalance:          a.DelegationsBalance,
+		DebondingDelegationsBalance: a.DebondingDelegationsBalance,
+		Delegate:                    strings.Trim(a.Delegate, "\u0000"),
+		Type:                        a.Type,
 	}
 }

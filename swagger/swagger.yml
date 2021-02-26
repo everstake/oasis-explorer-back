@@ -725,6 +725,12 @@ definitions:
       escrow_balance_share:
         format: int64
         type: integer
+      delegations_balance:
+        format: int64
+        type: integer
+      debonding_delegations_balance:
+        format: int64
+        type: integer
       delegate:
         type: string
       type:
