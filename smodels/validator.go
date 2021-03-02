@@ -28,8 +28,12 @@ type Validator struct {
 	EscrowBalanceShare uint64  `json:"escrow_shares"`
 	GeneralBalance     uint64  `json:"general_balance"`
 	DebondingBalance   uint64  `json:"debonding_balance"`
-	DayUptime          float64 `json:"day_uptime"`
-	TotalUptime        float64 `json:"total_uptime"`
+
+	DelegationsBalance          uint64 `json:"delegations_balance"`
+	DebondingDelegationsBalance uint64 `json:"debonding_balance"`
+
+	DayUptime   float64 `json:"day_uptime"`
+	TotalUptime float64 `json:"total_uptime"`
 
 	CreatedAt int64               `json:"validate_since"`
 	MediaInfo *ValidatorMediaInfo `json:"media_info"`

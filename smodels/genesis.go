@@ -8,11 +8,12 @@ import (
 )
 
 type GenesisDocument struct {
-	GenesisTime time.Time    `json:"genesis_time"`
-	EpochTime   GenesisEpoch `json:"epochtime"`
-	ChainID     string       `json:"chain_id"`
-	Registry    Registry     `json:"registry"`
-	Staking     Staking      `json:"staking"`
+	GenesisTime   time.Time    `json:"genesis_time"`
+	GenesisHeight uint64       `json:"height"`
+	EpochTime     GenesisEpoch `json:"epochtime"`
+	ChainID       string       `json:"chain_id"`
+	Registry      Registry     `json:"registry"`
+	Staking       Staking      `json:"staking"`
 }
 
 type Registry struct {
