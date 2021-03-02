@@ -41,6 +41,8 @@ type TxBody struct {
 
 	//ExecutorCommit
 	roothash.ExecutorCommit
+	//ExecutorCommitExpired
+	Round uint64 `json:"round"`
 }
 
 type RegisterTx struct {

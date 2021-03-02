@@ -38,8 +38,6 @@ func NewCli(d dao.DAO) ICli {
 	}
 }
 
-const genesisHeight = 0
-
 func (cli *Cli) Setup(args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("invalid arguments length %d", len(args))
@@ -98,7 +96,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 		balances[i] = dmodels.AccountBalance{
 			Account:                     accountAddress.String(),
 			Time:                        gen.GenesisTime,
-			Height:                      genesisHeight,
+			Height:                      int64(gen.GenesisHeight),
 			Nonce:                       balance.General.Nonce,
 			GeneralBalance:              balance.General.Balance.ToBigInt().Uint64(),
 			EscrowBalanceActive:         balance.Escrow.Active.Balance.ToBigInt().Uint64(),
@@ -126,7 +124,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 			txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "delegation", receiverAddress, senderAddress, share.Shares.String())))
 
 			txs = append(txs, dmodels.Transaction{
-				BlockLevel:          genesisHeight,
+				BlockLevel:          gen.GenesisHeight,
 				BlockHash:           hex.EncodeToString(genesisBlockHash[:]),
 				Hash:                hex.EncodeToString(txHash[:]),
 				Time:                gen.GenesisTime,
@@ -157,7 +155,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 				txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "reclaim", debonder, staker, shareArr[i].Shares.String())))
 
 				txs = append(txs, dmodels.Transaction{
-					BlockLevel:          genesisHeight,
+					BlockLevel:          gen.GenesisHeight,
 					BlockHash:           hex.EncodeToString(genesisBlockHash[:]),
 					Hash:                hex.EncodeToString(txHash[:]),
 					Time:                gen.GenesisTime,
@@ -202,7 +200,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 		}
 
 		nodes[i] = dmodels.NodeRegistryTransaction{
-			BlockLevel:       genesisHeight,
+			BlockLevel:       gen.GenesisHeight,
 			Hash:             gen.Registry.Nodes[i].Hash().String(),
 			Time:             gen.GenesisTime,
 			ID:               node.ID.String(),
@@ -238,7 +236,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 		}
 
 		entities[i] = dmodels.EntityRegistryTransaction{
-			BlockLevel:             genesisHeight,
+			BlockLevel:             gen.GenesisHeight,
 			Hash:                   gen.Registry.Entities[i].Hash().String(),
 			Time:                   gen.GenesisTime,
 			ID:                     entity.ID.String(),

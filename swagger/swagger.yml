@@ -796,6 +796,12 @@ definitions:
       total_balance:
         format: int64
         type: integer
+      delegations_balance:
+        format: int64
+        type: integer
+      debonding_delegations_balance:
+        format: int64
+        type: integer
       created_at:
         format: int64
         type: integer
@@ -838,6 +844,12 @@ definitions:
         format: int64
         type: integer
       gebonding_balance:
+        format: int64
+        type: integer
+      delegations_balance:
+        format: int64
+        type: integer
+      debonding_delegations_balance:
         format: int64
         type: integer
       media_info:

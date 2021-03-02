@@ -297,10 +297,82 @@ func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
 		}
 	}
 
+	debondingUpdates, err := p.processDebondingDelegations(block.Header.Height)
+	if err != nil {
+		return err
+	}
+
+	updates = append(updates, debondingUpdates...)
+
 	p.parserContainer.balances.Add(updates)
 	p.parserContainer.rewards.Add(rewards)
 
 	return nil
+}
+
+func (p *ParserTask) processDebondingDelegations(height int64) (updates []dmodels.AccountBalance, err error) {
+	//Save undelegations
+	addresses, err := p.stakingAPI.Addresses(context.Background(), height)
+	if err != nil {
+		return updates, err
+	}
+
+	for _, address := range addresses {
+
+		debondingDelegations, err := p.stakingAPI.DebondingDelegations(p.ctx, &stakingAPI.OwnerQuery{
+			Height: height,
+			Owner:  address,
+		})
+		if err != nil {
+			return updates, err
+		}
+
+		previousDebondingDelegations, err := p.stakingAPI.DebondingDelegations(p.ctx, &stakingAPI.OwnerQuery{
+			Height: height - 1,
+			Owner:  address,
+		})
+		if err != nil {
+			return updates, err
+		}
+
+		//Equal so skip
+		if compareDebondingDelegations(debondingDelegations, previousDebondingDelegations) {
+			continue
+		}
+
+		accountBalance, err := p.getAccountBalance(height, address)
+		if err != nil {
+			return updates, err
+		}
+
+		updates = append(updates, accountBalance)
+	}
+
+	return updates, nil
+}
+
+func compareDebondingDelegations(debondingDelegations, previousDebondingDelegations map[stakingAPI.Address][]*stakingAPI.DebondingDelegation) bool {
+
+	if len(debondingDelegations) != len(previousDebondingDelegations) {
+		return false
+	}
+
+	for address, debondings := range debondingDelegations {
+		prevDebonding, ok := previousDebondingDelegations[address]
+		if !ok {
+			return false
+		}
+
+		if len(prevDebonding) != len(debondings) {
+			return false
+		}
+
+		if prevDebonding[0].Shares.Cmp(&debondings[0].Shares) != 0 || prevDebonding[0].DebondEndTime != debondings[0].DebondEndTime {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (p *ParserTask) parseAccountBalances(block oasis.Block, tx transaction.SignedTransaction, rawTX oasis.UntrustedRawValue) (updates []dmodels.AccountBalance, err error) {
