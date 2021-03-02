@@ -4,6 +4,11 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"oasisTracker/dmodels"
+	"oasisTracker/dmodels/oasis"
+	"reflect"
+	"runtime"
+
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	consensusAPI "github.com/oasisprotocol/oasis-core/go/consensus/api"
@@ -12,10 +17,6 @@ import (
 	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/tendermint/tendermint/crypto"
 	"google.golang.org/grpc"
-	"oasisTracker/dmodels"
-	"oasisTracker/dmodels/oasis"
-	"reflect"
-	"runtime"
 )
 
 //Struct for direct work with connection from worker
@@ -297,7 +298,7 @@ func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
 		}
 	}
 
-	debondingUpdates, err := p.processDebondingDelegations(block.Header.Height)
+	debondingUpdates, err := p.processDebondingDelegations(block)
 	if err != nil {
 		return err
 	}
@@ -310,9 +311,9 @@ func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
 	return nil
 }
 
-func (p *ParserTask) processDebondingDelegations(height int64) (updates []dmodels.AccountBalance, err error) {
+func (p *ParserTask) processDebondingDelegations(block oasis.Block) (updates []dmodels.AccountBalance, err error) {
 	//Save undelegations
-	addresses, err := p.stakingAPI.Addresses(context.Background(), height)
+	addresses, err := p.stakingAPI.Addresses(context.Background(), block.Header.Height)
 	if err != nil {
 		return updates, err
 	}
@@ -320,7 +321,7 @@ func (p *ParserTask) processDebondingDelegations(height int64) (updates []dmodel
 	for _, address := range addresses {
 
 		debondingDelegations, err := p.stakingAPI.DebondingDelegations(p.ctx, &stakingAPI.OwnerQuery{
-			Height: height,
+			Height: block.Header.Height,
 			Owner:  address,
 		})
 		if err != nil {
@@ -328,7 +329,7 @@ func (p *ParserTask) processDebondingDelegations(height int64) (updates []dmodel
 		}
 
 		previousDebondingDelegations, err := p.stakingAPI.DebondingDelegations(p.ctx, &stakingAPI.OwnerQuery{
-			Height: height - 1,
+			Height: block.Header.Height - 1,
 			Owner:  address,
 		})
 		if err != nil {
@@ -340,10 +341,12 @@ func (p *ParserTask) processDebondingDelegations(height int64) (updates []dmodel
 			continue
 		}
 
-		accountBalance, err := p.getAccountBalance(height, address)
+		accountBalance, err := p.getAccountBalance(block.Header.Height, address)
 		if err != nil {
 			return updates, err
 		}
+
+		accountBalance.Time = block.Header.Time
 
 		updates = append(updates, accountBalance)
 	}
