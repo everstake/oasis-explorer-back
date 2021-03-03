@@ -2,9 +2,10 @@ package clickhouse
 
 import (
 	"fmt"
-	sq "github.com/wedancedalot/squirrel"
 	"oasisTracker/dmodels"
 	"oasisTracker/smodels"
+
+	sq "github.com/wedancedalot/squirrel"
 )
 
 func (cl Clickhouse) GetAccountTiming(accountID string) (resp dmodels.AccountTime, err error) {
@@ -106,7 +107,7 @@ func (cl Clickhouse) GetTopEscrowAccounts(limit uint64) (resp []dmodels.AccountB
 	for rows.Next() {
 		var row dmodels.AccountBalance
 
-		err := rows.Scan(&row.Account, &row.Time, &row.Nonce, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.EscrowDebondingActive, &row.AccountName)
+		err := rows.Scan(&row.Account, &row.Time, &row.Nonce, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.EscrowDebondingActive, &row.DelegationsBalance, &row.DebondingDelegationsBalance, &row.AccountName)
 		if err != nil {
 			return resp, err
 		}
@@ -139,7 +140,7 @@ func (cl Clickhouse) GetAccountList(listParams smodels.AccountListParams) (resp 
 	for rows.Next() {
 		row := dmodels.AccountList{}
 
-		err := rows.Scan(&row.Account, &row.CreatedAt, &row.OperationsAmount, &row.Nonce, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.Delegate, &row.EntityRegisterBlock, &row.NodeRegisterBlock)
+		err := rows.Scan(&row.Account, &row.CreatedAt, &row.OperationsAmount, &row.Nonce, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.DelegationsBalance, &row.DebondingDelegationsBalance, &row.Delegate, &row.EntityRegisterBlock, &row.NodeRegisterBlock)
 		if err != nil {
 			return resp, err
 		}
