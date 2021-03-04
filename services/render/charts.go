@@ -38,10 +38,13 @@ func BalanceChartData(bcd []dmodels.BalanceChartData) []smodels.BalanceChartData
 func BalanceChartElement(bcd dmodels.BalanceChartData) smodels.BalanceChartData {
 
 	return smodels.BalanceChartData{
-		Timestamp:        bcd.BeginOfPeriod.Unix(),
-		GeneralBalance:   bcd.GeneralBalance,
-		EscrowBalance:    bcd.EscrowBalance,
-		DebondingBalance: bcd.DebondingBalance,
+		Timestamp:                   bcd.BeginOfPeriod.Unix(),
+		GeneralBalance:              bcd.GeneralBalance,
+		EscrowBalance:               bcd.EscrowBalance,
+		DebondingBalance:            bcd.DebondingBalance,
+		DelegationsBalance:          bcd.DelegationsBalance,
+		DebondingDelegationsBalance: bcd.DebondingDelegationsBalance,
+		//TODO add selfstake balance
 		SelfStakeBalance: 0,
 	}
 }

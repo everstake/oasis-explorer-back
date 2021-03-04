@@ -1,9 +1,10 @@
 package clickhouse
 
 import (
-	sq "github.com/wedancedalot/squirrel"
 	"oasisTracker/dmodels"
 	"oasisTracker/smodels"
+
+	sq "github.com/wedancedalot/squirrel"
 )
 
 func (cl Clickhouse) GetLastDayTotalBalance() (bal dmodels.DayBalance, err error) {
@@ -59,7 +60,7 @@ func (cl Clickhouse) GetBalanceChartData(accountID string, params smodels.ChartP
 	for rows.Next() {
 		row := dmodels.BalanceChartData{}
 
-		err := rows.Scan(&row.AccountID, &row.BeginOfPeriod, &row.GeneralBalance, &row.EscrowBalance, &row.DebondingBalance)
+		err := rows.Scan(&row.AccountID, &row.BeginOfPeriod, &row.GeneralBalance, &row.EscrowBalance, &row.DebondingBalance, &row.DelegationsBalance, &row.DebondingDelegationsBalance)
 		if err != nil {
 			return resp, err
 		}

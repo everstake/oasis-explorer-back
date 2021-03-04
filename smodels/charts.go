@@ -39,9 +39,11 @@ type TopEscrowRatioChart struct {
 }
 
 type BalanceChartData struct {
-	Timestamp        int64  `json:"timestamp"`
-	GeneralBalance   uint64 `json:"general_balance"`
-	EscrowBalance    uint64 `json:"escrow_balance"`
-	DebondingBalance uint64 `json:"debonding_balance"`
-	SelfStakeBalance uint64 `json:"self_stake_balance"`
+	Timestamp                   int64  `json:"timestamp"`
+	GeneralBalance              uint64 `json:"general_balance"`
+	EscrowBalance               uint64 `json:"escrow_balance"`
+	DebondingBalance            uint64 `json:"debonding_balance"`
+	DelegationsBalance          uint64 `json:"delegations_balance"`
+	DebondingDelegationsBalance uint64 `json:"debonding_delegations_balance"`
+	SelfStakeBalance            uint64 `json:"self_stake_balance"`
 }

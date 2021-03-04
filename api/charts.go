@@ -1,14 +1,15 @@
 package api
 
 import (
-	"github.com/gorilla/mux"
-	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"oasisTracker/common/apperrors"
 	response "oasisTracker/common/http/responce"
 	"oasisTracker/common/log"
 	"oasisTracker/smodels"
+
+	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 )
 
 func (api *API) GetTransactionsVolume(w http.ResponseWriter, r *http.Request) {
@@ -280,7 +281,7 @@ func (api *API) GetBalanceChart(w http.ResponseWriter, r *http.Request) {
 
 	data, err := api.services.GetBalanceChartData(account, params)
 	if err != nil {
-		log.Error("GetValidatorStatsChartData api error", zap.Error(err))
+		log.Error("GetBalanceChartData api error", zap.Error(err))
 		response.JsonError(w, err)
 		return
 	}
