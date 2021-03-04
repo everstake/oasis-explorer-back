@@ -1018,6 +1018,12 @@ definitions:
       debonding_balance:
         type: integer
         format: int64
+      delegations_balance:
+        format: int64
+        type: integer
+      debonding_delegations_balance:
+        format: int64
+        type: integer
       self_stake_balance:
         type: integer
         format: int64
