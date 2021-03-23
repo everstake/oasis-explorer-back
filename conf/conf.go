@@ -21,9 +21,10 @@ type (
 		CORSAllowedOrigins []string
 	}
 	Scanner struct {
-		NodeRPS    uint64
-		BatchSize  uint64
-		NodeConfig string
+		StartHeight uint64
+		NodeRPS     uint64
+		BatchSize   uint64
+		NodeConfig  string
 	}
 	Cron struct {
 		ParseValidatorsRegisterInterval uint64

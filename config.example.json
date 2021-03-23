@@ -7,23 +7,25 @@
     ]
   },
   "Clickhouse": {
-    "Protocol": "http",
+    "Protocol": "tcp",
     "Host": "localhost",
-    "Port": 8123,
+    "Port": 9000,
     "User": "default",
-    "Password": ""
+    "Password": "",
+    "Database": "default"
   },
-  "Mysql": {
-    "Host": "127.0.0.1",
-    "Port": 3306,
-    "User": "root",
-    "Password": "123",
+  "Postgres": {
+    "Host": "localhost",
+    "Port": 5432,
+    "User": "oasis",
+    "Password": "oasis",
     "Database": "oasis",
-    "DebugMode": true
+    "Schema": "oasis"
   },
   "Scanner": {
     "Database": "oasis",
     "NodeRPS": 200,
-    "NodeConfig": "127.0.0.1:9109"
+    "NodeConfig": "127.0.0.1:9109",
+    "StartHeight": 1
   }
 }
