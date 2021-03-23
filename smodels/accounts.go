@@ -2,9 +2,10 @@ package smodels
 
 import (
 	"fmt"
-	"github.com/oasisprotocol/oasis-core/go/staking/api"
 	"sort"
 	"time"
+
+	"github.com/oasisprotocol/oasis-core/go/staking/api"
 )
 
 func NewAccountListParams() AccountListParams {
@@ -19,21 +20,23 @@ func NewAccountListParams() AccountListParams {
 }
 
 const (
-	sortCreatedAt        = "created_at"
-	sortBalance          = "general_balance"
-	sortEscrowBalance    = "escrow_balance"
-	sortEscrowShare      = "escrow_share"
-	sortOperationsAmount = "operations_amount"
-	sortAsc              = "asc"
-	sortDesc             = "desc"
-	AccountTypeAccount   = "account"
-	AccountTypeNode      = "node"
-	AccountTypeEntity    = "entity"
-	AccountTypeValidator = "validator"
+	sortCreatedAt                   = "created_at"
+	sortBalance                     = "general_balance"
+	sortEscrowBalance               = "escrow_balance"
+	sortEscrowShare                 = "escrow_share"
+	sortDelegationsBalance          = "delegations_balance"
+	sortDebondingDelegationsBalance = "debonding_delegations_balance"
+	sortOperationsAmount            = "operations_amount"
+	sortAsc                         = "asc"
+	sortDesc                        = "desc"
+	AccountTypeAccount              = "account"
+	AccountTypeNode                 = "node"
+	AccountTypeEntity               = "entity"
+	AccountTypeValidator            = "validator"
 )
 
 //Sorted
-var sortColumns = []string{sortCreatedAt, sortEscrowBalance, sortEscrowShare, sortBalance, sortOperationsAmount}
+var sortColumns = []string{sortCreatedAt, sortEscrowBalance, sortEscrowShare, sortDelegationsBalance, sortDebondingDelegationsBalance, sortBalance, sortOperationsAmount}
 var sortSides = []string{sortAsc, sortDesc}
 
 func (b AccountListParams) Validate() error {

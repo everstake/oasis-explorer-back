@@ -5,15 +5,16 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/oasisprotocol/oasis-core/go/common/cbor"
-	"github.com/oasisprotocol/oasis-core/go/staking/api"
-	"github.com/tendermint/tendermint/crypto"
 	"oasisTracker/common/log"
 	"oasisTracker/dao"
 	"oasisTracker/dmodels"
 	"oasisTracker/dmodels/oasis"
 	"oasisTracker/smodels"
 	"os"
+
+	"github.com/oasisprotocol/oasis-core/go/common/cbor"
+	"github.com/oasisprotocol/oasis-core/go/staking/api"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 const SetupGenesisJson = "setup-genesis"

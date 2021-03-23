@@ -1,10 +1,11 @@
 package smodels
 
 import (
+	"time"
+
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	"github.com/oasisprotocol/oasis-core/go/staking/api"
-	"time"
 )
 
 type GenesisDocument struct {
