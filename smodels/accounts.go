@@ -2,9 +2,10 @@ package smodels
 
 import (
 	"fmt"
-	"github.com/oasisprotocol/oasis-core/go/staking/api"
 	"sort"
 	"time"
+
+	"github.com/oasisprotocol/oasis-core/go/staking/api"
 )
 
 func NewAccountListParams() AccountListParams {

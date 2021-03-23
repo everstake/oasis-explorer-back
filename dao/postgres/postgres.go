@@ -3,10 +3,11 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
-	"github.com/jinzhu/gorm"
 	"oasisTracker/common/dao"
 	"oasisTracker/conf"
+
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/jinzhu/gorm"
 )
 
 const migrationsDir = "./dao/postgres/migrations"
