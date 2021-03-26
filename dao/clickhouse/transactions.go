@@ -2,11 +2,12 @@ package clickhouse
 
 import (
 	"fmt"
-	"github.com/ClickHouse/clickhouse-go"
-	sq "github.com/wedancedalot/squirrel"
 	"log"
 	"oasisTracker/dmodels"
 	"oasisTracker/smodels"
+
+	"github.com/ClickHouse/clickhouse-go"
+	sq "github.com/wedancedalot/squirrel"
 )
 
 func (cl Clickhouse) CreateTransfers(transfers []dmodels.Transaction) error {
@@ -128,8 +129,8 @@ func (cl Clickhouse) CreateRegisterEntityTransactions(txs []dmodels.EntityRegist
 	}
 
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (blk_lvl, tx_time, tx_hash, reg_entity_id, reg_entity_address, reg_nodes, reg_allow_entity_signed_nodes)"+
-			"VALUES (?, ?, ?, ?, ?, ?, ?)", dmodels.RegisterEntityTable))
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, tx_time, tx_hash, reg_entity_id, reg_entity_address, reg_nodes)"+
+			"VALUES (?, ?, ?, ?, ?, ?)", dmodels.RegisterEntityTable))
 	if err != nil {
 		return err
 	}
@@ -148,7 +149,6 @@ func (cl Clickhouse) CreateRegisterEntityTransactions(txs []dmodels.EntityRegist
 			txs[i].ID,
 			txs[i].Address,
 			clickhouse.Array(txs[i].Nodes),
-			txs[i].AllowEntitySignedNodes,
 		)
 		if err != nil {
 			return err

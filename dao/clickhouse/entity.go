@@ -1,8 +1,9 @@
 package clickhouse
 
 import (
-	sq "github.com/wedancedalot/squirrel"
 	"oasisTracker/dmodels"
+
+	sq "github.com/wedancedalot/squirrel"
 )
 
 func (cl Clickhouse) GetEntityActiveDepositorsCount(accountAddress string) (count uint64, err error) {
@@ -53,7 +54,7 @@ func (cl Clickhouse) GetEntity(address string) (resp dmodels.EntityRegistryTrans
 	defer rows.Close()
 
 	for rows.Next() {
-		err := rows.Scan(&resp.BlockLevel, &resp.Time, &resp.Hash, &resp.ID, &resp.Address, &resp.Nodes, &resp.AllowEntitySignedNodes)
+		err := rows.Scan(&resp.BlockLevel, &resp.Time, &resp.Hash, &resp.ID, &resp.Address, &resp.Nodes)
 		if err != nil {
 			return resp, err
 		}

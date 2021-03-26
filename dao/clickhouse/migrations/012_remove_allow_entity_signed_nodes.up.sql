@@ -1,0 +1,1 @@
+ALTER TABLE register_entity_transactions DROP COLUMN reg_allow_entity_signed_nodes

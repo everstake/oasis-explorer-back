@@ -82,11 +82,10 @@ type NodeRegistryTransaction struct {
 }
 
 type EntityRegistryTransaction struct {
-	BlockLevel             uint64    `db:"blk_lvl"`
-	Hash                   string    `db:"tx_hash"`
-	Time                   time.Time `db:"tx_time"`
-	ID                     string
-	Address                string
-	Nodes                  []string
-	AllowEntitySignedNodes bool
+	BlockLevel uint64    `db:"blk_lvl"`
+	Hash       string    `db:"tx_hash"`
+	Time       time.Time `db:"tx_time"`
+	ID         string
+	Address    string
+	Nodes      []string
 }

@@ -237,13 +237,12 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 		}
 
 		entities[i] = dmodels.EntityRegistryTransaction{
-			BlockLevel:             gen.GenesisHeight,
-			Hash:                   gen.Registry.Entities[i].Hash().String(),
-			Time:                   gen.GenesisTime,
-			ID:                     entity.ID.String(),
-			Address:                api.NewAddress(entity.ID).String(),
-			Nodes:                  nodes,
-			AllowEntitySignedNodes: entity.AllowEntitySignedNodes,
+			BlockLevel: gen.GenesisHeight,
+			Hash:       gen.Registry.Entities[i].Hash().String(),
+			Time:       gen.GenesisTime,
+			ID:         entity.ID.String(),
+			Address:    api.NewAddress(entity.ID).String(),
+			Nodes:      nodes,
 		}
 	}
 

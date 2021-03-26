@@ -6,7 +6,7 @@ import (
 	"fmt"
 	registry "github.com/oasisprotocol/metadata-registry-tools"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
-	epochAPI "github.com/oasisprotocol/oasis-core/go/epochtime/api"
+	epochAPI "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"oasisTracker/dmodels"
 	"oasisTracker/smodels"
