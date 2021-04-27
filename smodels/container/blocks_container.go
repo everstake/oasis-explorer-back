@@ -1,4 +1,4 @@
-package smodels
+package container
 
 import (
 	"oasisTracker/dmodels"
@@ -12,8 +12,7 @@ type BlocksContainer struct {
 
 func NewBlocksContainer() *BlocksContainer {
 	return &BlocksContainer{
-		mu:     &sync.Mutex{},
-		blocks: []dmodels.Block{},
+		mu: &sync.Mutex{},
 	}
 }
 

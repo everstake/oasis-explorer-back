@@ -32,7 +32,7 @@ func New(c conf.Config) (*DAO, error) {
 
 func newConn(c conf.Config) (*gorm.DB, error) {
 
-	db, err := gorm.Open("postgres", fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=disable", c.Postgres.User, c.Postgres.Password, c.Postgres.Host, c.Postgres.Port, c.Postgres.Database))
+	db, err := gorm.Open("postgres", fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=disable&search_path=%s", c.Postgres.User, c.Postgres.Password, c.Postgres.Host, c.Postgres.Port, c.Postgres.Database, c.Postgres.Schema))
 	if err != nil {
 		return nil, err
 	}

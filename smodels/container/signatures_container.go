@@ -1,4 +1,4 @@
-package smodels
+package container
 
 import (
 	"oasisTracker/dmodels"
@@ -12,8 +12,7 @@ type BlockSignatureContainer struct {
 
 func NewBlockSignatureContainer() *BlockSignatureContainer {
 	return &BlockSignatureContainer{
-		mu:    &sync.Mutex{},
-		signs: []dmodels.BlockSignature{},
+		mu: &sync.Mutex{},
 	}
 }
 

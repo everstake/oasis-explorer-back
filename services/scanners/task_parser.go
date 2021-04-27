@@ -4,6 +4,11 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"oasisTracker/dmodels"
+	"oasisTracker/dmodels/oasis"
+	"reflect"
+	"runtime"
+
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	consensusAPI "github.com/oasisprotocol/oasis-core/go/consensus/api"
@@ -12,10 +17,6 @@ import (
 	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/tendermint/tendermint/crypto"
 	"google.golang.org/grpc"
-	"oasisTracker/dmodels"
-	"oasisTracker/dmodels/oasis"
-	"reflect"
-	"runtime"
 )
 
 //Struct for direct work with connection from worker
@@ -197,14 +198,12 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 			entityRegisterTxs = append(entityRegisterTxs, entityRegisterTx)
 		}
 
-		//Epoch balance snapshots on another job
-		if !block.IsEpochBlock() {
-			balanceUpdates, err := p.parseAccountBalances(block, tx, raw)
-			if err != nil {
-				return err
-			}
-			accountBalanceUpdates = append(accountBalanceUpdates, balanceUpdates...)
+		//Save updated balances
+		balanceUpdates, err := p.parseAccountBalances(block, tx, raw)
+		if err != nil {
+			return err
 		}
+		accountBalanceUpdates = append(accountBalanceUpdates, balanceUpdates...)
 
 		receiver := raw.Body.To.String()
 		if txType.Type() == dmodels.TransactionTypeAddEscrow || txType.Type() == dmodels.TransactionTypeReclaimEscrow {
@@ -299,16 +298,90 @@ func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
 		}
 	}
 
+	debondingUpdates, err := p.processDebondingDelegations(block)
+	if err != nil {
+		return err
+	}
+
+	updates = append(updates, debondingUpdates...)
+
 	p.parserContainer.balances.Add(updates)
 	p.parserContainer.rewards.Add(rewards)
 
 	return nil
 }
 
-func (p *ParserTask) parseAccountBalances(block oasis.Block, tx transaction.SignedTransaction, rawTX oasis.UntrustedRawValue) ([]dmodels.AccountBalance, error) {
+func (p *ParserTask) processDebondingDelegations(block oasis.Block) (updates []dmodels.AccountBalance, err error) {
+	//Save undelegations
+	addresses, err := p.stakingAPI.Addresses(context.Background(), block.Header.Height)
+	if err != nil {
+		return updates, err
+	}
+
+	for _, address := range addresses {
+
+		debondingDelegations, err := p.stakingAPI.DebondingDelegations(p.ctx, &stakingAPI.OwnerQuery{
+			Height: block.Header.Height,
+			Owner:  address,
+		})
+		if err != nil {
+			return updates, err
+		}
+
+		previousDebondingDelegations, err := p.stakingAPI.DebondingDelegations(p.ctx, &stakingAPI.OwnerQuery{
+			Height: block.Header.Height - 1,
+			Owner:  address,
+		})
+		if err != nil {
+			return updates, err
+		}
+
+		//Equal so skip
+		if compareDebondingDelegations(debondingDelegations, previousDebondingDelegations) {
+			continue
+		}
+
+		accountBalance, err := p.getAccountBalance(block.Header.Height, address)
+		if err != nil {
+			return updates, err
+		}
+
+		accountBalance.Time = block.Header.Time
+
+		updates = append(updates, accountBalance)
+	}
+
+	return updates, nil
+}
+
+func compareDebondingDelegations(debondingDelegations, previousDebondingDelegations map[stakingAPI.Address][]*stakingAPI.DebondingDelegation) bool {
+
+	if len(debondingDelegations) != len(previousDebondingDelegations) {
+		return false
+	}
+
+	for address, debondings := range debondingDelegations {
+		prevDebonding, ok := previousDebondingDelegations[address]
+		if !ok {
+			return false
+		}
+
+		if len(prevDebonding) != len(debondings) {
+			return false
+		}
+
+		if prevDebonding[0].Shares.Cmp(&debondings[0].Shares) != 0 || prevDebonding[0].DebondEndTime != debondings[0].DebondEndTime {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (p *ParserTask) parseAccountBalances(block oasis.Block, tx transaction.SignedTransaction, rawTX oasis.UntrustedRawValue) (updates []dmodels.AccountBalance, err error) {
 	addresses := []stakingAPI.Address{stakingAPI.NewAddress(tx.Signature.PublicKey), rawTX.Body.Account, rawTX.Body.To}
 
-	updates := make([]dmodels.AccountBalance, 0, len(addresses))
+	updates = make([]dmodels.AccountBalance, 0, len(addresses))
 
 	for i := range addresses {
 		//Skip system address
@@ -338,15 +411,39 @@ func (p *ParserTask) getAccountBalance(height int64, address stakingAPI.Address)
 		return balance, err
 	}
 
+	delegations, err := p.stakingAPI.Delegations(p.ctx, &stakingAPI.OwnerQuery{
+		Height: height,
+		Owner:  address,
+	})
+
+	var delegationsBalance uint64
+	for _, balance := range delegations {
+		delegationsBalance += balance.Shares.ToBigInt().Uint64()
+	}
+
+	debondingDelegations, err := p.stakingAPI.DebondingDelegations(p.ctx, &stakingAPI.OwnerQuery{
+		Height: height,
+		Owner:  address,
+	})
+
+	var debondingDelegationsBalance uint64
+	for _, debondings := range debondingDelegations {
+		for _, value := range debondings {
+			debondingDelegationsBalance += value.Shares.ToBigInt().Uint64()
+		}
+	}
+
 	return dmodels.AccountBalance{
-		Account:               address.String(),
-		Height:                height,
-		Nonce:                 accInfo.General.Nonce,
-		GeneralBalance:        accInfo.General.Balance.ToBigInt().Uint64(),
-		EscrowBalanceActive:   accInfo.Escrow.Active.Balance.ToBigInt().Uint64(),
-		EscrowBalanceShare:    accInfo.Escrow.Active.TotalShares.ToBigInt().Uint64(),
-		EscrowDebondingActive: accInfo.Escrow.Debonding.Balance.ToBigInt().Uint64(),
-		EscrowDebondingShare:  accInfo.Escrow.Debonding.TotalShares.ToBigInt().Uint64(),
+		Account:                     address.String(),
+		Height:                      height,
+		Nonce:                       accInfo.General.Nonce,
+		GeneralBalance:              accInfo.General.Balance.ToBigInt().Uint64(),
+		EscrowBalanceActive:         accInfo.Escrow.Active.Balance.ToBigInt().Uint64(),
+		EscrowBalanceShare:          accInfo.Escrow.Active.TotalShares.ToBigInt().Uint64(),
+		EscrowDebondingActive:       accInfo.Escrow.Debonding.Balance.ToBigInt().Uint64(),
+		EscrowDebondingShare:        accInfo.Escrow.Debonding.TotalShares.ToBigInt().Uint64(),
+		DelegationsBalance:          delegationsBalance,
+		DebondingDelegationsBalance: debondingDelegationsBalance,
 	}, nil
 }
 

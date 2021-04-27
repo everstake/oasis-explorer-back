@@ -3,7 +3,9 @@ select acb_account,
        toStartOfDay(blk_time) start_of_period,
        anyLast(acb_general_balance) acb_general_balance,
        anyLast(acb_escrow_balance_active)   escrow_balance_active,
-       anyLast(acb_escrow_debonding_active) escrow_debonding_active
+       anyLast(acb_escrow_debonding_active) escrow_debonding_active,
+       anyLast(acb_delegations_balance) acb_delegations_balance,
+       anyLast(acb_escrow_debonding_delegations_balance) acb_escrow_debonding_delegations_balance
 from account_balance
 group by acb_account, start_of_period;
 

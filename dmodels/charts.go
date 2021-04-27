@@ -16,11 +16,13 @@ type ChartData struct {
 }
 
 type BalanceChartData struct {
-	BeginOfPeriod    time.Time `db:"start_of_period"`
-	AccountID        string    `db:"acb_account"`
-	GeneralBalance   uint64    `json:"acb_general_balance"`
-	EscrowBalance    uint64    `json:"escrow_balance_active"`
-	DebondingBalance uint64    `json:"escrow_debonding_active"`
+	BeginOfPeriod               time.Time `db:"start_of_period"`
+	AccountID                   string    `db:"acb_account"`
+	GeneralBalance              uint64    `db:"acb_general_balance"`
+	EscrowBalance               uint64    `db:"escrow_balance_active"`
+	DebondingBalance            uint64    `db:"escrow_debonding_active"`
+	DelegationsBalance          uint64    `db:"acb_delegations_balance"`
+	DebondingDelegationsBalance uint64    `db:"acb_escrow_debonding_delegations_balance"`
 
 	//Not implemented yet
 	SelfStakeBalance uint64 `json:"self_stake_balance"`

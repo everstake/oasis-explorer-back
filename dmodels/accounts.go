@@ -28,18 +28,24 @@ type AccountBalance struct {
 	EscrowBalanceShare    uint64    `db:"acb_escrow_balance_share"`
 	EscrowDebondingActive uint64    `db:"acb_escrow_debonding_active"`
 	EscrowDebondingShare  uint64    `db:"acb_escrow_debonding_share"`
+
+	DelegationsBalance          uint64 `db:"acb_delegations_balance"`
+	DebondingDelegationsBalance uint64 `db:"acb_escrow_debonding_delegations_balance"`
 }
 
 type AccountList struct {
-	Account             string    `db:"acb_account"`
-	CreatedAt           time.Time `db:"created_at"`
-	OperationsAmount    uint64    `db:"operations_amount"`
-	Nonce               uint64    `db:"nonce"`
-	GeneralBalance      uint64    `db:"general_balance"`
-	EscrowBalanceActive uint64    `db:"escrow_balance"`
-	EscrowBalanceShare  uint64    `db:"escrow_share"`
-	Delegate            string    `db:"delegate"`
-	EntityRegisterBlock uint64    `db:"entity"`
-	NodeRegisterBlock   uint64    `db:"node"`
+	Account                     string    `db:"acb_account"`
+	CreatedAt                   time.Time `db:"created_at"`
+	OperationsAmount            uint64    `db:"operations_amount"`
+	Nonce                       uint64    `db:"nonce"`
+	GeneralBalance              uint64    `db:"general_balance"`
+	EscrowBalanceActive         uint64    `db:"escrow_balance"`
+	EscrowBalanceShare          uint64    `db:"escrow_share"`
+	DelegationsBalance          uint64    `db:"delegations_balance"`
+	DebondingDelegationsBalance uint64    `db:"debonding_delegations_balance"`
+
+	Delegate            string `db:"delegate"`
+	EntityRegisterBlock uint64 `db:"entity"`
+	NodeRegisterBlock   uint64 `db:"node"`
 	Type                string
 }

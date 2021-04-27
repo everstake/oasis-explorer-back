@@ -7,7 +7,9 @@ CREATE TABLE IF NOT EXISTS account_balance (
     acb_escrow_balance_active UInt64,
     acb_escrow_balance_share UInt64,
     acb_escrow_debonding_active UInt64,
-    acb_escrow_debonding_share UInt64
+    acb_escrow_debonding_share UInt64,
+    acb_delegations_balance UInt64,
+    acb_escrow_debonding_delegations_balance UInt64
 ) ENGINE ReplacingMergeTree()
 PARTITION BY toYYYYMMDD(blk_time)
 ORDER BY (acb_account,blk_lvl);
@@ -22,7 +24,9 @@ SELECT
     anyLastState(acb_general_balance) acb_general_balance,
     anyLastState(acb_escrow_balance_active) acb_escrow_balance_active,
     anyLastState(acb_escrow_balance_share) acb_escrow_balance_share,
-    anyLastState(acb_escrow_debonding_active) acb_escrow_debonding_active
+    anyLastState(acb_escrow_debonding_active) acb_escrow_debonding_active,
+    anyLastState(acb_delegations_balance) acb_delegations_balance,
+    anyLastState(acb_escrow_debonding_delegations_balance) acb_escrow_debonding_delegations_balance
 FROM account_balance
 GROUP BY acb_account;
 
@@ -34,6 +38,8 @@ SELECT
     anyLastMerge(acb_general_balance) acb_general_balance,
     anyLastMerge(acb_escrow_balance_active) acb_escrow_balance_active,
     anyLastMerge(acb_escrow_balance_share) acb_escrow_balance_share,
-    anyLastMerge(acb_escrow_debonding_active) acb_escrow_debonding_active
+    anyLastMerge(acb_escrow_debonding_active) acb_escrow_debonding_active,
+    anyLastMerge(acb_delegations_balance) acb_delegations_balance,
+    anyLastMerge(acb_escrow_debonding_delegations_balance) acb_escrow_debonding_delegations_balance
 FROM account_balance_merge_mv
 GROUP BY acb_account;

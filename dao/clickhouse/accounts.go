@@ -2,9 +2,10 @@ package clickhouse
 
 import (
 	"fmt"
-	sq "github.com/wedancedalot/squirrel"
 	"oasisTracker/dmodels"
 	"oasisTracker/smodels"
+
+	sq "github.com/wedancedalot/squirrel"
 )
 
 func (cl Clickhouse) GetAccountTiming(accountID string) (resp dmodels.AccountTime, err error) {
@@ -44,8 +45,8 @@ func (cl Clickhouse) CreateAccountBalances(balances []dmodels.AccountBalance) (e
 		return err
 	}
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_time, acb_account, acb_nonce, acb_general_balance, acb_escrow_balance_active, acb_escrow_balance_share, acb_escrow_debonding_active, acb_escrow_debonding_share)"+
-			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.AccountBalanceTable))
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_time, acb_account, acb_nonce, acb_general_balance, acb_escrow_balance_active, acb_escrow_balance_share, acb_escrow_debonding_active, acb_escrow_debonding_share, acb_delegations_balance, acb_escrow_debonding_delegations_balance)"+
+			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.AccountBalanceTable))
 	if err != nil {
 		return err
 	}
@@ -68,6 +69,8 @@ func (cl Clickhouse) CreateAccountBalances(balances []dmodels.AccountBalance) (e
 			balances[i].EscrowBalanceShare,
 			balances[i].EscrowDebondingActive,
 			balances[i].EscrowDebondingShare,
+			balances[i].DelegationsBalance,
+			balances[i].DebondingDelegationsBalance,
 		)
 
 		if err != nil {
@@ -102,9 +105,9 @@ func (cl Clickhouse) GetTopEscrowAccounts(limit uint64) (resp []dmodels.AccountB
 	defer rows.Close()
 
 	for rows.Next() {
-		row := dmodels.AccountBalance{}
+		var row dmodels.AccountBalance
 
-		err := rows.Scan(&row.Account, &row.Time, &row.Nonce, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.EscrowDebondingActive, &row.AccountName)
+		err := rows.Scan(&row.Account, &row.Time, &row.Nonce, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.EscrowDebondingActive, &row.DelegationsBalance, &row.DebondingDelegationsBalance, &row.AccountName)
 		if err != nil {
 			return resp, err
 		}
@@ -137,7 +140,7 @@ func (cl Clickhouse) GetAccountList(listParams smodels.AccountListParams) (resp 
 	for rows.Next() {
 		row := dmodels.AccountList{}
 
-		err := rows.Scan(&row.Account, &row.CreatedAt, &row.OperationsAmount, &row.Nonce, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.Delegate, &row.EntityRegisterBlock, &row.NodeRegisterBlock)
+		err := rows.Scan(&row.Account, &row.CreatedAt, &row.OperationsAmount, &row.Nonce, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.DelegationsBalance, &row.DebondingDelegationsBalance, &row.Delegate, &row.EntityRegisterBlock, &row.NodeRegisterBlock)
 		if err != nil {
 			return resp, err
 		}

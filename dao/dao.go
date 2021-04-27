@@ -64,6 +64,8 @@ type (
 		CreateRegisterNodeTransactions(txs []dmodels.NodeRegistryTransaction) error
 		CreateRegisterEntityTransactions(txs []dmodels.EntityRegistryTransaction) error
 		CreateRewards(txs []dmodels.Reward) error
+		//To resync from last block
+		GetLastBlock() (dmodels.Block, error)
 	}
 
 	DaoImpl struct {
