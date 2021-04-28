@@ -2,10 +2,11 @@ package services
 
 import (
 	"context"
-	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
-	"github.com/oasisprotocol/oasis-core/go/staking/api"
 	"oasisTracker/services/render"
 	"oasisTracker/smodels"
+
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+	"github.com/oasisprotocol/oasis-core/go/staking/api"
 )
 
 func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, err error) {
@@ -54,7 +55,7 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 	escrowBalance := acc.Escrow.Active.Balance.ToBigInt().Uint64()
 
 	//Get last account delegations state
-	delegations, err := s.nodeAPI.Delegations(context.Background(), &api.OwnerQuery{
+	delegations, err := s.nodeAPI.DelegationsFor(context.Background(), &api.OwnerQuery{
 		//Latest
 		Height: 0,
 		Owner:  adr,
@@ -70,7 +71,7 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 	}
 
 	//Get last account debonding delegations state
-	debondingDelegations, err := s.nodeAPI.DebondingDelegations(context.Background(), &api.OwnerQuery{
+	debondingDelegations, err := s.nodeAPI.DebondingDelegationsFor(context.Background(), &api.OwnerQuery{
 		//Latest
 		Height: 0,
 		Owner:  adr,

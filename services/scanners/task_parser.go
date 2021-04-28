@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"runtime"
 
+	beaconAPI "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	consensusAPI "github.com/oasisprotocol/oasis-core/go/consensus/api"
@@ -23,6 +24,7 @@ import (
 type ParserTask struct {
 	ctx             context.Context
 	consensusAPI    consensusAPI.ClientBackend
+	beaconAPI       beaconAPI.Backend
 	stakingAPI      stakingAPI.Backend
 	registryAPI     registryAPI.Backend
 	parserContainer *ParseContainer
@@ -32,8 +34,9 @@ func NewParserTask(ctx context.Context, conn *grpc.ClientConn, parserContainer *
 	consensusAPI := consensusAPI.NewConsensusClient(conn)
 	stakingAPI := stakingAPI.NewStakingClient(conn)
 	registryAPI := registryAPI.NewRegistryClient(conn)
+	beaconAPI := beaconAPI.NewBeaconClient(conn)
 
-	return &ParserTask{ctx: ctx, consensusAPI: consensusAPI, stakingAPI: stakingAPI, registryAPI: registryAPI, parserContainer: parserContainer}, nil
+	return &ParserTask{ctx: ctx, consensusAPI: consensusAPI, stakingAPI: stakingAPI, registryAPI: registryAPI, beaconAPI: beaconAPI, parserContainer: parserContainer}, nil
 }
 
 func (p *ParserTask) ParseBase(blockID uint64) error {
@@ -103,7 +106,7 @@ func (p *ParserTask) parseOasisBase(blockData *consensusAPI.Block, parseFlag Par
 }
 
 func (p *ParserTask) parseBlock(block oasis.Block) error {
-	epoch, err := p.consensusAPI.GetEpoch(p.ctx, block.Header.Height)
+	epoch, err := p.beaconAPI.GetEpoch(p.ctx, block.Header.Height)
 	if err != nil {
 		return err
 	}
@@ -256,7 +259,7 @@ func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
 		return nil
 	}
 
-	epoch, err := p.consensusAPI.GetEpoch(p.ctx, block.Header.Height)
+	epoch, err := p.beaconAPI.GetEpoch(p.ctx, block.Header.Height)
 	if err != nil {
 		return err
 	}
@@ -320,7 +323,7 @@ func (p *ParserTask) processDebondingDelegations(block oasis.Block) (updates []d
 
 	for _, address := range addresses {
 
-		debondingDelegations, err := p.stakingAPI.DebondingDelegations(p.ctx, &stakingAPI.OwnerQuery{
+		debondingDelegations, err := p.stakingAPI.DebondingDelegationsFor(p.ctx, &stakingAPI.OwnerQuery{
 			Height: block.Header.Height,
 			Owner:  address,
 		})
@@ -328,7 +331,7 @@ func (p *ParserTask) processDebondingDelegations(block oasis.Block) (updates []d
 			return updates, err
 		}
 
-		previousDebondingDelegations, err := p.stakingAPI.DebondingDelegations(p.ctx, &stakingAPI.OwnerQuery{
+		previousDebondingDelegations, err := p.stakingAPI.DebondingDelegationsFor(p.ctx, &stakingAPI.OwnerQuery{
 			Height: block.Header.Height - 1,
 			Owner:  address,
 		})
@@ -411,7 +414,7 @@ func (p *ParserTask) getAccountBalance(height int64, address stakingAPI.Address)
 		return balance, err
 	}
 
-	delegations, err := p.stakingAPI.Delegations(p.ctx, &stakingAPI.OwnerQuery{
+	delegations, err := p.stakingAPI.DelegationsFor(p.ctx, &stakingAPI.OwnerQuery{
 		Height: height,
 		Owner:  address,
 	})
@@ -421,7 +424,7 @@ func (p *ParserTask) getAccountBalance(height int64, address stakingAPI.Address)
 		delegationsBalance += balance.Shares.ToBigInt().Uint64()
 	}
 
-	debondingDelegations, err := p.stakingAPI.DebondingDelegations(p.ctx, &stakingAPI.OwnerQuery{
+	debondingDelegations, err := p.stakingAPI.DebondingDelegationsFor(p.ctx, &stakingAPI.OwnerQuery{
 		Height: height,
 		Owner:  address,
 	})
@@ -501,11 +504,10 @@ func (p *ParserTask) parseEntityRegistryTransaction(txType dmodels.TransactionMe
 	}
 
 	return dmodels.EntityRegistryTransaction{
-		BlockLevel:             uint64(block.Header.Height),
-		Time:                   block.Header.Time,
-		ID:                     regEntity.ID.String(),
-		Address:                stakingAPI.NewAddress(regEntity.ID).String(),
-		Nodes:                  nodes,
-		AllowEntitySignedNodes: regEntity.AllowEntitySignedNodes,
+		BlockLevel: uint64(block.Header.Height),
+		Time:       block.Header.Time,
+		ID:         regEntity.ID.String(),
+		Address:    stakingAPI.NewAddress(regEntity.ID).String(),
+		Nodes:      nodes,
 	}, nil
 }
