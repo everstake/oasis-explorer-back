@@ -1,6 +1,7 @@
 package oasis
 
 import (
+	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
 	"github.com/oasisprotocol/oasis-core/go/common/node"
@@ -43,6 +44,8 @@ type TxBody struct {
 	roothash.ExecutorCommit
 	//ExecutorCommitExpired
 	Round uint64 `json:"round"`
+
+	beacon.PVSSCommit
 }
 
 type RegisterTx struct {

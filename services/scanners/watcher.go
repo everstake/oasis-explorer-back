@@ -113,6 +113,10 @@ func (m *Watcher) addReSyncTask(currentHeight int64) error {
 		startHeight = lastBlock.Height + 1
 	}
 
+	if startHeight >= uint64(currentHeight) {
+		return nil
+	}
+
 	//Blocks sync
 	err = m.dao.CreateTask(dmodels.Task{
 		IsActive:      true,
