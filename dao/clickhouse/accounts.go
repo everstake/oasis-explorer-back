@@ -140,7 +140,7 @@ func (cl Clickhouse) GetAccountList(listParams smodels.AccountListParams) (resp 
 	for rows.Next() {
 		row := dmodels.AccountList{}
 
-		err := rows.Scan(&row.Account, &row.CreatedAt, &row.OperationsAmount, &row.Nonce, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.DelegationsBalance, &row.DebondingDelegationsBalance, &row.Delegate, &row.EntityRegisterBlock, &row.NodeRegisterBlock)
+		err := rows.Scan(&row.Account, &row.CreatedAt, &row.OperationsAmount, &row.OperationsNumber, &row.GeneralBalance, &row.EscrowBalanceActive, &row.EscrowBalanceShare, &row.DelegationsBalance, &row.DebondingDelegationsBalance, &row.Delegate, &row.EntityRegisterBlock, &row.NodeRegisterBlock)
 		if err != nil {
 			return resp, err
 		}

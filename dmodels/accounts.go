@@ -37,10 +37,10 @@ type AccountList struct {
 	Account                     string    `db:"acb_account"`
 	CreatedAt                   time.Time `db:"created_at"`
 	OperationsAmount            uint64    `db:"operations_amount"`
-	Nonce                       uint64    `db:"nonce"`
+	OperationsNumber            uint64    `db:"operations_number"`
 	GeneralBalance              uint64    `db:"general_balance"`
 	EscrowBalanceActive         uint64    `db:"escrow_balance"`
-	EscrowBalanceShare          uint64    `db:"escrow_share"`
+	EscrowBalanceShare          uint64    `db:"escrow_balance_share"`
 	DelegationsBalance          uint64    `db:"delegations_balance"`
 	DebondingDelegationsBalance uint64    `db:"debonding_delegations_balance"`
 

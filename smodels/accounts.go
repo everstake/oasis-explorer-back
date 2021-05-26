@@ -25,8 +25,9 @@ const (
 	sortDebondingDelegationsBalance = "debonding_delegations_balance"
 	sortBalance                     = "general_balance"
 	sortEscrowBalance               = "escrow_balance"
-	sortEscrowShare                 = "escrow_share"
+	sortEscrowBalanceShare          = "escrow_balance_share"
 	sortOperationsAmount            = "operations_amount"
+	sortOperationsNumber            = "operations_number"
 	sortAsc                         = "asc"
 	sortDesc                        = "desc"
 	AccountTypeAccount              = "account"
@@ -36,7 +37,7 @@ const (
 )
 
 //Sorted
-var sortColumns = []string{sortCreatedAt, sortDebondingDelegationsBalance, sortDelegationsBalance, sortEscrowBalance, sortEscrowShare, sortBalance, sortOperationsAmount}
+var sortColumns = []string{sortCreatedAt, sortDebondingDelegationsBalance, sortDelegationsBalance, sortEscrowBalance, sortEscrowBalanceShare /*sortEscrowShare,*/, sortBalance, sortOperationsAmount, sortOperationsNumber}
 var sortSides = []string{sortAsc, sortDesc}
 
 func (b AccountListParams) Validate() error {

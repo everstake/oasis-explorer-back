@@ -1,12 +1,12 @@
 package mysql
 
 import (
-	"oasisTracker/common/log"
-	"oasisTracker/common/mysql"
-	"oasisTracker/conf"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
+	"oasisTracker/common/log"
+	"oasisTracker/common/mysql"
+	"oasisTracker/conf"
 	"os"
 )
 

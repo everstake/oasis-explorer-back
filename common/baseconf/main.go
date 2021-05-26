@@ -1,12 +1,12 @@
 package baseconf
 
 import (
-	"oasisTracker/common/helpers"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	uuid "github.com/satori/go.uuid"
 	"io"
+	"oasisTracker/common/helpers"
 	"os"
 	"reflect"
 
@@ -23,7 +23,7 @@ type BaseConfig interface {
 
 const (
 	DEPLOYMENT_NAME = "DEPLOYMENT_NAME"
-	KUBE_NAMESPACE   = "KUBE_NAMESPACE"
+	KUBE_NAMESPACE  = "KUBE_NAMESPACE"
 )
 
 func decoderHook(in, out reflect.Type, input interface{}) (interface{}, error) {
