@@ -2,8 +2,11 @@ package services
 
 import (
 	"context"
+	"oasisTracker/common/log"
 	"oasisTracker/services/render"
 	"oasisTracker/smodels"
+
+	"go.uber.org/zap"
 
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/staking/api"
@@ -55,7 +58,7 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 	escrowBalance := acc.Escrow.Active.Balance.ToBigInt().Uint64()
 
 	//Get last account delegations state
-	delegations, err := s.nodeAPI.DelegationsFor(context.Background(), &api.OwnerQuery{
+	delegations, err := s.nodeAPI.DelegationInfosFor(context.Background(), &api.OwnerQuery{
 		//Latest
 		Height: 0,
 		Owner:  adr,
@@ -63,15 +66,22 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 
 	var delegationsBalance, selfdelegation uint64
 	for address, balance := range delegations {
+
+		stakeBalance, err := balance.Pool.StakeForShares(&balance.Shares)
+		if err != nil {
+			log.Error("Somehow delegations rpc values is wrong", zap.Error(err))
+			continue
+		}
+
 		//Self delegation
 		if address.Equal(adr) {
-			selfdelegation = balance.Shares.ToBigInt().Uint64()
+			selfdelegation = stakeBalance.ToBigInt().Uint64()
 		}
-		delegationsBalance += balance.Shares.ToBigInt().Uint64()
+		delegationsBalance += stakeBalance.ToBigInt().Uint64()
 	}
 
 	//Get last account debonding delegations state
-	debondingDelegations, err := s.nodeAPI.DebondingDelegationsFor(context.Background(), &api.OwnerQuery{
+	debondingDelegations, err := s.nodeAPI.DebondingDelegationInfosFor(context.Background(), &api.OwnerQuery{
 		//Latest
 		Height: 0,
 		Owner:  adr,
@@ -80,7 +90,14 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 	var debondingDelegationsBalance uint64
 	for _, debondings := range debondingDelegations {
 		for _, value := range debondings {
-			debondingDelegationsBalance += value.Shares.ToBigInt().Uint64()
+
+			debondingBalance, err := value.Pool.StakeForShares(&value.Shares)
+			if err != nil {
+				log.Error("Somehow debonding rpc values is wrong", zap.Error(err))
+				continue
+			}
+
+			debondingDelegationsBalance += debondingBalance.ToBigInt().Uint64()
 		}
 	}
 

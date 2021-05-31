@@ -4,10 +4,15 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"oasisTracker/common/log"
 	"oasisTracker/dmodels"
 	"oasisTracker/dmodels/oasis"
 	"reflect"
 	"runtime"
+
+	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+
+	"go.uber.org/zap"
 
 	beaconAPI "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
@@ -213,6 +218,23 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 			receiver = raw.Body.Account.String()
 		}
 
+		reclaimAmount := quantity.NewQuantity()
+		//Get reclaim amount
+		if txType.Type() == dmodels.TransactionTypeReclaimEscrow {
+			stakeAccount, err := p.stakingAPI.Account(p.ctx, &stakingAPI.OwnerQuery{
+				Height: block.Header.Height,
+				Owner:  raw.Body.Account,
+			})
+			if err != nil {
+				return err
+			}
+
+			reclaimAmount, err = stakeAccount.Escrow.Debonding.StakeForShares(&raw.Body.Shares)
+			if err != nil {
+				return err
+			}
+		}
+
 		dTxs[i] = dmodels.Transaction{
 			BlockLevel: uint64(block.Header.Height),
 			BlockHash:  hex.EncodeToString(block.Hash),
@@ -220,9 +242,10 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 			Time:       block.Header.Time,
 			//Same field
 			//Todo probably merge to single field
-			Amount:              raw.Body.Amount.ToBigInt().Uint64(),
+			Amount: raw.Body.Amount.ToBigInt().Uint64(),
+
 			EscrowAmount:        raw.Body.Amount.ToBigInt().Uint64(),
-			EscrowReclaimAmount: raw.Body.Shares.ToBigInt().Uint64(),
+			EscrowReclaimAmount: reclaimAmount.ToBigInt().Uint64(),
 
 			//Save tx status and error if presented
 			Status: txsWithResults.Results[i].IsSuccess(),
@@ -414,17 +437,24 @@ func (p *ParserTask) getAccountBalance(height int64, address stakingAPI.Address)
 		return balance, err
 	}
 
-	delegations, err := p.stakingAPI.DelegationsFor(p.ctx, &stakingAPI.OwnerQuery{
+	delegations, err := p.stakingAPI.DelegationInfosFor(p.ctx, &stakingAPI.OwnerQuery{
 		Height: height,
 		Owner:  address,
 	})
 
 	var delegationsBalance uint64
 	for _, balance := range delegations {
-		delegationsBalance += balance.Shares.ToBigInt().Uint64()
+
+		stakeBalance, err := balance.Pool.StakeForShares(&balance.Shares)
+		if err != nil {
+			log.Error("Somehow delegations rpc values is wrong", zap.Error(err))
+			continue
+		}
+
+		delegationsBalance += stakeBalance.ToBigInt().Uint64()
 	}
 
-	debondingDelegations, err := p.stakingAPI.DebondingDelegationsFor(p.ctx, &stakingAPI.OwnerQuery{
+	debondingDelegations, err := p.stakingAPI.DebondingDelegationInfosFor(p.ctx, &stakingAPI.OwnerQuery{
 		Height: height,
 		Owner:  address,
 	})
@@ -432,19 +462,31 @@ func (p *ParserTask) getAccountBalance(height int64, address stakingAPI.Address)
 	var debondingDelegationsBalance uint64
 	for _, debondings := range debondingDelegations {
 		for _, value := range debondings {
-			debondingDelegationsBalance += value.Shares.ToBigInt().Uint64()
+
+			debondingBalance, err := value.Pool.StakeForShares(&value.Shares)
+			if err != nil {
+				log.Error("Somehow debonding rpc values is wrong", zap.Error(err))
+				continue
+			}
+
+			debondingDelegationsBalance += debondingBalance.ToBigInt().Uint64()
 		}
 	}
 
+	//TODO handle selfstake
+
 	return dmodels.AccountBalance{
-		Account:                     address.String(),
-		Height:                      height,
-		Nonce:                       accInfo.General.Nonce,
-		GeneralBalance:              accInfo.General.Balance.ToBigInt().Uint64(),
-		EscrowBalanceActive:         accInfo.Escrow.Active.Balance.ToBigInt().Uint64(),
-		EscrowBalanceShare:          accInfo.Escrow.Active.TotalShares.ToBigInt().Uint64(),
-		EscrowDebondingActive:       accInfo.Escrow.Debonding.Balance.ToBigInt().Uint64(),
-		EscrowDebondingShare:        accInfo.Escrow.Debonding.TotalShares.ToBigInt().Uint64(),
+		Account:        address.String(),
+		Height:         height,
+		Nonce:          accInfo.General.Nonce,
+		GeneralBalance: accInfo.General.Balance.ToBigInt().Uint64(),
+
+		EscrowBalanceActive: accInfo.Escrow.Active.Balance.ToBigInt().Uint64(),
+		EscrowBalanceShare:  accInfo.Escrow.Active.TotalShares.ToBigInt().Uint64(),
+
+		EscrowDebondingActive: accInfo.Escrow.Debonding.Balance.ToBigInt().Uint64(),
+		EscrowDebondingShare:  accInfo.Escrow.Debonding.TotalShares.ToBigInt().Uint64(),
+
 		DelegationsBalance:          delegationsBalance,
 		DebondingDelegationsBalance: debondingDelegationsBalance,
 	}, nil
