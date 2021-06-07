@@ -443,9 +443,9 @@ func (p *ParserTask) getAccountBalance(height int64, address stakingAPI.Address)
 	})
 
 	var delegationsBalance uint64
-	for _, balance := range delegations {
+	for _, delegation := range delegations {
 
-		stakeBalance, err := balance.Pool.StakeForShares(&balance.Shares)
+		stakeBalance, err := delegation.Pool.StakeForShares(&delegation.Shares)
 		if err != nil {
 			log.Error("Somehow delegations rpc values is wrong", zap.Error(err))
 			continue
@@ -460,10 +460,10 @@ func (p *ParserTask) getAccountBalance(height int64, address stakingAPI.Address)
 	})
 
 	var debondingDelegationsBalance uint64
-	for _, debondings := range debondingDelegations {
-		for _, value := range debondings {
+	for _, debDelegationList := range debondingDelegations {
+		for _, debDelegation := range debDelegationList {
 
-			debondingBalance, err := value.Pool.StakeForShares(&value.Shares)
+			debondingBalance, err := debDelegation.Pool.StakeForShares(&debDelegation.Shares)
 			if err != nil {
 				log.Error("Somehow debonding rpc values is wrong", zap.Error(err))
 				continue

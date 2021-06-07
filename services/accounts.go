@@ -65,9 +65,9 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 	})
 
 	var delegationsBalance, selfdelegation uint64
-	for address, balance := range delegations {
+	for address, delegationInfo := range delegations {
 
-		stakeBalance, err := balance.Pool.StakeForShares(&balance.Shares)
+		stakeBalance, err := delegationInfo.Pool.StakeForShares(&delegationInfo.Shares)
 		if err != nil {
 			log.Error("Somehow delegations rpc values is wrong", zap.Error(err))
 			continue
@@ -88,8 +88,8 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 	})
 
 	var debondingDelegationsBalance uint64
-	for _, debondings := range debondingDelegations {
-		for _, value := range debondings {
+	for _, debDelegationList := range debondingDelegations {
+		for _, value := range debDelegationList {
 
 			debondingBalance, err := value.Pool.StakeForShares(&value.Shares)
 			if err != nil {
