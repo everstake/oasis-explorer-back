@@ -12,6 +12,8 @@ import (
 	"oasisTracker/smodels"
 	"os"
 
+	"go.uber.org/zap"
+
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/tendermint/tendermint/crypto"
@@ -116,7 +118,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 		return err
 	}
 
-	txs := make([]dmodels.Transaction, 0, len(gen.Staking.Delegations)) //+len(gen.Staking.DebondingDelegations)
+	txs := make([]dmodels.Transaction, 0, len(gen.Staking.Delegations)+len(gen.Staking.DebondingDelegations))
 
 	//Genesis delegations
 	for receiverAddress, senders := range gen.Staking.Delegations {
@@ -124,15 +126,21 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 		for senderAddress, share := range senders {
 			txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "delegation", receiverAddress, senderAddress, share.Shares.String())))
 
+			escrowAmount, err := gen.Staking.Ledger[receiverAddress].Escrow.Active.StakeForShares(&share.Shares)
+			if err != nil {
+				log.Error("Delegations StakeForShares calc error", zap.Error(err))
+				continue
+			}
+
 			txs = append(txs, dmodels.Transaction{
 				BlockLevel:          gen.GenesisHeight,
 				BlockHash:           hex.EncodeToString(genesisBlockHash[:]),
 				Hash:                hex.EncodeToString(txHash[:]),
 				Time:                gen.GenesisTime,
 				Amount:              0,
-				EscrowAmount:        share.Shares.ToBigInt().Uint64(),
+				EscrowAmount:        escrowAmount.ToBigInt().Uint64(),
 				EscrowReclaimAmount: 0,
-				Type:                "addescrow",
+				Type:                dmodels.TransactionTypeAddEscrow,
 				Status:              true,
 				Error:               "",
 				Sender:              senderAddress,
@@ -147,13 +155,19 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 
 	//In this genesis not used
 	//Genesis escrowreclaim
-	for debonder, staker := range gen.Staking.DebondingDelegations {
+	for validator, senders := range gen.Staking.DebondingDelegations {
 
-		for staker, shareArr := range staker {
+		for unstaker, shareArr := range senders {
 
 			for i := range shareArr {
 
-				txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "reclaim", debonder, staker, shareArr[i].Shares.String())))
+				txHash := sha256.Sum256([]byte(fmt.Sprint(gen.ChainID, "reclaim", validator, unstaker, shareArr[i].Shares.String())))
+
+				escrowReclaimAmount, err := gen.Staking.Ledger[validator].Escrow.Debonding.StakeForShares(&shareArr[i].Shares)
+				if err != nil {
+					log.Error("DebondingDelegations StakeForShares calc error", zap.Error(err))
+					continue
+				}
 
 				txs = append(txs, dmodels.Transaction{
 					BlockLevel:          gen.GenesisHeight,
@@ -162,10 +176,10 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 					Time:                gen.GenesisTime,
 					Amount:              0,
 					EscrowAmount:        0,
-					EscrowReclaimAmount: shareArr[i].Shares.ToBigInt().Uint64(),
-					Receiver:            staker,
-					Type:                "reclaimescrow",
-					Sender:              debonder.String(),
+					EscrowReclaimAmount: escrowReclaimAmount.ToBigInt().Uint64(),
+					Receiver:            validator.String(),
+					Type:                dmodels.TransactionTypeReclaimEscrow,
+					Sender:              unstaker,
 					Nonce:               0,
 					Fee:                 0,
 					GasLimit:            0,

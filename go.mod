@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/ClickHouse/clickhouse-go v1.4.0
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
+	github.com/btcsuite/btcutil v1.0.2
 	github.com/fatih/structs v1.1.0
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang-migrate/migrate/v4 v4.11.0

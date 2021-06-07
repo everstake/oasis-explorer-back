@@ -22,7 +22,7 @@ type Registry struct {
 	Nodes    []transaction.SignedTransaction `json:"nodes"`
 }
 type Staking struct {
-	Ledger               map[api.Address]api.Account                              `json:"ledger"`
+	Ledger               map[api.Address]*api.Account                             `json:"ledger"`
 	Delegations          map[api.Address]map[string]GenesisDelegation             `json:"delegations"`
 	DebondingDelegations map[api.Address]map[string][]GenesisDebondingDelegations `json:"debonding_delegations"`
 }
