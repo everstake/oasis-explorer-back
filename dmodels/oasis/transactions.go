@@ -2,6 +2,8 @@ package oasis
 
 import (
 	beacon "github.com/oasisprotocol/oasis-core/go/beacon/api"
+	"github.com/oasisprotocol/oasis-core/go/common"
+	"github.com/oasisprotocol/oasis-core/go/common/cbor"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/pvss"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
@@ -9,7 +11,8 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	tx "github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 	registry "github.com/oasisprotocol/oasis-core/go/registry/api"
-	roothash "github.com/oasisprotocol/oasis-core/go/roothash/api"
+	"github.com/oasisprotocol/oasis-core/go/roothash/api/commitment"
+	scheduler "github.com/oasisprotocol/oasis-core/go/scheduler/api"
 	staking "github.com/oasisprotocol/oasis-core/go/staking/api"
 )
 
@@ -20,6 +23,7 @@ type UntrustedRawValue struct {
 	Body   TxBody `cbor:"body"`
 }
 
+//TODO refactor txBody
 type TxBody struct {
 	//staking.Transfer
 	To staking.Address `json:"to"`
@@ -41,20 +45,40 @@ type TxBody struct {
 	//UnfreezeNode
 	registry.UnfreezeNode
 
+	//ExecutorCommit registry.Runtime
+	ID common.Namespace `json:"id"`
+
 	//ExecutorCommit
-	roothash.ExecutorCommit
+	Commits []commitment.ExecutorCommitment `json:"commits"`
 
 	//ExecutorCommitExpired,PVSSCommit,PVSSReveal
 	Round uint64 `json:"round"`
 
 	//PVSSCommit,PVSSReveal
 	Epoch beacon.EpochTime `json:"epoch"`
+	Index int              `json:"index"`
 
 	//PVSSCommit
-	Commit *pvss.Commit `json:"commit,omitempty"`
+	*pvss.Commit
 
 	// PVSSReveal
-	Reveal *pvss.Reveal `json:"reveal,omitempty"`
+	DecryptedShares map[int]*pvss.PubVerShare `json:"decrypted_shares"`
+
+	//registry.Runtime
+	cbor.Versioned
+	EntityID        signature.PublicKey                                                           `json:"entity_id"`
+	Genesis         registry.RuntimeGenesis                                                       `json:"genesis"`
+	Kind            registry.RuntimeKind                                                          `json:"kind"`
+	TEEHardware     node.TEEHardware                                                              `json:"tee_hardware"`
+	Version         registry.VersionInfo                                                          `json:"versions"`
+	KeyManager      *common.Namespace                                                             `json:"key_manager,omitempty"`
+	Executor        registry.ExecutorParameters                                                   `json:"executor,omitempty"`
+	TxnScheduler    registry.TxnSchedulerParameters                                               `json:"txn_scheduler,omitempty"`
+	Storage         registry.StorageParameters                                                    `json:"storage,omitempty"`
+	AdmissionPolicy registry.RuntimeAdmissionPolicy                                               `json:"admission_policy"`
+	Constraints     map[scheduler.CommitteeKind]map[scheduler.Role]registry.SchedulingConstraints `json:"constraints,omitempty"`
+	Staking         registry.RuntimeStakingParameters                                             `json:"staking,omitempty"`
+	GovernanceModel registry.RuntimeGovernanceModel                                               `json:"governance_model"`
 }
 
 type RegisterTx struct {
