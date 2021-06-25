@@ -65,7 +65,8 @@ func (m *Watcher) Run() error {
 			return nil
 		case block := <-ch:
 			if !m.ReSyncInit {
-				err = m.addReSyncTask(block.Height)
+				//Current  height processed by Watcher so use -1
+				err = m.addReSyncTask(block.Height - 1)
 				if err != nil {
 					log.Error("AddReSyncTask error", zap.Error(err))
 					continue
@@ -90,7 +91,6 @@ func (m *Watcher) Run() error {
 }
 
 func (m *Watcher) addReSyncTask(currentHeight int64) error {
-
 	//Setup init startHeight from config
 	startHeight := m.cfg.Scanner.StartHeight
 

@@ -2,8 +2,6 @@ package main
 
 import (
 	"flag"
-	"github.com/roylee0704/gron"
-	"go.uber.org/zap"
 	"log"
 	"oasisTracker/api"
 	"oasisTracker/cli"
@@ -15,6 +13,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/roylee0704/gron"
+	"go.uber.org/zap"
 )
 
 var parserDisableFlag = flag.Bool("parser-disable", false, "disable cron for api tests")
