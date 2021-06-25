@@ -33,15 +33,17 @@ type ParserTask struct {
 	stakingAPI      stakingAPI.Backend
 	registryAPI     registryAPI.Backend
 	parserContainer *ParseContainer
+
+	baseEpoch beaconAPI.EpochTime
 }
 
-func NewParserTask(ctx context.Context, conn *grpc.ClientConn, parserContainer *ParseContainer) (*ParserTask, error) {
+func NewParserTask(ctx context.Context, conn *grpc.ClientConn, baseEpoch beaconAPI.EpochTime, parserContainer *ParseContainer) (*ParserTask, error) {
 	consensusAPI := consensusAPI.NewConsensusClient(conn)
 	stakingAPI := stakingAPI.NewStakingClient(conn)
 	registryAPI := registryAPI.NewRegistryClient(conn)
 	beaconAPI := beaconAPI.NewBeaconClient(conn)
 
-	return &ParserTask{ctx: ctx, consensusAPI: consensusAPI, stakingAPI: stakingAPI, registryAPI: registryAPI, beaconAPI: beaconAPI, parserContainer: parserContainer}, nil
+	return &ParserTask{ctx: ctx, consensusAPI: consensusAPI, stakingAPI: stakingAPI, registryAPI: registryAPI, beaconAPI: beaconAPI, parserContainer: parserContainer, baseEpoch: baseEpoch}, nil
 }
 
 func (p *ParserTask) ParseBase(blockID uint64) error {
@@ -58,9 +60,9 @@ func (p *ParserTask) ParseBase(blockID uint64) error {
 	return nil
 }
 
-func (p *ParserTask) BalanceSnapshot(blockID uint64) error {
+func (p *ParserTask) EpochBalanceSnapshot(epoch uint64) error {
 
-	blockData, err := p.consensusAPI.GetBlock(p.ctx, int64(blockID))
+	blockData, err := p.consensusAPI.GetBlock(p.ctx, int64(oasis.CalcEpochStart(epoch, uint64(p.baseEpoch))))
 	if err != nil {
 		return fmt.Errorf("api.Block.Get: %s", err.Error())
 	}
@@ -272,8 +274,14 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 }
 
 func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
-	//Make snapshot only for epoch blocks
-	if !block.IsEpochBlock() {
+
+	epoch, err := p.beaconAPI.GetEpoch(p.ctx, block.Header.Height)
+	if err != nil {
+		return err
+	}
+
+	//Make snapshot only for epoch start block
+	if !block.IsEpochBlock(uint64(epoch), uint64(p.baseEpoch)) {
 		return nil
 	}
 
@@ -284,11 +292,6 @@ func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
 
 	if len(entities) == 0 {
 		return nil
-	}
-
-	epoch, err := p.beaconAPI.GetEpoch(p.ctx, block.Header.Height)
-	if err != nil {
-		return err
 	}
 
 	updates := make([]dmodels.AccountBalance, 0, len(entities))

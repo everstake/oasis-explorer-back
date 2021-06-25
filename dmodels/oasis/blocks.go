@@ -1,12 +1,13 @@
 package oasis
 
 import (
+	"time"
+
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/libs/bytes"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"time"
 )
 
 const EpochBlocksNumber = 600
@@ -21,8 +22,13 @@ type Block struct {
 	LastCommit BlockLastCommit `cbor:"last_commit"`
 }
 
-func (b Block) IsEpochBlock() bool {
-	return (b.Header.Height % EpochBlocksNumber) == 0
+func (b Block) IsEpochBlock(currentEpoch, baseEpoch uint64) bool {
+
+	return CalcEpochStart(currentEpoch, baseEpoch) == uint64(b.Header.Height)
+}
+
+func CalcEpochStart(currentEpoch, baseEpoch uint64) uint64 {
+	return (currentEpoch-1)*EpochBlocksNumber + (currentEpoch - baseEpoch)
 }
 
 type BlockLastCommit struct {

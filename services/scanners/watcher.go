@@ -117,7 +117,10 @@ func (m *Watcher) addReSyncTask(currentHeight int64) error {
 		return nil
 	}
 
-	//Todo handle start height from genesis
+	//Previous tasks not found
+	if startHeight == 0 {
+		//Todo handle start height from genesis
+	}
 
 	//Blocks sync
 	err = m.dao.CreateTask(dmodels.Task{
@@ -132,15 +135,28 @@ func (m *Watcher) addReSyncTask(currentHeight int64) error {
 		return fmt.Errorf("CreateTask error: %s", err)
 	}
 
+	currentEpoch, err := m.parser.bAPI.GetEpoch(m.ctx, currentHeight)
+	if err != nil {
+		return fmt.Errorf("GetEpoch currentHeight error: %s", err)
+	}
+
+	startEpoch, err := m.parser.bAPI.GetEpoch(m.ctx, int64(startHeight))
+	if err != nil {
+		return fmt.Errorf("GetEpoch startHeight error: %s", err)
+	}
+
+	//Start from epoch +1
+	startEpoch++
+
 	//Snaps sync
 	err = m.dao.CreateTask(dmodels.Task{
 		IsActive:      true,
 		Title:         parserBalancesSnapshotTask,
-		StartHeight:   startHeight,
-		CurrentHeight: startHeight,
-		EndHeight:     uint64(currentHeight),
+		StartHeight:   uint64(startEpoch),
+		CurrentHeight: uint64(startEpoch),
+		EndHeight:     uint64(currentEpoch),
 		//1 Epoch = 600 blocks
-		Batch: 20000,
+		Batch: 10,
 	})
 	if err != nil {
 		return fmt.Errorf("CreateTask error: %s", err)

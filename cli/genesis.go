@@ -65,6 +65,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 
 	gen := smodels.GenesisDocument{}
 
