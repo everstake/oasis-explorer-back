@@ -117,6 +117,8 @@ func (m *Watcher) addReSyncTask(currentHeight int64) error {
 		return nil
 	}
 
+	//Todo handle start height from genesis
+
 	//Blocks sync
 	err = m.dao.CreateTask(dmodels.Task{
 		IsActive:      true,

@@ -7,7 +7,7 @@ import (
 const (
 	BlocksTable          = "blocks"
 	BlocksRowView        = "block_row_view"
-	BlocksSigCountView   = "blocks_sig_count"
+	BlocksSigCountView   = "block_signatures_count_view"
 	BlockSignaturesTable = "block_signatures"
 )
 

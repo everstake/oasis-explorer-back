@@ -219,20 +219,24 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 		}
 
 		reclaimAmount := quantity.NewQuantity()
+
 		//Get reclaim amount
 		if txType.Type() == dmodels.TransactionTypeReclaimEscrow {
-			stakeAccount, err := p.stakingAPI.Account(p.ctx, &stakingAPI.OwnerQuery{
-				Height: block.Header.Height,
-				Owner:  raw.Body.Account,
-			})
-			if err != nil {
-				return err
+
+			//Find DebondingStart event
+			for j := range txsWithResults.Results[i].Events {
+
+				if txsWithResults.Results[i].Events[j].Staking != nil {
+					if txsWithResults.Results[i].Events[j].Staking.Escrow != nil {
+						if txsWithResults.Results[i].Events[j].Staking.Escrow.DebondingStart != nil {
+							reclaimAmount = &txsWithResults.Results[i].Events[j].Staking.Escrow.DebondingStart.Amount
+							break
+						}
+					}
+				}
+
 			}
 
-			reclaimAmount, err = stakeAccount.Escrow.Debonding.StakeForShares(&raw.Body.Shares)
-			if err != nil {
-				return err
-			}
 		}
 
 		dTxs[i] = dmodels.Transaction{

@@ -59,10 +59,15 @@ type TxBody struct {
 	Index int              `json:"index"`
 
 	//PVSSCommit
-	*pvss.Commit
+	Commit *pvss.Commit `json:"commit,omitempty"`
 
 	// PVSSReveal
-	DecryptedShares map[int]*pvss.PubVerShare `json:"decrypted_shares"`
+	Reveal *pvss.Reveal `json:"reveal,omitempty"`
+
+	//PVSSEvent
+	Height       int64                 `json:"height,omitempty"`
+	State        beacon.RoundState     `json:"state,omitempty"`
+	Participants []signature.PublicKey `json:"participants,omitempty"`
 
 	//registry.Runtime
 	cbor.Versioned
