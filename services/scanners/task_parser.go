@@ -60,9 +60,9 @@ func (p *ParserTask) ParseBase(blockID uint64) error {
 	return nil
 }
 
-func (p *ParserTask) EpochBalanceSnapshot(epoch uint64) error {
+func (p *ParserTask) EpochBalanceSnapshot(epoch beaconAPI.EpochTime) error {
 
-	blockHeight, err := p.beaconAPI.GetEpochBlock(p.ctx, beaconAPI.EpochTime(epoch))
+	blockHeight, err := p.beaconAPI.GetEpochBlock(p.ctx, epoch)
 	if err != nil {
 		return fmt.Errorf("api.GetEpochBlock.Get: %s", err.Error())
 	}

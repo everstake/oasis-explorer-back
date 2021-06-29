@@ -19,7 +19,8 @@ type Watcher struct {
 	ctx        context.Context
 	cancelFunc context.CancelFunc
 
-	ReSyncInit bool
+	BlocksReSyncInit bool
+	EpochReSyncInit  bool
 }
 
 func NewWatcher(cfg conf.Config, d dao.DAO) (*Watcher, error) {
@@ -59,20 +60,28 @@ func (m *Watcher) Run() error {
 		return fmt.Errorf("WatchBlocks error: %s", err)
 	}
 
+	epochCh, epochCPub, err := m.parser.bAPI.WatchEpochs(m.ctx)
+	if err != nil {
+		return fmt.Errorf("WatchBlocks error: %s", err)
+	}
+
 	for {
 		select {
 		case <-m.ctx.Done():
 			cPub.Close()
+			epochCPub.Close()
 			return nil
 		case block := <-ch:
-			if !m.ReSyncInit {
+			if !m.BlocksReSyncInit {
 				//Reduce to avoid duplicate processing
-				err = m.addReSyncTask(block.Height - 1)
+				err = m.addBlocksReSyncTask(block.Height - 1)
 				if err != nil {
 					log.Error("AddReSyncTask error", zap.Error(err))
 					continue
 				}
-				m.ReSyncInit = true
+
+				m.BlocksReSyncInit = true
+				continue
 			}
 
 			err = m.parser.ParseWatchBlock(block)
@@ -86,12 +95,48 @@ func (m *Watcher) Run() error {
 				log.Error("Save error", zap.Error(err))
 				continue
 			}
+		case epoch := <-epochCh:
+			if !m.EpochReSyncInit {
+				//Reduce to avoid duplicate processing
+				err = m.addEpochsReSyncTask(uint64(epoch))
+				if err != nil {
+					log.Error("AddReSyncTask error", zap.Error(err))
+					continue
+				}
+				m.EpochReSyncInit = true
+				//Current epoch will be processed by resync task
+				continue
+			}
 
+			err = m.parser.ParseEpochSnap(epoch)
+			if err != nil {
+				log.Error("ParseEpochSnap error", zap.Error(err))
+				continue
+			}
+
+			err = m.parser.Save()
+			if err != nil {
+				log.Error("Save error", zap.Error(err))
+				continue
+			}
+
+			//Save all processed epochs
+			err = m.dao.CreateTask(dmodels.Task{
+				IsActive:      false,
+				Title:         parserBalancesSnapshotTask,
+				StartHeight:   uint64(epoch),
+				CurrentHeight: uint64(epoch),
+				EndHeight:     uint64(epoch),
+				Batch:         1,
+			})
+			if err != nil {
+				return fmt.Errorf("CreateTask error: %s", err)
+			}
 		}
 	}
 }
 
-func (m *Watcher) addReSyncTask(currentHeight int64) error {
+func (m *Watcher) addBlocksReSyncTask(currentHeight int64) error {
 	//Setup init startHeight from config
 	startHeight := m.cfg.Scanner.StartHeight
 
@@ -141,28 +186,49 @@ func (m *Watcher) addReSyncTask(currentHeight int64) error {
 		return fmt.Errorf("CreateTask error: %s", err)
 	}
 
-	currentEpoch, err := m.parser.bAPI.GetEpoch(m.ctx, currentHeight)
+	return nil
+}
+
+func (m *Watcher) addEpochsReSyncTask(currentEpoch uint64) error {
+	//Setup init startEpoch from config
+	startEpoch := m.cfg.Scanner.StartHeight
+
+	//Get last task
+	task, isFound, err := m.dao.GetLastTask(parserBalancesSnapshotTask)
 	if err != nil {
-		return fmt.Errorf("GetEpoch currentHeight error: %s", err)
+		return fmt.Errorf("GetLastTask error: %s", err)
+	}
+	if isFound {
+		startEpoch = task.EndHeight
 	}
 
-	startEpoch, err := m.parser.bAPI.GetEpoch(m.ctx, int64(startHeight))
-	if err != nil {
-		return fmt.Errorf("GetEpoch startHeight error: %s", err)
+	//Previous tasks not found
+	if startEpoch == 0 {
+		gen, err := genesis.ReadGenesisFile(genesis.DefaultGenesisFileName)
+		if err != nil {
+			return fmt.Errorf("ReadGenesisFile error: %s", err)
+		}
+
+		startEpoch = gen.Beacon.Base
 	}
 
 	//Start from epoch +1
 	startEpoch++
 
+	//Already procced
+	if startEpoch >= currentEpoch {
+		return nil
+	}
+
 	//Snaps sync
 	err = m.dao.CreateTask(dmodels.Task{
 		IsActive:      true,
 		Title:         parserBalancesSnapshotTask,
-		StartHeight:   uint64(startEpoch),
-		CurrentHeight: uint64(startEpoch),
-		EndHeight:     uint64(currentEpoch),
-		//1 Epoch = 600 blocks
-		Batch: 10,
+		StartHeight:   startEpoch,
+		CurrentHeight: startEpoch,
+		EndHeight:     currentEpoch,
+		//1 Epoch ~ 600 blocks
+		Batch: 1,
 	})
 	if err != nil {
 		return fmt.Errorf("CreateTask error: %s", err)

@@ -201,7 +201,7 @@ func (p *Parser) ParseBalancesSnapshot(conn *grpcCommon.ClientConn, epoch uint64
 		return err
 	}
 
-	err = parsTask.EpochBalanceSnapshot(epoch)
+	err = parsTask.EpochBalanceSnapshot(beaconAPI.EpochTime(epoch))
 	if err != nil {
 		return err
 	}
@@ -215,7 +215,21 @@ func (p *Parser) ParseWatchBlock(block *consensusAPI.Block) error {
 		return err
 	}
 
-	err = parsTask.parseOasisBase(block, watcherFlag)
+	err = parsTask.parseOasisBase(block, baseFlag)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *Parser) ParseEpochSnap(epoch beaconAPI.EpochTime) error {
+	parsTask, err := NewParserTask(p.ctx, p.conn, p.baseEpoch, p.container)
+	if err != nil {
+		return err
+	}
+
+	err = parsTask.EpochBalanceSnapshot(epoch)
 	if err != nil {
 		return err
 	}
