@@ -62,7 +62,12 @@ func (p *ParserTask) ParseBase(blockID uint64) error {
 
 func (p *ParserTask) EpochBalanceSnapshot(epoch uint64) error {
 
-	blockData, err := p.consensusAPI.GetBlock(p.ctx, int64(oasis.CalcEpochStart(epoch, uint64(p.baseEpoch))))
+	blockHeight, err := p.beaconAPI.GetEpochBlock(p.ctx, beaconAPI.EpochTime(epoch))
+	if err != nil {
+		return fmt.Errorf("api.GetEpochBlock.Get: %s", err.Error())
+	}
+
+	blockData, err := p.consensusAPI.GetBlock(p.ctx, blockHeight)
 	if err != nil {
 		return fmt.Errorf("api.Block.Get: %s", err.Error())
 	}
@@ -280,8 +285,13 @@ func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
 		return err
 	}
 
+	epochBlock, err := p.beaconAPI.GetEpochBlock(p.ctx, epoch)
+	if err != nil {
+		return err
+	}
+
 	//Make snapshot only for epoch start block
-	if !block.IsEpochBlock(uint64(epoch), uint64(p.baseEpoch)) {
+	if block.Header.Height != epochBlock {
 		return nil
 	}
 

@@ -10,8 +10,6 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
-const EpochBlocksNumber = 600
-
 //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
 var SystemPublicKey = signature.PublicKey{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 var SystemAddress = address.Address{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
@@ -20,15 +18,6 @@ type Block struct {
 	Hash       bytes.HexBytes  `cbor:"-"`
 	Header     tmtypes.Header  `cbor:"header"`
 	LastCommit BlockLastCommit `cbor:"last_commit"`
-}
-
-func (b Block) IsEpochBlock(currentEpoch, baseEpoch uint64) bool {
-
-	return CalcEpochStart(currentEpoch, baseEpoch) == uint64(b.Header.Height)
-}
-
-func CalcEpochStart(currentEpoch, baseEpoch uint64) uint64 {
-	return (currentEpoch-1)*EpochBlocksNumber + (currentEpoch - baseEpoch)
 }
 
 type BlockLastCommit struct {

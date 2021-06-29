@@ -28,7 +28,12 @@ type TxBody struct {
 	//staking.Transfer
 	To staking.Address `json:"to"`
 
-	//staking.Transfer staking.Burn staking.Escrow
+	staking.Allow
+
+	//staking.Withdraw
+	From staking.Address `json:"from"`
+
+	//staking.Transfer staking.Burn staking.Escrow staking.Withdraw
 	Amount quantity.Quantity `json:"amount"`
 
 	staking.AmendCommissionSchedule
