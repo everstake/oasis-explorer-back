@@ -1,9 +1,10 @@
 package mysql
 
 import (
-	"github.com/wedancedalot/squirrel"
 	"oasisTracker/common/dao"
 	"oasisTracker/dmodels"
+
+	"github.com/wedancedalot/squirrel"
 )
 
 func (md MysqlDAO) GetTasks(OnlyActive bool) (tasks []dmodels.Task, err error) {
@@ -18,8 +19,8 @@ func (md MysqlDAO) GetTasks(OnlyActive bool) (tasks []dmodels.Task, err error) {
 	return tasks, nil
 }
 
-func (md MysqlDAO) GetLastTask() (task dmodels.Task, found bool, err error) {
-	q := squirrel.Select("*").From(dmodels.TasksTable).OrderBy("tsk_id desc")
+func (md MysqlDAO) GetLastTask(title string) (task dmodels.Task, found bool, err error) {
+	q := squirrel.Select("*").From(dmodels.TasksTable).Where("tsk_title = ?", title).OrderBy("tsk_id desc")
 
 	err = md.mysql.FindFirst(&task, q)
 	if err != nil {

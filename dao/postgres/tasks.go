@@ -1,8 +1,9 @@
 package postgres
 
 import (
-	"github.com/jinzhu/gorm"
 	"oasisTracker/dmodels"
+
+	"github.com/jinzhu/gorm"
 )
 
 func (d DAO) GetTasks(OnlyActive bool) (tasks []dmodels.Task, err error) {
@@ -21,10 +22,11 @@ func (d DAO) GetTasks(OnlyActive bool) (tasks []dmodels.Task, err error) {
 	return tasks, nil
 }
 
-func (d DAO) GetLastTask() (task dmodels.Task, found bool, err error) {
+func (d DAO) GetLastTask(title string) (task dmodels.Task, found bool, err error) {
 
 	err = d.db.Select("*").
 		Model(dmodels.Task{}).
+		Where("tsk_title = ?", title).
 		Order("tsk_id desc").
 		First(&task).Error
 

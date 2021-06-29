@@ -3,6 +3,7 @@ package scanners
 import (
 	"context"
 	"fmt"
+	"oasisTracker/common/genesis"
 	"oasisTracker/common/log"
 	"oasisTracker/conf"
 	"oasisTracker/dao"
@@ -65,7 +66,7 @@ func (m *Watcher) Run() error {
 			return nil
 		case block := <-ch:
 			if !m.ReSyncInit {
-				//Current  height processed by Watcher so use -1
+				//Reduce to avoid duplicate processing
 				err = m.addReSyncTask(block.Height - 1)
 				if err != nil {
 					log.Error("AddReSyncTask error", zap.Error(err))
@@ -95,7 +96,7 @@ func (m *Watcher) addReSyncTask(currentHeight int64) error {
 	startHeight := m.cfg.Scanner.StartHeight
 
 	//Get last task
-	task, isFound, err := m.dao.GetLastTask()
+	task, isFound, err := m.dao.GetLastTask(parserBaseTask)
 	if err != nil {
 		return fmt.Errorf("GetLastTask error: %s", err)
 	}
@@ -119,7 +120,12 @@ func (m *Watcher) addReSyncTask(currentHeight int64) error {
 
 	//Previous tasks not found
 	if startHeight == 0 {
-		//Todo handle start height from genesis
+		gen, err := genesis.ReadGenesisFile(genesis.DefaultGenesisFileName)
+		if err != nil {
+			return fmt.Errorf("ReadGenesisFile error: %s", err)
+		}
+
+		startHeight = gen.GenesisHeight
 	}
 
 	//Blocks sync
@@ -161,28 +167,6 @@ func (m *Watcher) addReSyncTask(currentHeight int64) error {
 	if err != nil {
 		return fmt.Errorf("CreateTask error: %s", err)
 	}
-
-	//Return when refactor workers
-	//for startHeight <= uint64(currentHeight-1) {
-	//	endHeight := startHeight + m.cfg.Scanner.NodeRPS
-	//	if endHeight > uint64(currentHeight-1) {
-	//		endHeight = uint64(currentHeight - 1)
-	//	}
-	//
-	//	err = m.dao.CreateTask(dmodels.Task{
-	//		IsActive:      true,
-	//		Title:         parserSignaturesTask,
-	//		StartHeight:   startHeight,
-	//		CurrentHeight: startHeight,
-	//		EndHeight:     endHeight,
-	//		Batch:         200,
-	//	})
-	//	if err != nil {
-	//		return fmt.Errorf("CreateTask error: %s", err)
-	//	}
-	//
-	//	startHeight += m.cfg.Scanner.NodeRPS + 1
-	//}
 
 	return nil
 }
