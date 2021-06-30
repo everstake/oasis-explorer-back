@@ -10,18 +10,22 @@ import (
 	"reflect"
 	"runtime"
 
-	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+	oasisAddress "github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 
-	"go.uber.org/zap"
+	"github.com/oasisprotocol/oasis-core/go/common/entity"
+
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 
 	beaconAPI "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common/cbor"
-	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	consensusAPI "github.com/oasisprotocol/oasis-core/go/consensus/api"
 	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
+	governance "github.com/oasisprotocol/oasis-core/go/governance/api"
 	registryAPI "github.com/oasisprotocol/oasis-core/go/registry/api"
+	roothashAPI "github.com/oasisprotocol/oasis-core/go/roothash/api"
 	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/tendermint/tendermint/crypto"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
@@ -172,7 +176,8 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 	var entityRegisterTxs []dmodels.EntityRegistryTransaction
 
 	accountBalanceUpdates := make([]dmodels.AccountBalance, 0, len(txsWithResults.Transactions))
-	tx := transaction.SignedTransaction{}
+	var tx transaction.SignedTransaction
+	var raw transaction.Transaction
 
 	for i := range txsWithResults.Transactions {
 		err = cbor.Unmarshal(txsWithResults.Transactions[i], &tx)
@@ -180,7 +185,6 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 			return err
 		}
 
-		raw := oasis.UntrustedRawValue{}
 		err = cbor.Unmarshal(tx.Blob, &raw)
 		if err != nil {
 			return err
@@ -191,44 +195,61 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 			return err
 		}
 
-		//Parse NodeRegister Tx
-		nodeRegisterTx, err := p.parseNodeRegistryTransaction(txType, block, raw)
-		if err != nil {
-			return err
+		dTxs[i] = dmodels.Transaction{
+			BlockLevel: uint64(block.Header.Height),
+			BlockHash:  hex.EncodeToString(block.Hash),
+			Hash:       tx.Hash().String(),
+			Time:       block.Header.Time,
+
+			//Todo probably merge amount to single field
+
+			//Save tx status and error if presented
+			Status: txsWithResults.Results[i].IsSuccess(),
+			Error:  txsWithResults.Results[i].Error.Message,
+
+			Type:   txType.Type(),
+			Sender: stakingAPI.NewAddress(tx.Signature.PublicKey).String(),
+
+			Nonce:    raw.Nonce,
+			Fee:      raw.Fee.Amount.ToBigInt().Uint64(),
+			GasLimit: uint64(raw.Fee.Gas),
+			GasPrice: raw.Fee.GasPrice().ToBigInt().Uint64(),
 		}
 
-		if nodeRegisterTx.ID != "" {
-			nodeRegisterTx.Hash = tx.Hash().String()
-			nodeRegisterTxs = append(nodeRegisterTxs, nodeRegisterTx)
-		}
+		//Todo Move to sep method
+		switch raw.Method {
+		case "staking.Transfer":
+			var xfer stakingAPI.Transfer
 
-		//Parse EntityRegister Tx
-		entityRegisterTx, err := p.parseEntityRegistryTransaction(txType, block, raw)
-		if err != nil {
-			return err
-		}
+			if err := cbor.Unmarshal(raw.Body, &xfer); err != nil {
+				return err
+			}
+			dTxs[i].Amount = xfer.Amount.ToBigInt().Uint64()
+			dTxs[i].Receiver = xfer.To.String()
+		case "staking.Burn":
+			var burn stakingAPI.Burn
 
-		if entityRegisterTx.ID != "" {
-			entityRegisterTx.Hash = tx.Hash().String()
-			entityRegisterTxs = append(entityRegisterTxs, entityRegisterTx)
-		}
+			if err := cbor.Unmarshal(raw.Body, &burn); err != nil {
+				return err
+			}
+			dTxs[i].Amount = burn.Amount.ToBigInt().Uint64()
+		case "staking.AddEscrow":
+			var escrow stakingAPI.Escrow
 
-		//Save updated balances
-		balanceUpdates, err := p.parseAccountBalances(block, tx, raw)
-		if err != nil {
-			return err
-		}
-		accountBalanceUpdates = append(accountBalanceUpdates, balanceUpdates...)
+			if err := cbor.Unmarshal(raw.Body, &escrow); err != nil {
+				return err
+			}
 
-		receiver := raw.Body.To.String()
-		if txType.Type() == dmodels.TransactionTypeAddEscrow || txType.Type() == dmodels.TransactionTypeReclaimEscrow {
-			receiver = raw.Body.Account.String()
-		}
+			dTxs[i].Receiver = escrow.Account.String()
+			dTxs[i].EscrowAmount = escrow.Amount.ToBigInt().Uint64()
+		case "staking.ReclaimEscrow":
+			var reclaim stakingAPI.ReclaimEscrow
 
-		reclaimAmount := quantity.NewQuantity()
+			if err := cbor.Unmarshal(raw.Body, &reclaim); err != nil {
+				return err
+			}
 
-		//Get reclaim amount
-		if txType.Type() == dmodels.TransactionTypeReclaimEscrow {
+			dTxs[i].Receiver = reclaim.Account.String()
 
 			//Find DebondingStart event
 			for j := range txsWithResults.Results[i].Events {
@@ -236,40 +257,157 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 				if txsWithResults.Results[i].Events[j].Staking != nil {
 					if txsWithResults.Results[i].Events[j].Staking.Escrow != nil {
 						if txsWithResults.Results[i].Events[j].Staking.Escrow.DebondingStart != nil {
-							reclaimAmount = &txsWithResults.Results[i].Events[j].Staking.Escrow.DebondingStart.Amount
+							dTxs[i].EscrowReclaimAmount = txsWithResults.Results[i].Events[j].Staking.Escrow.DebondingStart.Amount.ToBigInt().Uint64()
 							break
 						}
 					}
 				}
+			}
+		case "staking.AmendCommissionSchedule":
+			//	Todo save as extra field
+			var amend stakingAPI.AmendCommissionSchedule
 
+			if err := cbor.Unmarshal(raw.Body, &amend); err != nil {
+				return err
+			}
+		case "staking.Allow":
+			var allow stakingAPI.Allow
+
+			if err := cbor.Unmarshal(raw.Body, &allow); err != nil {
+				return err
 			}
 
+			//	Todo add negative amount support
+			dTxs[i].Receiver = allow.Beneficiary.String()
+			dTxs[i].Amount = allow.AmountChange.ToBigInt().Uint64()
+		case "staking.Withdraw":
+			var withdraw stakingAPI.Withdraw
+
+			if err := cbor.Unmarshal(raw.Body, &withdraw); err != nil {
+				return err
+			}
+
+			dTxs[i].Receiver = withdraw.From.String()
+			dTxs[i].Amount = withdraw.Amount.ToBigInt().Uint64()
+
+		case "registry.RegisterNode":
+			var node signature.MultiSigned
+
+			if err := cbor.Unmarshal(raw.Body, &node); err != nil {
+				return err
+			}
+
+			regTx, err := p.parseNodeRegistryTransaction(block, node)
+			if err != nil {
+				return err
+			}
+
+			regTx.Hash = tx.Hash().String()
+			nodeRegisterTxs = append(nodeRegisterTxs, regTx)
+		case "registry.RegisterEntity":
+			var entity entity.SignedEntity
+
+			if err := cbor.Unmarshal(raw.Body, &entity); err != nil {
+				return err
+			}
+
+			entityRegisterTx, err := p.parseEntityRegistryTransaction(block, entity)
+			if err != nil {
+				return err
+			}
+
+			entityRegisterTx.Hash = tx.Hash().String()
+			entityRegisterTxs = append(entityRegisterTxs, entityRegisterTx)
+		case "registry.DeregisterEntity":
+			//No body
+		case "registry.UnfreezeNode":
+			var node registryAPI.UnfreezeNode
+
+			if err := cbor.Unmarshal(raw.Body, &node); err != nil {
+				return err
+			}
+		case "registry.RegisterRuntime":
+			var runtime registryAPI.Runtime
+
+			if err := cbor.Unmarshal(raw.Body, &runtime); err != nil {
+				return err
+			}
+
+		case "roothash.ExecutorCommit":
+			var commit roothashAPI.ExecutorCommit
+
+			if err := cbor.Unmarshal(raw.Body, &commit); err != nil {
+				return err
+			}
+		case "roothash.ExecutorProposerTimeout":
+			var timeoutReq roothashAPI.ExecutorProposerTimeoutRequest
+
+			if err := cbor.Unmarshal(raw.Body, &timeoutReq); err != nil {
+				return err
+			}
+		case "roothash.Evidence":
+			var evidence roothashAPI.Evidence
+
+			if err := cbor.Unmarshal(raw.Body, &evidence); err != nil {
+				return err
+			}
+		case "governance.SubmitProposal":
+			var proposalContent governance.ProposalContent
+			if err := cbor.Unmarshal(raw.Body, &proposalContent); err != nil {
+				return err
+			}
+		case "governance.CastVote":
+			var proposalVote governance.ProposalVote
+			if err := cbor.Unmarshal(raw.Body, &proposalVote); err != nil {
+				return err
+			}
+		default:
+			fmt.Errorf("Unknown tx type: %s", raw.Method)
 		}
 
-		dTxs[i] = dmodels.Transaction{
-			BlockLevel: uint64(block.Header.Height),
-			BlockHash:  hex.EncodeToString(block.Hash),
-			Hash:       tx.Hash().String(),
-			Time:       block.Header.Time,
-			//Same field
-			//Todo probably merge to single field
-			Amount: raw.Body.Amount.ToBigInt().Uint64(),
-
-			EscrowAmount:        raw.Body.Amount.ToBigInt().Uint64(),
-			EscrowReclaimAmount: reclaimAmount.ToBigInt().Uint64(),
-
-			//Save tx status and error if presented
-			Status: txsWithResults.Results[i].IsSuccess(),
-			Error:  txsWithResults.Results[i].Error.Message,
-
-			Type:     txType.Type(),
-			Sender:   stakingAPI.NewAddress(tx.Signature.PublicKey).String(),
-			Receiver: receiver,
-			Nonce:    raw.Nonce,
-			Fee:      raw.Fee.Amount.ToBigInt().Uint64(),
-			GasLimit: uint64(raw.Fee.Gas),
-			GasPrice: raw.Fee.GasPrice().ToBigInt().Uint64(),
+		//Update balance of sender account as default
+		accountsUpdateMap := map[stakingAPI.Address]bool{
+			stakingAPI.NewAddress(tx.Signature.PublicKey): true,
 		}
+
+		for _, event := range txsWithResults.Results[i].Events {
+			if event.Staking != nil {
+
+				switch {
+				case event.Staking.Transfer != nil:
+					//Update destination account
+					accountsUpdateMap[event.Staking.Transfer.To] = true
+				case event.Staking.Escrow != nil:
+
+					switch {
+					case event.Staking.Escrow.Add != nil:
+						//Escrow destination
+						accountsUpdateMap[event.Staking.Escrow.Add.Escrow] = true
+					case event.Staking.Escrow.DebondingStart != nil:
+						//Debonding start destination
+						accountsUpdateMap[event.Staking.Escrow.DebondingStart.Escrow] = true
+					case event.Staking.Escrow.Take != nil:
+						//Stake is slashed
+						accountsUpdateMap[event.Staking.Escrow.Take.Owner] = true
+						//Todo handle reclaim
+						//case event.Staking.Escrow.Reclaim != nil:
+					}
+
+				case event.Staking.AllowanceChange != nil:
+				//	Todo add after handle account allowances
+				case event.Staking.Burn != nil:
+					// Owner account already updated as sender
+					//	Todo check burn from allowance
+				}
+			}
+		}
+
+		//Save updated balances
+		balanceUpdates, err := p.parseAccountBalances(block, accountsUpdateMap)
+		if err != nil {
+			return err
+		}
+		accountBalanceUpdates = append(accountBalanceUpdates, balanceUpdates...)
 	}
 
 	p.parserContainer.txs.Add(dTxs, nodeRegisterTxs, entityRegisterTxs)
@@ -421,18 +559,16 @@ func compareDebondingDelegations(debondingDelegations, previousDebondingDelegati
 	return true
 }
 
-func (p *ParserTask) parseAccountBalances(block oasis.Block, tx transaction.SignedTransaction, rawTX oasis.UntrustedRawValue) (updates []dmodels.AccountBalance, err error) {
-	addresses := []stakingAPI.Address{stakingAPI.NewAddress(tx.Signature.PublicKey), rawTX.Body.Account, rawTX.Body.To}
-
+func (p *ParserTask) parseAccountBalances(block oasis.Block, addresses map[stakingAPI.Address]bool) (updates []dmodels.AccountBalance, err error) {
 	updates = make([]dmodels.AccountBalance, 0, len(addresses))
 
-	for i := range addresses {
+	for address := range addresses {
 		//Skip system address
-		if (address.Address)(addresses[i]).Equal(oasis.SystemAddress) {
+		if (oasisAddress.Address)(address).Equal(oasis.SystemAddress) {
 			continue
 		}
 
-		balance, err := p.getAccountBalance(block.Header.Height, addresses[i])
+		balance, err := p.getAccountBalance(block.Header.Height, address)
 		if err != nil {
 			return updates, err
 		}
@@ -509,13 +645,9 @@ func (p *ParserTask) getAccountBalance(height int64, address stakingAPI.Address)
 	}, nil
 }
 
-func (p *ParserTask) parseNodeRegistryTransaction(txType dmodels.TransactionMethod, block oasis.Block, raw oasis.UntrustedRawValue) (registerTx dmodels.NodeRegistryTransaction, err error) {
-	if txType.Type() != dmodels.TransactionTypeRegisterNode {
-		return
-	}
-
+func (p *ParserTask) parseNodeRegistryTransaction(block oasis.Block, raw signature.MultiSigned) (registerTx dmodels.NodeRegistryTransaction, err error) {
 	regNode := oasis.RegisterNode{}
-	err = cbor.Unmarshal(raw.Body.RegisterTx.Blob, &regNode)
+	err = cbor.Unmarshal(raw.Blob, &regNode)
 	if err != nil {
 		return registerTx, err
 	}
@@ -546,13 +678,10 @@ func (p *ParserTask) parseNodeRegistryTransaction(txType dmodels.TransactionMeth
 	}, nil
 }
 
-func (p *ParserTask) parseEntityRegistryTransaction(txType dmodels.TransactionMethod, block oasis.Block, raw oasis.UntrustedRawValue) (registerTx dmodels.EntityRegistryTransaction, err error) {
-	if txType.Type() != dmodels.TransactionTypeRegisterEntity {
-		return
-	}
+func (p *ParserTask) parseEntityRegistryTransaction(block oasis.Block, raw entity.SignedEntity) (registerTx dmodels.EntityRegistryTransaction, err error) {
 
 	regEntity := oasis.RegisterEntity{}
-	err = cbor.Unmarshal(raw.Body.RegisterTx.Blob, &regEntity)
+	err = cbor.Unmarshal(raw.Blob, &regEntity)
 	if err != nil {
 		return registerTx, err
 	}
