@@ -209,7 +209,8 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 
 			Type:   txType.Type(),
 			Sender: stakingAPI.NewAddress(tx.Signature.PublicKey).String(),
-
+			//Use system address as default receiver
+			Receiver: stakingAPI.NewAddress(oasis.SystemPublicKey).String(),
 			Nonce:    raw.Nonce,
 			Fee:      raw.Fee.Amount.ToBigInt().Uint64(),
 			GasLimit: uint64(raw.Fee.Gas),
