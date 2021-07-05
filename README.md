@@ -2,34 +2,34 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Oasis Explorer is an open-source Tezos explorer based on own indexer core.
-Developed and supported by Everstake team.
+Oasis Explorer is an open-source Oasis explorer based on its own indexer core.
+Developed and supported by the Everstake team.
 
-The indexer fetches raw data from the Oasis node, then processes it and stores in the database in such a way as to provide effective access to the blockchain data. 
+The indexer fetches raw data from the Oasis node, then processes and stores it   in the database in such a way as to provide effective access to the blockchain data. 
 None of this can be accessed via node RPC, but Oasis Explorer indexer makes this data (and much more) available.
 
 Oasis Explorer provides a REST-like API, so you don't have to connect to the database directly.
-Our API server will do for you all needed aggregations.
+Our API server will do all the needed aggregations for you.
 
-Full documentation you can find here [OasisExplorerAPI](https://oasismonitor.com/docs) 
+Full documentation you can found here [OasisExplorerAPI](https://oasismonitor.com/docs) 
 ## Getting started
 
 ### Dependencies
 
 #### Clickhouse
- To install Clickhouse follow guide below
+ To install Clickhouse follow the guide below
  
 https://clickhouse.tech/docs/en/getting-started/install/
 
- Than create an empty database and its user
+ Then create an empty database and its users
 #### Postgres
- To install Postgres follow guide below  
+ To install Postgres follow the guide below  
  
  https://www.postgresqltutorial.com/postgresql-getting-started/
  
- Than create an empty database and its user
+ Then create an empty database and its users
 #### Oasis-node
- To run a Non-validator Node follow steps below
+ To run a Non-validator Node follow the steps below
  
  https://docs.oasis.dev/general/run-a-node/set-up-your-node/run-non-validator
 ### Installing and running oasis-wallet
