@@ -108,11 +108,15 @@ paths:
           minimum: 0
       responses:
         '200':
-          description: Query compatibility endpoint for account
+          description: Query compatibility endpoint for validators
           schema:
             items:
               $ref: '#/definitions/ValidatorRow'
             type: array
+          headers:
+            X-Total-Count:
+              description: The total number of data entries.
+              type: integer
         '400':
           description: Bad request
         '404':
