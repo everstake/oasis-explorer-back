@@ -124,7 +124,7 @@ func (m *Watcher) Run() error {
 				Title:         parserBalancesSnapshotTask,
 				StartHeight:   uint64(epoch),
 				CurrentHeight: uint64(epoch),
-				EndHeight:     uint64(epoch),
+				EndHeight:     uint64(epoch + 1),
 				Batch:         1,
 			})
 			if err != nil {
