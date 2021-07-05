@@ -1,14 +1,16 @@
 package api
 
 import (
-	"github.com/gorilla/mux"
-	"go.uber.org/zap"
+	"fmt"
 	"net/http"
 	"net/url"
 	"oasisTracker/common/apperrors"
 	response "oasisTracker/common/http/responce"
 	"oasisTracker/common/log"
 	"oasisTracker/smodels"
+
+	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 )
 
 func (api *API) GetValidatorsList(w http.ResponseWriter, r *http.Request) {
@@ -27,13 +29,14 @@ func (api *API) GetValidatorsList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validators, err := api.services.GetValidatorList(params)
+	validators, count, err := api.services.GetValidatorList(params)
 	if err != nil {
 		log.Error("GetValidatorList api error", zap.Error(err))
 		response.JsonError(w, err)
 		return
 	}
 
+	w.Header().Set(TotalCountHeader, fmt.Sprint(count))
 	Json(w, validators)
 }
 

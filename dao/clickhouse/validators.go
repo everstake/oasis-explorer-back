@@ -2,9 +2,10 @@ package clickhouse
 
 import (
 	"fmt"
-	sq "github.com/wedancedalot/squirrel"
 	"oasisTracker/dmodels"
 	"oasisTracker/smodels"
+
+	sq "github.com/wedancedalot/squirrel"
 )
 
 func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.ValidatorView, err error) {
@@ -30,8 +31,8 @@ func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []d
 	}
 	defer rows.Close()
 
+	row := dmodels.ValidatorView{}
 	for rows.Next() {
-		row := dmodels.ValidatorView{}
 
 		err = rows.Scan(&row.EntityID, &row.ConsensusAddress, &row.NodeAddress, &row.ValidateSince, &row.StartBlockLevel, &row.ProposedBlocksCount, &row.SignaturesCount, &row.SignedBlocksCount, &row.LastBlockLevel, &row.DaySignaturesCount, &row.DaySignedBlocks, &row.DayBlocksCount, &row.EscrowBalance, &row.GeneralBalance, &row.EscrowBalanceShare, &row.DebondingBalance, &row.DelegationsBalance, &row.DebondingDelegationsBalance, &row.DepositorsNum, &row.IsActive, &row.Name, &row.Fee, &row.Info)
 		if err != nil {
@@ -42,6 +43,37 @@ func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []d
 	}
 
 	return resp, nil
+}
+
+func (cl Clickhouse) GetValidatorsCount(params smodels.ValidatorParams) (count uint64, err error) {
+	q := sq.Select("count()").
+		From("validator_entity_view")
+
+	if params.ValidatorID != "" {
+		q = q.Where(sq.Eq{"reg_entity_address": params.ValidatorID})
+	}
+
+	rawSql, args, err := q.ToSql()
+	if err != nil {
+		return count, err
+	}
+
+	rows, err := cl.db.conn.Query(rawSql, args...)
+	if err != nil {
+		return count, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		err = rows.Scan(&count)
+		if err != nil {
+			return count, err
+		}
+
+	}
+
+	return count, nil
 }
 
 func (cl Clickhouse) GetValidatorDayStats(consensusAddress string, params smodels.ChartParams) (resp []dmodels.ValidatorStats, err error) {

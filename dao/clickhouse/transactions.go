@@ -172,6 +172,65 @@ func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]d
 		Limit(params.Limit).
 		Offset(params.Offset)
 
+	q = getTransactionsQueryParam(q, params)
+
+	rawSql, args, err := q.ToSql()
+	if err != nil {
+		return resp, err
+	}
+
+	rows, err := cl.db.conn.Query(rawSql, args...)
+	if err != nil {
+		return resp, err
+	}
+	defer rows.Close()
+
+	row := dmodels.Transaction{}
+
+	for rows.Next() {
+
+		err = rows.Scan(&row.BlockLevel, &row.BlockHash, &row.Time, &row.Hash, &row.Amount, &row.EscrowAmount, &row.EscrowReclaimAmount, &row.Type, &row.Status, &row.Error, &row.Sender, &row.Receiver, &row.Nonce, &row.Fee, &row.GasLimit, &row.GasPrice)
+		if err != nil {
+			return resp, err
+		}
+
+		resp = append(resp, row)
+	}
+
+	return resp, nil
+}
+
+func (cl Clickhouse) GetTransactionsCount(params smodels.TransactionsParams) (count uint64, err error) {
+	q := sq.Select("count()").
+		From(dmodels.TransactionsTable)
+
+	q = getTransactionsQueryParam(q, params)
+
+	rawSql, args, err := q.ToSql()
+	if err != nil {
+		return count, err
+	}
+
+	rows, err := cl.db.conn.Query(rawSql, args...)
+	if err != nil {
+		return count, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		err = rows.Scan(&count)
+		if err != nil {
+			return count, err
+		}
+
+	}
+
+	return count, nil
+}
+
+func getTransactionsQueryParam(q sq.SelectBuilder, params smodels.TransactionsParams) sq.SelectBuilder {
+
 	if len(params.OperationID) > 0 {
 		q = q.Where(sq.Eq{"tx_hash": params.OperationID})
 	}
@@ -208,27 +267,5 @@ func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]d
 		q = q.Where(sq.Eq{"tx_receiver": params.Receiver})
 	}
 
-	rawSql, args, err := q.ToSql()
-	if err != nil {
-		return resp, err
-	}
-
-	rows, err := cl.db.conn.Query(rawSql, args...)
-	if err != nil {
-		return resp, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		row := dmodels.Transaction{}
-
-		err = rows.Scan(&row.BlockLevel, &row.BlockHash, &row.Time, &row.Hash, &row.Amount, &row.EscrowAmount, &row.EscrowReclaimAmount, &row.Type, &row.Status, &row.Error, &row.Sender, &row.Receiver, &row.Nonce, &row.Fee, &row.GasLimit, &row.GasPrice)
-		if err != nil {
-			return resp, err
-		}
-
-		resp = append(resp, row)
-	}
-
-	return resp, nil
+	return q
 }

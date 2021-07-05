@@ -1,11 +1,13 @@
 package api
 
 import (
-	"go.uber.org/zap"
+	"fmt"
 	"net/http"
 	response "oasisTracker/common/http/responce"
 	"oasisTracker/common/log"
 	"oasisTracker/smodels"
+
+	"go.uber.org/zap"
 )
 
 func (api *API) GetTransactionsList(w http.ResponseWriter, r *http.Request) {
@@ -17,12 +19,13 @@ func (api *API) GetTransactionsList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	blocks, err := api.services.GetTransactionsList(params)
+	txs, count, err := api.services.GetTransactionsList(params)
 	if err != nil {
 		log.Error("GetTransactionsList api error", zap.Error(err))
 		response.JsonError(w, err)
 		return
 	}
 
-	Json(w, blocks)
+	w.Header().Set(TotalCountHeader, fmt.Sprint(count))
+	Json(w, txs)
 }

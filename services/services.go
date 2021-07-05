@@ -17,11 +17,11 @@ type (
 	Service interface {
 		GetInfo() (smodels.Info, error)
 		GetBlockList(params smodels.BlockParams) ([]smodels.Block, uint64, error)
-		GetTransactionsList(params smodels.TransactionsParams) ([]smodels.Transaction, error)
+		GetTransactionsList(params smodels.TransactionsParams) ([]smodels.Transaction, uint64, error)
 		GetAccountInfo(accountID string) (smodels.Account, error)
 		GetAccountList(listParams smodels.AccountListParams) ([]smodels.AccountList, uint64, error)
 		GetValidatorInfo(string) (smodels.Validator, error)
-		GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, error)
+		GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, uint64, error)
 		GetPublicValidatorsSearchList() ([]smodels.ValidatorEntity, error)
 		GetValidatorDelegators(validatorID string, params smodels.CommonParams) ([]smodels.Delegator, error)
 		GetValidatorBlocks(validatorID string, params smodels.CommonParams) ([]smodels.Block, error)
