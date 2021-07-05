@@ -3,14 +3,12 @@ package cli
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
+	"oasisTracker/common/genesis"
 	"oasisTracker/common/log"
 	"oasisTracker/dao"
 	"oasisTracker/dmodels"
 	"oasisTracker/dmodels/oasis"
-	"oasisTracker/smodels"
-	"os"
 
 	"go.uber.org/zap"
 
@@ -60,16 +58,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 		return fmt.Errorf("invalid arguments length %d, expected 1 arguments for setup-genesis", len(args))
 	}
 
-	//Use root folder as default
-	file, err := os.Open(fmt.Sprint("./", args[0]))
-	if err != nil {
-		return err
-	}
-
-	gen := smodels.GenesisDocument{}
-
-	decoder := json.NewDecoder(file)
-	err = decoder.Decode(&gen)
+	gen, err := genesis.ReadGenesisFile(args[0])
 	if err != nil {
 		return err
 	}

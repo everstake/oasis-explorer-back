@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/oasisprotocol/oasis-core/go/consensus/api/transaction"
 )
 
 const (
@@ -18,10 +20,8 @@ type TransactionMethod struct {
 	method string
 }
 
-type TransactionType string
-
-func NewTransactionType(s string) (tt TransactionMethod, err error) {
-	a := strings.Split(s, ".")
+func NewTransactionType(s transaction.MethodName) (tt TransactionMethod, err error) {
+	a := strings.Split(string(s), ".")
 
 	if len(a) != 2 {
 		return tt, fmt.Errorf("Wrong input TransactionType")
@@ -37,13 +37,16 @@ func (tt TransactionMethod) Type() TransactionType {
 	return TransactionType(strings.ToLower(tt.method))
 }
 
+type TransactionType string
+
 const (
-	TransactionTypeTransfer       TransactionType = "transfer"
-	TransactionTypeBurn           TransactionType = "burn"
-	TransactionTypeAddEscrow      TransactionType = "addescrow"
-	TransactionTypeReclaimEscrow  TransactionType = "reclaimescrow"
-	TransactionTypeRegisterNode   TransactionType = "registernode"
-	TransactionTypeRegisterEntity TransactionType = "registerentity"
+	TransactionTypeTransfer         TransactionType = "transfer"
+	TransactionTypeBurn             TransactionType = "burn"
+	TransactionTypeAddEscrow        TransactionType = "addescrow"
+	TransactionTypeReclaimEscrow    TransactionType = "reclaimescrow"
+	TransactionTypeRegisterNode     TransactionType = "registernode"
+	TransactionTypeRegisterEntity   TransactionType = "registerentity"
+	TransactionTypeDeregisterEntity TransactionType = "deregisterentity"
 )
 
 type Transaction struct {

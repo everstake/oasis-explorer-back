@@ -4,10 +4,6 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"github.com/oasisprotocol/oasis-core/go/common/grpc"
-	consensusAPI "github.com/oasisprotocol/oasis-core/go/consensus/api"
-	"golang.org/x/crypto/blake2b"
-	grpcCommon "google.golang.org/grpc"
 	"log"
 	"oasisTracker/conf"
 	"oasisTracker/dao"
@@ -15,6 +11,12 @@ import (
 	"oasisTracker/smodels/container"
 	"strconv"
 	"time"
+
+	beaconAPI "github.com/oasisprotocol/oasis-core/go/beacon/api"
+	"github.com/oasisprotocol/oasis-core/go/common/grpc"
+	consensusAPI "github.com/oasisprotocol/oasis-core/go/consensus/api"
+	"golang.org/x/crypto/blake2b"
+	grpcCommon "google.golang.org/grpc"
 )
 
 const (
@@ -38,9 +40,11 @@ type (
 	Parser    struct {
 		ctx context.Context
 
-		dao  dao.ParserDAO
-		api  consensusAPI.ClientBackend
-		conn *grpcCommon.ClientConn
+		dao       dao.ParserDAO
+		api       consensusAPI.ClientBackend
+		bAPI      beaconAPI.Backend
+		conn      *grpcCommon.ClientConn
+		baseEpoch beaconAPI.EpochTime
 
 		container *ParseContainer
 	}
@@ -54,9 +58,6 @@ type (
 	}
 )
 
-type Container interface {
-}
-
 func NewParser(ctx context.Context, cfg conf.Scanner, d dao.ParserDAO) (*Parser, error) {
 	grpcConn, err := grpc.Dial(cfg.NodeConfig, grpcCommon.WithInsecure())
 	if err != nil {
@@ -64,12 +65,20 @@ func NewParser(ctx context.Context, cfg conf.Scanner, d dao.ParserDAO) (*Parser,
 	}
 
 	cAPI := consensusAPI.NewConsensusClient(grpcConn)
+	bAPI := beaconAPI.NewBeaconClient(grpcConn)
+
+	baseEpoch, err := bAPI.GetBaseEpoch(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Parser{
-		ctx:  ctx,
-		conn: grpcConn,
-		api:  cAPI,
-		dao:  d,
+		ctx:       ctx,
+		conn:      grpcConn,
+		api:       cAPI,
+		bAPI:      bAPI,
+		dao:       d,
+		baseEpoch: baseEpoch,
 		container: &ParseContainer{
 			blocks:          container.NewBlocksContainer(),
 			blockSignatures: container.NewBlockSignatureContainer(),
@@ -170,13 +179,9 @@ func (p *Parser) Save() (err error) {
 	return nil
 }
 
-func (p *Parser) saveAccounts() error {
-	return nil
-}
-
 func (p *Parser) ParseBase(conn *grpcCommon.ClientConn, blockID uint64) error {
 
-	parsTask, err := NewParserTask(p.ctx, conn, p.container)
+	parsTask, err := NewParserTask(p.ctx, conn, p.baseEpoch, p.container)
 	if err != nil {
 		return err
 	}
@@ -189,14 +194,14 @@ func (p *Parser) ParseBase(conn *grpcCommon.ClientConn, blockID uint64) error {
 	return nil
 }
 
-func (p *Parser) ParseBalancesSnapshot(conn *grpcCommon.ClientConn, blockID uint64) error {
+func (p *Parser) ParseBalancesSnapshot(conn *grpcCommon.ClientConn, epoch uint64) error {
 
-	parsTask, err := NewParserTask(p.ctx, conn, p.container)
+	parsTask, err := NewParserTask(p.ctx, conn, p.baseEpoch, p.container)
 	if err != nil {
 		return err
 	}
 
-	err = parsTask.BalanceSnapshot(blockID)
+	err = parsTask.EpochBalanceSnapshot(beaconAPI.EpochTime(epoch))
 	if err != nil {
 		return err
 	}
@@ -205,12 +210,26 @@ func (p *Parser) ParseBalancesSnapshot(conn *grpcCommon.ClientConn, blockID uint
 }
 
 func (p *Parser) ParseWatchBlock(block *consensusAPI.Block) error {
-	parsTask, err := NewParserTask(p.ctx, p.conn, p.container)
+	parsTask, err := NewParserTask(p.ctx, p.conn, p.baseEpoch, p.container)
 	if err != nil {
 		return err
 	}
 
-	err = parsTask.parseOasisBase(block, watcherFlag)
+	err = parsTask.parseOasisBase(block, baseFlag)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *Parser) ParseEpochSnap(epoch beaconAPI.EpochTime) error {
+	parsTask, err := NewParserTask(p.ctx, p.conn, p.baseEpoch, p.container)
+	if err != nil {
+		return err
+	}
+
+	err = parsTask.EpochBalanceSnapshot(epoch)
 	if err != nil {
 		return err
 	}

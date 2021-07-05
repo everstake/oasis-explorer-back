@@ -18,7 +18,7 @@ type (
 	TaskDAO interface {
 		CreateTask(task dmodels.Task) error
 		GetTasks(bool) (tasks []dmodels.Task, err error)
-		GetLastTask() (task dmodels.Task, found bool, err error)
+		GetLastTask(title string) (task dmodels.Task, found bool, err error)
 		UpdateTask(task dmodels.Task) error
 	}
 

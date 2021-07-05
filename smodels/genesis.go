@@ -9,12 +9,12 @@ import (
 )
 
 type GenesisDocument struct {
-	GenesisTime   time.Time    `json:"genesis_time"`
-	GenesisHeight uint64       `json:"height"`
-	EpochTime     GenesisEpoch `json:"epochtime"`
-	ChainID       string       `json:"chain_id"`
-	Registry      Registry     `json:"registry"`
-	Staking       Staking      `json:"staking"`
+	GenesisTime   time.Time `json:"genesis_time"`
+	GenesisHeight uint64    `json:"height"`
+	ChainID       string    `json:"chain_id"`
+	Registry      Registry  `json:"registry"`
+	Staking       Staking   `json:"staking"`
+	Beacon        Beacon    `json:"beacon"`
 }
 
 type Registry struct {
@@ -38,4 +38,9 @@ type GenesisDelegation struct {
 type GenesisDebondingDelegations struct {
 	Shares    quantity.Quantity `json:"shares"`
 	DebondEnd uint64            `json:"debond_end"`
+}
+
+type Beacon struct {
+	Base   uint64      `json:"base"`   //base epoch
+	Params interface{} `json:"params"` // Todo add params definition
 }

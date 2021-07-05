@@ -22,6 +22,7 @@ type (
 	}
 	Scanner struct {
 		StartHeight uint64
+		StartEpoch  uint64
 		NodeRPS     uint64
 		BatchSize   uint64
 		NodeConfig  string
