@@ -168,11 +168,16 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 	return sAcc, nil
 }
 
-func (s *ServiceFacade) GetAccountList(listParams smodels.AccountListParams) (sAcc []smodels.AccountList, err error) {
+func (s *ServiceFacade) GetAccountList(listParams smodels.AccountListParams) (sAcc []smodels.AccountList, count uint64, err error) {
+
+	count, err = s.dao.AccountsCount()
+	if err != nil {
+		return sAcc, 0, err
+	}
 
 	list, err := s.dao.GetAccountList(listParams)
 	if err != nil {
-		return sAcc, err
+		return sAcc, 0, err
 	}
 
 	for i := range list {
@@ -187,5 +192,5 @@ func (s *ServiceFacade) GetAccountList(listParams smodels.AccountListParams) (sA
 		list[i].Type = accountType
 	}
 
-	return render.AccountList(list), nil
+	return render.AccountList(list), count, nil
 }

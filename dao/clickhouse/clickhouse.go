@@ -3,14 +3,15 @@ package clickhouse
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/ClickHouse/clickhouse-go"
-	"github.com/golang-migrate/migrate/v4"
-	goclickhouse "github.com/golang-migrate/migrate/v4/database/clickhouse"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"oasisTracker/conf"
 	"oasisTracker/dao/clickhouse/client"
 	"oasisTracker/smodels"
 	"strings"
+
+	_ "github.com/ClickHouse/clickhouse-go"
+	"github.com/golang-migrate/migrate/v4"
+	goclickhouse "github.com/golang-migrate/migrate/v4/database/clickhouse"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 type Clickhouse struct {

@@ -1,14 +1,16 @@
 package api
 
 import (
-	"github.com/gorilla/mux"
-	"go.uber.org/zap"
+	"fmt"
 	"net/http"
 	"net/url"
 	"oasisTracker/common/apperrors"
 	response "oasisTracker/common/http/responce"
 	"oasisTracker/common/log"
 	"oasisTracker/smodels"
+
+	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 )
 
 func (api *API) GetAccountInfo(w http.ResponseWriter, r *http.Request) {
@@ -51,12 +53,13 @@ func (api *API) GetAccountList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accs, err := api.services.GetAccountList(params)
+	accs, count, err := api.services.GetAccountList(params)
 	if err != nil {
 		log.Error("GetAccountList api error", zap.Error(err))
 		response.JsonError(w, err)
 		return
 	}
 
+	w.Header().Set(TotalCountHeader, fmt.Sprint(count))
 	Json(w, accs)
 }

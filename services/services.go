@@ -1,24 +1,25 @@
 package services
 
 import (
-	"github.com/oasisprotocol/oasis-core/go/common/grpc"
-	"github.com/oasisprotocol/oasis-core/go/staking/api"
-	"github.com/patrickmn/go-cache"
-	grpcCommon "google.golang.org/grpc"
 	"oasisTracker/conf"
 	"oasisTracker/dao"
 	"oasisTracker/services/cmc"
 	"oasisTracker/smodels"
 	"time"
+
+	"github.com/oasisprotocol/oasis-core/go/common/grpc"
+	"github.com/oasisprotocol/oasis-core/go/staking/api"
+	"github.com/patrickmn/go-cache"
+	grpcCommon "google.golang.org/grpc"
 )
 
 type (
 	Service interface {
 		GetInfo() (smodels.Info, error)
-		GetBlockList(params smodels.BlockParams) ([]smodels.Block, error)
+		GetBlockList(params smodels.BlockParams) ([]smodels.Block, uint64, error)
 		GetTransactionsList(params smodels.TransactionsParams) ([]smodels.Transaction, error)
 		GetAccountInfo(accountID string) (smodels.Account, error)
-		GetAccountList(listParams smodels.AccountListParams) ([]smodels.AccountList, error)
+		GetAccountList(listParams smodels.AccountListParams) ([]smodels.AccountList, uint64, error)
 		GetValidatorInfo(string) (smodels.Validator, error)
 		GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, error)
 		GetPublicValidatorsSearchList() ([]smodels.ValidatorEntity, error)

@@ -1,12 +1,14 @@
 package api
 
 import (
-	"go.uber.org/zap"
+	"fmt"
 	"net/http"
 	"oasisTracker/common/apperrors"
 	response "oasisTracker/common/http/responce"
 	"oasisTracker/common/log"
 	"oasisTracker/smodels"
+
+	"go.uber.org/zap"
 )
 
 func (api *API) GetBlocksList(w http.ResponseWriter, r *http.Request) {
@@ -25,12 +27,13 @@ func (api *API) GetBlocksList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	blocks, err := api.services.GetBlockList(params)
+	blocks, count, err := api.services.GetBlockList(params)
 	if err != nil {
 		log.Error("GetBlockList api error", zap.Error(err))
 		response.JsonError(w, err)
 		return
 	}
 
+	w.Header().Set(TotalCountHeader, fmt.Sprint(count))
 	Json(w, blocks)
 }
