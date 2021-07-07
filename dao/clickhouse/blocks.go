@@ -2,10 +2,11 @@ package clickhouse
 
 import (
 	"fmt"
-	sq "github.com/wedancedalot/squirrel"
 	"log"
 	"oasisTracker/dmodels"
 	"oasisTracker/smodels"
+
+	sq "github.com/wedancedalot/squirrel"
 )
 
 func (cl Clickhouse) CreateBlocks(blocks []dmodels.Block) (err error) {
@@ -103,25 +104,7 @@ func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlo
 		Limit(params.Limit).
 		Offset(params.Offset)
 
-	if len(params.BlockLevel) > 0 {
-		q = q.Where(sq.Eq{"blk_lvl": params.BlockLevel})
-	}
-
-	if len(params.BlockID) > 0 {
-		q = q.Where(sq.Eq{"blk_hash": params.BlockID})
-	}
-
-	if len(params.Proposer) > 0 {
-		q = q.Where(sq.Eq{"blk_proposer_address": params.Proposer})
-	}
-
-	if params.From > 0 {
-		q = q.Where(sq.GtOrEq{"blk_created_at": params.From})
-	}
-
-	if params.To > 0 {
-		q = q.Where(sq.Lt{"blk_created_at": params.To})
-	}
+	q = getBlocksQueryParam(q, params)
 
 	rawSql, args, err := q.ToSql()
 	if err != nil {
@@ -134,9 +117,9 @@ func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlo
 	}
 	defer rows.Close()
 
-	for rows.Next() {
-		row := dmodels.RowBlock{}
+	row := dmodels.RowBlock{}
 
+	for rows.Next() {
 		err := rows.Scan(&row.Height, &row.CreatedAt, &row.Hash, &row.ProposerAddress, &row.ValidatorHash, &row.Epoch, &row.GasUsed, &row.Fee, &row.TxsCount, &row.SigCount)
 		if err != nil {
 			return resp, err
@@ -174,4 +157,57 @@ func (cl Clickhouse) GetLastBlock() (block dmodels.Block, err error) {
 	}
 
 	return block, nil
+}
+
+func (cl Clickhouse) BlocksCount(params smodels.BlockParams) (count uint64, err error) {
+	q := sq.Select("count()").
+		From(dmodels.BlocksTable)
+
+	q = getBlocksQueryParam(q, params)
+
+	rawSql, args, err := q.ToSql()
+	if err != nil {
+		return count, err
+	}
+
+	rows, err := cl.db.conn.Query(rawSql, args...)
+	if err != nil {
+		return count, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		err = rows.Scan(&count)
+		if err != nil {
+			return count, err
+		}
+	}
+
+	return count, nil
+}
+
+func getBlocksQueryParam(q sq.SelectBuilder, params smodels.BlockParams) sq.SelectBuilder {
+
+	if len(params.BlockLevel) > 0 {
+		q = q.Where(sq.Eq{"blk_lvl": params.BlockLevel})
+	}
+
+	if len(params.BlockID) > 0 {
+		q = q.Where(sq.Eq{"blk_hash": params.BlockID})
+	}
+
+	if len(params.Proposer) > 0 {
+		q = q.Where(sq.Eq{"blk_proposer_address": params.Proposer})
+	}
+
+	if params.From > 0 {
+		q = q.Where(sq.GtOrEq{"blk_created_at": params.From})
+	}
+
+	if params.To > 0 {
+		q = q.Where(sq.Lt{"blk_created_at": params.To})
+	}
+
+	return q
 }

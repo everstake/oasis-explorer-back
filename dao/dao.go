@@ -24,11 +24,14 @@ type (
 
 	ServiceDAO interface {
 		GetAccountList(listParams smodels.AccountListParams) (resp []dmodels.AccountList, err error)
+		AccountsCount() (count uint64, err error)
 		GetAccountTiming(accountID string) (dmodels.AccountTime, error)
 
 		GetLastBlock() (dmodels.Block, error)
+		BlocksCount(params smodels.BlockParams) (count uint64, err error)
 		GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlock, error)
 
+		GetTransactionsCount(params smodels.TransactionsParams) (uint64, error)
 		GetTransactionsList(params smodels.TransactionsParams) ([]dmodels.Transaction, error)
 
 		//Charts
@@ -48,6 +51,7 @@ type (
 		GetEntity(string) (dmodels.EntityRegistryTransaction, error)
 		GetEntityActiveDepositorsCount(accountID string) (count uint64, err error)
 
+		GetValidatorsCount(params smodels.ValidatorParams) (count uint64, err error)
 		GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.ValidatorView, err error)
 		PublicValidatorsSearchList() (resp []dmodels.ValidatorView, err error)
 		GetValidatorDayStats(string, smodels.ChartParams) (resp []dmodels.ValidatorStats, err error)

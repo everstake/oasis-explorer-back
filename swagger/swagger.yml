@@ -52,6 +52,10 @@ paths:
             items:
               $ref: '#/definitions/AccountListItem'
             type: array
+          headers:
+            X-Total-Count:
+              description: The total number of data entries.
+              type: integer
         '400':
           description: Bad request
         '404':
@@ -104,11 +108,15 @@ paths:
           minimum: 0
       responses:
         '200':
-          description: Query compatibility endpoint for account
+          description: Query compatibility endpoint for validators
           schema:
             items:
               $ref: '#/definitions/ValidatorRow'
             type: array
+          headers:
+            X-Total-Count:
+              description: The total number of data entries.
+              type: integer
         '400':
           description: Bad request
         '404':
@@ -161,7 +169,7 @@ paths:
           minimum: 0
       responses:
         '200':
-          description: Query compatibility endpoint for blocks
+          description: Query compatibility endpoint for validator account
           schema:
             items:
               $ref: '#/definitions/ValidatorRow'
@@ -200,7 +208,7 @@ paths:
           minimum: 0
       responses:
         '200':
-          description: Query compatibility endpoint for blocks
+          description: Query compatibility endpoint for validator delegators
           schema:
             items:
               $ref: '#/definitions/ValidatorDelegator'

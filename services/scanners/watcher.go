@@ -73,15 +73,14 @@ func (m *Watcher) Run() error {
 			return nil
 		case block := <-ch:
 			if !m.BlocksReSyncInit {
-				//Reduce to avoid duplicate processing
-				err = m.addBlocksReSyncTask(block.Height - 1)
+				//Interval right border not included, so process current Height in watch
+				err = m.addBlocksReSyncTask(block.Height)
 				if err != nil {
 					log.Error("AddReSyncTask error", zap.Error(err))
 					continue
 				}
 
 				m.BlocksReSyncInit = true
-				continue
 			}
 
 			err = m.parser.ParseWatchBlock(block)
@@ -97,7 +96,6 @@ func (m *Watcher) Run() error {
 			}
 		case epoch := <-epochCh:
 			if !m.EpochReSyncInit {
-				//Reduce to avoid duplicate processing
 				err = m.addEpochsReSyncTask(uint64(epoch))
 				if err != nil {
 					log.Error("AddReSyncTask error", zap.Error(err))
@@ -126,7 +124,7 @@ func (m *Watcher) Run() error {
 				Title:         parserBalancesSnapshotTask,
 				StartHeight:   uint64(epoch),
 				CurrentHeight: uint64(epoch),
-				EndHeight:     uint64(epoch),
+				EndHeight:     uint64(epoch + 1),
 				Batch:         1,
 			})
 			if err != nil {
@@ -146,7 +144,7 @@ func (m *Watcher) addBlocksReSyncTask(currentHeight int64) error {
 		return fmt.Errorf("GetLastTask error: %s", err)
 	}
 	if isFound {
-		startHeight = task.EndHeight + 1
+		startHeight = task.EndHeight
 	}
 
 	//Get last block
@@ -155,6 +153,7 @@ func (m *Watcher) addBlocksReSyncTask(currentHeight int64) error {
 		return fmt.Errorf("GetLastBlock error: %s", err)
 	}
 
+	//Last block already processed so increase by 1
 	if lastBlock.Height > startHeight {
 		startHeight = lastBlock.Height + 1
 	}
@@ -209,14 +208,12 @@ func (m *Watcher) addEpochsReSyncTask(currentEpoch uint64) error {
 			return fmt.Errorf("ReadGenesisFile error: %s", err)
 		}
 
-		startEpoch = gen.Beacon.Base
+		//Start from epoch +1
+		startEpoch = gen.Beacon.Base + 1
 	}
 
-	//Start from epoch +1
-	startEpoch++
-
-	//Already procced
-	if startEpoch >= currentEpoch {
+	//Already processed
+	if startEpoch > currentEpoch {
 		return nil
 	}
 
@@ -226,7 +223,8 @@ func (m *Watcher) addEpochsReSyncTask(currentEpoch uint64) error {
 		Title:         parserBalancesSnapshotTask,
 		StartHeight:   startEpoch,
 		CurrentHeight: startEpoch,
-		EndHeight:     currentEpoch,
+		//Current epoch presented and should be processed in
+		EndHeight: currentEpoch + 1,
 		//1 Epoch ~ 600 blocks
 		Batch: 1,
 	})

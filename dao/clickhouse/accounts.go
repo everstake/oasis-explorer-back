@@ -118,6 +118,32 @@ func (cl Clickhouse) GetTopEscrowAccounts(limit uint64) (resp []dmodels.AccountB
 	return resp, nil
 }
 
+func (cl Clickhouse) AccountsCount() (count uint64, err error) {
+	q := sq.Select("count()").
+		From(dmodels.AccountLastBalanceView)
+
+	rawSql, args, err := q.ToSql()
+	if err != nil {
+		return count, err
+	}
+
+	rows, err := cl.db.conn.Query(rawSql, args...)
+	if err != nil {
+		return count, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		err := rows.Scan(&count)
+		if err != nil {
+			return count, err
+		}
+	}
+
+	return count, nil
+}
+
 func (cl Clickhouse) GetAccountList(listParams smodels.AccountListParams) (resp []dmodels.AccountList, err error) {
 
 	q := sq.Select("*").

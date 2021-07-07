@@ -10,7 +10,7 @@ import (
 const blocksBeforeStart = 699999
 
 func (s *ServiceFacade) GetValidatorInfo(accountID string) (val smodels.Validator, err error) {
-	validators, err := s.GetValidatorList(smodels.ValidatorParams{
+	validators, _, err := s.GetValidatorList(smodels.ValidatorParams{
 		CommonParams: smodels.CommonParams{Limit: 1},
 		ValidatorID:  accountID,
 	})
@@ -36,10 +36,15 @@ func (s *ServiceFacade) GetPublicValidatorsSearchList() (list []smodels.Validato
 	return render.PublicValidatorSearch(val), nil
 }
 
-func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, error) {
+func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, uint64, error) {
+	count, err := s.dao.GetValidatorsCount(listParams)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	resp, err := s.dao.GetValidatorsList(listParams)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	for i := range resp {
@@ -54,7 +59,7 @@ func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]
 		resp[i].Status = smodels.StatusActive
 	}
 
-	return render.ValidatorsList(resp), nil
+	return render.ValidatorsList(resp), count, nil
 }
 
 func (s *ServiceFacade) GetValidatorStatsChartData(accountID string, params smodels.ChartParams) ([]smodels.ValidatorStats, error) {
