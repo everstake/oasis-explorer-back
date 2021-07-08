@@ -5,6 +5,7 @@ import (
 	"log"
 	"oasisTracker/api"
 	"oasisTracker/cli"
+	"oasisTracker/common/genesis"
 	"oasisTracker/common/modules"
 	"oasisTracker/conf"
 	"oasisTracker/dao"
@@ -44,7 +45,12 @@ func main() {
 		return
 	}
 
-	s := services.NewService(cfg, d.GetServiceDAO())
+	gen, err := genesis.ReadGenesisFile(genesis.DefaultGenesisFileName)
+	if err != nil {
+		log.Fatal("ReadGenesisFile", zap.Error(err))
+	}
+
+	s := services.NewService(cfg, d.GetServiceDAO(), gen.GenesisHeight)
 
 	a := api.NewAPI(cfg, s)
 	mds := []modules.Module{a}
@@ -53,7 +59,6 @@ func main() {
 	services.AddToCron(cron, cfg, d)
 
 	if !*parserDisableFlag {
-
 		sm := scanners.NewManager(cfg, d)
 
 		wt, err := scanners.NewWatcher(cfg, d)
