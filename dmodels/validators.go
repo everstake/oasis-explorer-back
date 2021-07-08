@@ -44,9 +44,11 @@ type ValidatorView struct {
 	EscrowBalanceShare uint64 `db:"acb_escrow_balance_share"`
 	DebondingBalance   uint64 `db:"acb_escrow_debonding_active"`
 
-	DelegationsBalance          uint64             `db:"acb_delegations_balance"`
-	DebondingDelegationsBalance uint64             `db:"acb_escrow_debonding_delegations_balance"`
-	CommissionSchedule          CommissionSchedule `db:"acb_commission_schedule"`
+	DelegationsBalance          uint64 `db:"acb_delegations_balance"`
+	DebondingDelegationsBalance uint64 `db:"acb_debonding_delegations_balance"`
+	SelfDelegationBalance       uint64 `db:"acb_self_delegation_balance"`
+
+	CommissionSchedule CommissionSchedule `db:"acb_commission_schedule"`
 
 	DepositorsNum uint64  `db:"depositors_num"`
 	IsActive      bool    `db:"is_active"`

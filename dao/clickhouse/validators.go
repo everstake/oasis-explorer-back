@@ -10,7 +10,7 @@ import (
 
 func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.ValidatorView, err error) {
 
-	q := sq.Select("reg_entity_address,reg_consensus_address,node_address,created_time,start_blk_lvl,blocks,signatures, signed_blocks, max_day_block, day_signatures, day_signed_blocks, day_blocks, acb_escrow_balance_active, acb_general_balance,acb_escrow_balance_share,acb_escrow_debonding_active, acb_delegations_balance , acb_escrow_debonding_delegations_balance, acb_commission_schedule, depositors_num, is_active, pvl_name, pvl_info").
+	q := sq.Select("reg_entity_address,reg_consensus_address,node_address,created_time,start_blk_lvl,blocks,signatures, signed_blocks, max_day_block, day_signatures, day_signed_blocks, day_blocks, acb_escrow_balance_active, acb_general_balance,acb_escrow_balance_share,acb_escrow_debonding_active, acb_delegations_balance , acb_debonding_delegations_balance, acb_self_delegation_balance, acb_commission_schedule, depositors_num, is_active, pvl_name, pvl_info").
 		From(dmodels.ValidatorsTable).
 		OrderBy("acb_escrow_balance_active desc").
 		Limit(params.Limit).
@@ -34,7 +34,7 @@ func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []d
 	row := dmodels.ValidatorView{}
 	for rows.Next() {
 
-		err = rows.Scan(&row.EntityID, &row.ConsensusAddress, &row.NodeAddress, &row.ValidateSince, &row.StartBlockLevel, &row.ProposedBlocksCount, &row.SignaturesCount, &row.SignedBlocksCount, &row.LastBlockLevel, &row.DaySignaturesCount, &row.DaySignedBlocks, &row.DayBlocksCount, &row.EscrowBalance, &row.GeneralBalance, &row.EscrowBalanceShare, &row.DebondingBalance, &row.DelegationsBalance, &row.DebondingDelegationsBalance, &row.CommissionSchedule, &row.DepositorsNum, &row.IsActive, &row.Name, &row.Info)
+		err = rows.Scan(&row.EntityID, &row.ConsensusAddress, &row.NodeAddress, &row.ValidateSince, &row.StartBlockLevel, &row.ProposedBlocksCount, &row.SignaturesCount, &row.SignedBlocksCount, &row.LastBlockLevel, &row.DaySignaturesCount, &row.DaySignedBlocks, &row.DayBlocksCount, &row.EscrowBalance, &row.GeneralBalance, &row.EscrowBalanceShare, &row.DebondingBalance, &row.DelegationsBalance, &row.DebondingDelegationsBalance, &row.SelfDelegationBalance, &row.CommissionSchedule, &row.DepositorsNum, &row.IsActive, &row.Name, &row.Info)
 		if err != nil {
 			return resp, err
 		}

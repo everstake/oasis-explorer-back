@@ -5,7 +5,8 @@ select acb_account,
        argMax(acb_escrow_balance_active, blk_lvl)   escrow_balance_active,
        argMax(acb_escrow_debonding_active, blk_lvl) escrow_debonding_active,
        argMax(acb_delegations_balance, blk_lvl) acb_delegations_balance,
-       argMax(acb_escrow_debonding_delegations_balance, blk_lvl) acb_escrow_debonding_delegations_balance
+       argMax(acb_debonding_delegations_balance, blk_lvl) acb_debonding_delegations_balance,
+       argMax(acb_self_delegation_balance, blk_lvl) acb_self_delegation_balance
 from account_balance
 group by acb_account, start_of_period;
 
