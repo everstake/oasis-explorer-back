@@ -22,14 +22,13 @@ type ValidatorParams struct {
 }
 
 type Validator struct {
-	Account            string  `json:"account_id"`
-	AccountName        string  `json:"account_name,omitempty"`
-	NodeID             string  `json:"node_id"`
-	Fee                float64 `json:"fee,omitempty"`
-	EscrowBalance      uint64  `json:"escrow_balance"`
-	EscrowBalanceShare uint64  `json:"escrow_shares"`
-	GeneralBalance     uint64  `json:"general_balance"`
-	DebondingBalance   uint64  `json:"debonding_balance"`
+	Account            string `json:"account_id"`
+	AccountName        string `json:"account_name,omitempty"`
+	NodeID             string `json:"node_id"`
+	EscrowBalance      uint64 `json:"escrow_balance"`
+	EscrowBalanceShare uint64 `json:"escrow_shares"`
+	GeneralBalance     uint64 `json:"general_balance"`
+	DebondingBalance   uint64 `json:"debonding_balance"`
 
 	DelegationsBalance          uint64 `json:"delegations_balance"`
 	DebondingDelegationsBalance uint64 `json:"debonding_balance"`
@@ -40,7 +39,7 @@ type Validator struct {
 	CreatedAt int64               `json:"validate_since"`
 	MediaInfo *ValidatorMediaInfo `json:"media_info"`
 
-	CommissionSchedule *api.CommissionSchedule `json:"commission_schedule,omitempty"`
+	CommissionSchedule api.CommissionSchedule `json:"commission_schedule,omitempty"`
 
 	ValidatorInfo
 }

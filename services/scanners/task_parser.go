@@ -641,8 +641,11 @@ func (p *ParserTask) getAccountBalance(height int64, address stakingAPI.Address)
 		EscrowDebondingActive: accInfo.Escrow.Debonding.Balance.ToBigInt().Uint64(),
 		EscrowDebondingShare:  accInfo.Escrow.Debonding.TotalShares.ToBigInt().Uint64(),
 
+		//TODO check this fields\ Probably excess
 		DelegationsBalance:          delegationsBalance,
 		DebondingDelegationsBalance: debondingDelegationsBalance,
+
+		CommissionSchedule: dmodels.CommissionSchedule{CommissionSchedule: accInfo.Escrow.CommissionSchedule},
 	}, nil
 }
 

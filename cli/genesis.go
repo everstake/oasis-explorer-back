@@ -97,6 +97,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 			EscrowDebondingShare:        balance.Escrow.Debonding.TotalShares.ToBigInt().Uint64(),
 			DelegationsBalance:          delegationsBalance,
 			DebondingDelegationsBalance: debondingDelegationsBalance,
+			CommissionSchedule:          dmodels.CommissionSchedule{CommissionSchedule: balance.Escrow.CommissionSchedule},
 		}
 
 		i++

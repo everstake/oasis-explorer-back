@@ -31,6 +31,8 @@ type AccountBalance struct {
 
 	DelegationsBalance          uint64 `db:"acb_delegations_balance"`
 	DebondingDelegationsBalance uint64 `db:"acb_escrow_debonding_delegations_balance"`
+
+	CommissionSchedule CommissionSchedule `db:"acb_commission_schedule"`
 }
 
 type AccountList struct {

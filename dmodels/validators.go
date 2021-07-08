@@ -12,11 +12,10 @@ const (
 )
 
 type PublicValidator struct {
-	EntityID      string  `db:"reg_entity_id"`
-	EntityAddress string  `db:"reg_entity_address"`
-	Name          string  `db:"pvl_name"`
-	Fee           float64 `db:"pvl_fee"`
-	Info          string  `db:"pvl_info"`
+	EntityID      string `db:"reg_entity_id"`
+	EntityAddress string `db:"reg_entity_address"`
+	Name          string `db:"pvl_name"`
+	Info          string `db:"pvl_info"`
 }
 
 type ValidatorView struct {
@@ -45,8 +44,9 @@ type ValidatorView struct {
 	EscrowBalanceShare uint64 `db:"acb_escrow_balance_share"`
 	DebondingBalance   uint64 `db:"acb_escrow_debonding_active"`
 
-	DelegationsBalance          uint64 `db:"acb_delegations_balance"`
-	DebondingDelegationsBalance uint64 `db:"acb_escrow_debonding_delegations_balance"`
+	DelegationsBalance          uint64             `db:"acb_delegations_balance"`
+	DebondingDelegationsBalance uint64             `db:"acb_escrow_debonding_delegations_balance"`
+	CommissionSchedule          CommissionSchedule `db:"acb_commission_schedule"`
 
 	DepositorsNum uint64  `db:"depositors_num"`
 	IsActive      bool    `db:"is_active"`

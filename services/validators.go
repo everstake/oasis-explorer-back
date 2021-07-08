@@ -1,13 +1,10 @@
 package services
 
 import (
-	"context"
 	"fmt"
 	"oasisTracker/common/apperrors"
 	"oasisTracker/services/render"
 	"oasisTracker/smodels"
-
-	"github.com/oasisprotocol/oasis-core/go/staking/api"
 )
 
 func (s *ServiceFacade) GetValidatorInfo(accountID string) (val smodels.Validator, err error) {
@@ -23,23 +20,6 @@ func (s *ServiceFacade) GetValidatorInfo(accountID string) (val smodels.Validato
 	if len(validators) == 0 {
 		return val, apperrors.New(apperrors.ErrNotFound, "account_id")
 	}
-
-	//TODO add global support of CommissionSchedule
-	validatorAdr := api.Address{}
-	err = validatorAdr.UnmarshalText([]byte(accountID))
-	if err != nil {
-		return val, err
-	}
-
-	acc, err := s.nodeAPI.Account(context.Background(), &api.OwnerQuery{
-		Height: 0,
-		Owner:  validatorAdr,
-	})
-	if err != nil {
-		return val, err
-	}
-
-	validators[0].CommissionSchedule = &acc.Escrow.CommissionSchedule
 
 	return validators[0], nil
 }
