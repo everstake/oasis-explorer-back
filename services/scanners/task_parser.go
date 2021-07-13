@@ -499,7 +499,7 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 			})
 		}
 
-		validatorBalance, err := getAccountBalanceFromGenesisState(currentGenesisState, height, validator)
+		validatorBalance, err := getAccountBalanceFromGenesisState(currentGenesisState, height, time, validator)
 		if err != nil {
 			return updateBalances, rewards, err
 		}
@@ -523,12 +523,10 @@ func (p *ParserTask) processDebondingDelegationsGenesisState(currentState, prevS
 			continue
 		}
 
-		accountBalance, err := getAccountBalanceFromGenesisState(currentState, height, addresses[i])
+		accountBalance, err := getAccountBalanceFromGenesisState(currentState, height, blockTime, addresses[i])
 		if err != nil {
 			return updates, err
 		}
-
-		accountBalance.Time = blockTime
 
 		updates = append(updates, accountBalance)
 	}
@@ -569,19 +567,18 @@ func (p *ParserTask) parseAccountBalances(block oasis.Block, addresses map[staki
 			continue
 		}
 
-		balance, err := p.getAccountBalance(block.Header.Height, address)
+		balance, err := p.getAccountBalance(block.Header.Height, block.Header.Time, address)
 		if err != nil {
 			return updates, err
 		}
 
-		balance.Time = block.Header.Time
 		updates = append(updates, balance)
 	}
 
 	return updates, nil
 }
 
-func (p *ParserTask) getAccountBalance(height int64, address stakingAPI.Address) (balance dmodels.AccountBalance, err error) {
+func (p *ParserTask) getAccountBalance(height int64, blockTime time.Time, address stakingAPI.Address) (balance dmodels.AccountBalance, err error) {
 
 	accInfo, err := p.stakingAPI.Account(p.ctx, &stakingAPI.OwnerQuery{
 		Height: height,
@@ -601,15 +598,15 @@ func (p *ParserTask) getAccountBalance(height int64, address stakingAPI.Address)
 		Owner:  address,
 	})
 
-	return formAccountBalance(height, address, accInfo, delegations, debondingDelegations)
+	return formAccountBalance(height, blockTime, address, accInfo, delegations, debondingDelegations)
 }
 
-func getAccountBalanceFromGenesisState(genesisState *stakingAPI.Genesis, height int64, address stakingAPI.Address) (balance dmodels.AccountBalance, err error) {
+func getAccountBalanceFromGenesisState(genesisState *stakingAPI.Genesis, height int64, time time.Time, address stakingAPI.Address) (balance dmodels.AccountBalance, err error) {
 
-	return formAccountBalance(height, address, genesisState.Ledger[address], genesisState.Delegations[address], genesisState.DebondingDelegations[address])
+	return formAccountBalance(height, time, address, genesisState.Ledger[address], genesisState.Delegations[address], genesisState.DebondingDelegations[address])
 }
 
-func formAccountBalance(height int64, address stakingAPI.Address, accInfo *stakingAPI.Account, delegations map[stakingAPI.Address]*stakingAPI.Delegation, debondingDelegations map[stakingAPI.Address][]*stakingAPI.DebondingDelegation) (balance dmodels.AccountBalance, err error) {
+func formAccountBalance(height int64, time time.Time, address stakingAPI.Address, accInfo *stakingAPI.Account, delegations map[stakingAPI.Address]*stakingAPI.Delegation, debondingDelegations map[stakingAPI.Address][]*stakingAPI.DebondingDelegation) (balance dmodels.AccountBalance, err error) {
 	if accInfo == nil {
 		return balance, fmt.Errorf("formAccountBalance accInfo is nil")
 	}
@@ -652,6 +649,7 @@ func formAccountBalance(height int64, address stakingAPI.Address, accInfo *staki
 		Height:         height,
 		Nonce:          accInfo.General.Nonce,
 		GeneralBalance: accInfo.General.Balance.ToBigInt().Uint64(),
+		Time:           time,
 
 		//Income delegations
 		EscrowBalanceActive: accInfo.Escrow.Active.Balance.ToBigInt().Uint64(),
