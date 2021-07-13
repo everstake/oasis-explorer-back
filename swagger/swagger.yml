@@ -307,6 +307,114 @@ paths:
           description: Not Found
       tags:
         - Accounts
+  '/data/accounts/{account_id}/rewards':
+    get:
+      operationId: getAccountRewards
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          type: string
+        - in: query
+          name: limit
+          type: integer
+          format: int64
+          required: true
+        - in: query
+          name: offset
+          type: integer
+          format: int64
+          required: true
+      responses:
+        '200':
+          description: Query compatibility endpoint for account rewards
+          schema:
+            items:
+              $ref: '#/definitions/AccountReward'
+            type: array
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+      tags:
+        - Accounts
+  '/data/accounts/{account_id}/rewards/stat':
+    get:
+      operationId: getAccountsRewardsStat
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Query compatibility endpoint for account reward stats
+          schema:
+            $ref: '#/definitions/AccountRewardsStat'
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+      tags:
+        - Accounts
+  '/data/validator/{account_id}/rewards':
+    get:
+      operationId: getValidatorRewards
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          type: string
+        - in: query
+          name: limit
+          type: integer
+          format: int64
+          required: true
+        - in: query
+          name: offset
+          type: integer
+          format: int64
+          required: true
+      responses:
+        '200':
+          description: Query compatibility endpoint for validator rewards
+          schema:
+            items:
+              $ref: '#/definitions/ValidatorReward'
+            type: array
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+      tags:
+        - Accounts
+  '/data/validator/{account_id}/rewards/stat':
+    get:
+      operationId: getValidatorRewardsStat
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Query compatibility endpoint for validator reward stats
+          schema:
+            $ref: '#/definitions/ValidatorRewardsStat'
+        '400':
+          description: Bad request
+        '404':
+          description: Not Found
+      tags:
+        - Accounts
   '/data/blocks':
     get:
       operationId: getBlocksList
@@ -1078,3 +1186,63 @@ definitions:
         type: string
       account_name:
         type: string
+  AccountReward:
+    properties:
+      block_level:
+        type: integer
+        format: int64
+      validator_address:
+        type: string
+      epoch:
+        type: integer
+        format: int64
+      amount:
+        type: integer
+        format: int64
+      created_at:
+        type: integer
+        format: int64
+  AccountRewardsStat:
+    properties:
+      account_id:
+        type: string
+      total_reward:
+        type: string
+      day_reward:
+        type: integer
+        format: int64
+      week_reward:
+        type: integer
+        format: int64
+      month_reward:
+        type: integer
+        format: int64
+  ValidatorReward:
+    properties:
+      block_level:
+        type: integer
+        format: int64
+      epoch:
+        type: integer
+        format: int64
+      amount:
+        type: integer
+        format: int64
+      created_at:
+        type: integer
+        format: int64
+  ValidatorRewardsStat:
+    properties:
+      entity_address:
+        type: string
+      total_reward:
+        type: string
+      day_reward:
+        type: integer
+        format: int64
+      week_reward:
+        type: integer
+        format: int64
+      month_reward:
+        type: integer
+        format: int64

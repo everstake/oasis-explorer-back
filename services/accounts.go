@@ -194,3 +194,21 @@ func (s *ServiceFacade) GetAccountList(listParams smodels.AccountListParams) (sA
 
 	return render.AccountList(list), count, nil
 }
+
+func (s *ServiceFacade) GetAccountRewards(validatorID string, params smodels.CommonParams) ([]smodels.Reward, error) {
+	rewards, err := s.dao.GetAccountRewards(validatorID, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return render.Rewards(rewards), nil
+}
+
+func (s *ServiceFacade) GetAccountRewardsStat(validatorID string) (stat smodels.RewardStat, err error) {
+	rewardsStat, err := s.dao.GetAccountRewardsStat(validatorID)
+	if err != nil {
+		return stat, err
+	}
+
+	return render.RewardStat(rewardsStat), nil
+}

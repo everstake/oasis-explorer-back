@@ -56,8 +56,12 @@ type (
 		PublicValidatorsSearchList() (resp []dmodels.ValidatorView, err error)
 		GetValidatorDayStats(string, smodels.ChartParams) (resp []dmodels.ValidatorStats, err error)
 		GetValidatorDelegators(validatorID string, params smodels.CommonParams) ([]dmodels.Delegator, error)
-		GetValidatorRewards(validatorID string, params smodels.CommonParams) ([]dmodels.Reward, error)
-		GetValidatorRewardsStat(validatorID string) (resp dmodels.RewardsStat, err error)
+
+		GetAccountRewards(validatorID string, params smodels.CommonParams) ([]dmodels.Reward, error)
+		GetAccountRewardsStat(validatorID string) (resp dmodels.RewardsStat, err error)
+
+		GetValidatorRewards(accountID string, params smodels.CommonParams) (resp []dmodels.Reward, err error)
+		GetValidatorRewardsStat(accountID string) (resp dmodels.RewardsStat, err error)
 	}
 
 	ParserDAO interface {
