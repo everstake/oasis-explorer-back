@@ -66,6 +66,10 @@ func (m *Watcher) Run() error {
 	}
 
 	for {
+
+		//Truncate after each execution
+		m.parser.Truncate()
+
 		select {
 		case <-m.ctx.Done():
 			cPub.Close()
