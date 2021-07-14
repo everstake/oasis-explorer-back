@@ -4,6 +4,7 @@ type Reward struct {
 	BlockLevel       int64  `json:"block_level"`
 	ValidatorAddress string `json:"validator_address,omitempty"`
 	Epoch            uint64 `json:"epoch"`
+	Type             string `json:"type,omitempty"`
 	Amount           uint64 `json:"amount"`
 	CreatedAt        int64  `json:"created_at"`
 }

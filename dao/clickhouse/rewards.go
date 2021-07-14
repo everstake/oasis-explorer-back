@@ -14,8 +14,8 @@ func (cl Clickhouse) CreateRewards(rewards []dmodels.Reward) error {
 		return err
 	}
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_epoch, reg_entity_address, acb_account, rwd_amount, created_at)"+
-			"VALUES (?, ?, ?, ?, ?, ?, ?)", dmodels.RewardsTable))
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_epoch, reg_entity_address, acb_account, rwd_amount, rwd_type, created_at)"+
+			"VALUES (?, ?, ?, ?, ?, ?, ?, ?)", dmodels.RewardsTable))
 	if err != nil {
 		return err
 	}
@@ -34,6 +34,7 @@ func (cl Clickhouse) CreateRewards(rewards []dmodels.Reward) error {
 			rewards[i].EntityAddress,
 			rewards[i].AccountAddress,
 			rewards[i].Amount,
+			rewards[i].Type,
 			rewards[i].CreatedAt,
 		)
 
@@ -71,7 +72,7 @@ func (cl Clickhouse) GetAccountRewards(accountID string, params smodels.CommonPa
 	for rows.Next() {
 		row := dmodels.Reward{}
 
-		err = rows.Scan(&row.BlockLevel, &row.Epoch, &row.CreatedAt, &row.Amount, &row.EntityAddress, &row.AccountAddress)
+		err = rows.Scan(&row.BlockLevel, &row.Epoch, &row.CreatedAt, &row.Amount, &row.Type, &row.EntityAddress, &row.AccountAddress)
 		if err != nil {
 			return resp, err
 		}

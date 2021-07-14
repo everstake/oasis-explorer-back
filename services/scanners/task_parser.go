@@ -473,6 +473,9 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 		actualShare := currentGenesisState.Ledger[validator].Escrow
 		prevShare := prevGenesisState.Ledger[validator].Escrow
 
+		totalCommission := quantity.NewQuantity()
+		validatorReward := quantity.NewQuantity()
+
 		for address, delegation := range delegator {
 
 			currentDelegationAmount, err := actualShare.Active.StakeForShares(&delegation.Shares)
@@ -489,16 +492,50 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 			rewardsAmount := currentDelegationAmount.Clone()
 			rewardsAmount.Sub(prevDelegationAmount)
 
+			//Calc commission
+			com := rewardsAmount.Clone()
+
+			// Multiply first.
+			com.Mul(actualShare.CommissionSchedule.CurrentRate(beaconAPI.EpochTime(epoch)))
+			com.Quo(stakingAPI.CommissionRateDenominator)
+
+			totalCommission.Add(com)
+			if address.Equal(validator) {
+				validatorReward = rewardsAmount.Clone()
+				continue
+			}
+
 			rewards = append(rewards, dmodels.Reward{
 				AccountAddress: address.String(),
 				EntityAddress:  validator.String(),
 				BlockLevel:     height,
 				Epoch:          epoch,
-
-				Amount:    rewardsAmount.ToBigInt().Uint64(),
-				CreatedAt: time,
+				Type:           dmodels.DelegatorReward,
+				Amount:         rewardsAmount.ToBigInt().Uint64(),
+				CreatedAt:      time,
 			})
 		}
+
+		//Add separate validator and validator self reward
+		//Sub total fee
+		validatorReward.Sub(totalCommission)
+		rewards = append(rewards, dmodels.Reward{
+			AccountAddress: validator.String(),
+			EntityAddress:  validator.String(),
+			BlockLevel:     height,
+			Epoch:          epoch,
+			Type:           dmodels.DelegatorReward,
+			Amount:         validatorReward.ToBigInt().Uint64(),
+			CreatedAt:      time,
+		}, dmodels.Reward{
+			AccountAddress: validator.String(),
+			EntityAddress:  validator.String(),
+			BlockLevel:     height,
+			Epoch:          epoch,
+			Type:           dmodels.ValidatorFee,
+			Amount:         totalCommission.ToBigInt().Uint64(),
+			CreatedAt:      time,
+		})
 
 		validatorBalance, err := getAccountBalanceFromGenesisState(currentGenesisState, height, time, validator)
 		if err != nil {

@@ -3,11 +3,12 @@ CREATE TABLE IF NOT EXISTS rewards (
     blk_epoch UInt64,
     created_at DateTime,
     rwd_amount UInt64,
+    rwd_type String,
     reg_entity_address  FixedString(46),
     acb_account  FixedString(46)
 ) ENGINE ReplacingMergeTree()
 PARTITION BY toYYYYMMDD(created_at)
-ORDER BY (acb_account, reg_entity_address, blk_lvl);
+ORDER BY (acb_account, reg_entity_address, blk_lvl, rwd_type);
 
 -- TODO rework
 CREATE VIEW IF NOT EXISTS validator_rewards_stat_view AS

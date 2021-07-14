@@ -20,6 +20,7 @@ func Reward(r dmodels.Reward) smodels.Reward {
 		BlockLevel:       r.BlockLevel,
 		ValidatorAddress: r.EntityAddress,
 		Amount:           r.Amount,
+		Type:             string(r.Type),
 		CreatedAt:        r.CreatedAt.Unix(),
 	}
 }

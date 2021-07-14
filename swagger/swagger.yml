@@ -1199,6 +1199,8 @@ definitions:
       amount:
         type: integer
         format: int64
+      type:
+        type: string
       created_at:
         type: integer
         format: int64
