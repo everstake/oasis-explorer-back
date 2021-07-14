@@ -113,7 +113,7 @@ func (cl Clickhouse) GetValidatorRewards(accountID string, params smodels.Common
 		From(dmodels.RewardsTable).
 		Where(sq.Eq{"reg_entity_address": accountID}).
 		GroupBy("reg_entity_address, blk_epoch").
-		OrderBy("blk_lvl desc").
+		OrderBy("blk_epoch desc").
 		Limit(params.Limit).
 		Offset(params.Offset)
 

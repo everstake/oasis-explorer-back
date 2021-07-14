@@ -115,7 +115,7 @@ func (s *ServiceFacade) GetValidatorBlocks(validatorID string, params smodels.Co
 }
 
 func (s *ServiceFacade) GetValidatorRewards(validatorID string, params smodels.CommonParams) ([]smodels.Reward, error) {
-	rewards, err := s.dao.GetAccountRewards(validatorID, params)
+	rewards, err := s.dao.GetValidatorRewards(validatorID, params)
 	if err != nil {
 		return nil, err
 	}

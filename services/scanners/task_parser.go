@@ -480,7 +480,8 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 				return updateBalances, rewards, err
 			}
 
-			prevDelegationAmount, err := prevShare.Active.StakeForShares(&delegation.Shares)
+			//Use prev delegation share
+			prevDelegationAmount, err := prevShare.Active.StakeForShares(&prevGenesisState.Delegations[validator][address].Shares)
 			if err != nil {
 				return updateBalances, rewards, err
 			}
