@@ -31,7 +31,8 @@ type Validator struct {
 	DebondingBalance   uint64 `json:"debonding_balance"`
 
 	DelegationsBalance          uint64 `json:"delegations_balance"`
-	DebondingDelegationsBalance uint64 `json:"debonding_balance"`
+	DebondingDelegationsBalance uint64 `json:"debonding_delegations_balance"`
+	SelfDelegationBalance       uint64 `json:"self_delegation_balance"`
 
 	DayUptime   float64 `json:"day_uptime"`
 	TotalUptime float64 `json:"total_uptime"`
