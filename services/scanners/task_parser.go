@@ -483,8 +483,14 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 				return updateBalances, rewards, err
 			}
 
+			prevDelegation := prevGenesisState.Delegations[validator][address]
+			//Prev delegation missed, so delegation appeared only in epoch block, and rewards will be in next epoch
+			if prevDelegation == nil {
+				continue
+			}
+
 			//Use prev delegation share
-			prevDelegationAmount, err := prevShare.Active.StakeForShares(&prevGenesisState.Delegations[validator][address].Shares)
+			prevDelegationAmount, err := prevShare.Active.StakeForShares(&prevDelegation.Shares)
 			if err != nil {
 				return updateBalances, rewards, err
 			}
