@@ -109,6 +109,7 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 
 		DelegationsBalance:          delegationsBalance,
 		DebondingDelegationsBalance: debondingDelegationsBalance,
+		SelfDelegationBalance:       selfdelegation,
 		TotalBalance:                liquidBalance + (escrowBalance - selfdelegation) + delegationsBalance + debondingDelegationsBalance,
 		Type:                        accType,
 		Nonce:                       &acc.General.Nonce,

@@ -26,6 +26,7 @@ func AccountListElement(a dmodels.AccountList) smodels.AccountList {
 		EscrowBalanceShare:          a.EscrowBalanceShare,
 		DelegationsBalance:          a.DelegationsBalance,
 		DebondingDelegationsBalance: a.DebondingDelegationsBalance,
+		SelfDelegationBalance:       a.SelfDelegationBalance,
 		Delegate:                    strings.Trim(a.Delegate, "\u0000"),
 		Type:                        a.Type,
 	}

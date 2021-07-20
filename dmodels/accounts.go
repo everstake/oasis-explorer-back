@@ -47,6 +47,7 @@ type AccountList struct {
 	EscrowBalanceShare          uint64    `db:"escrow_balance_share"`
 	DelegationsBalance          uint64    `db:"delegations_balance"`
 	DebondingDelegationsBalance uint64    `db:"debonding_delegations_balance"`
+	SelfDelegationBalance       uint64    `db:"self_delegation_balance"`
 
 	Delegate            string `db:"delegate"`
 	EntityRegisterBlock uint64 `db:"entity"`

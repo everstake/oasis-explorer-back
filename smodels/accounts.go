@@ -76,17 +76,20 @@ type AccountListParams struct {
 }
 
 type AccountList struct {
-	Account                     string `json:"account_id"`
-	CreatedAt                   int64  `json:"created_at"`
-	OperationsAmount            uint64 `json:"operations_amount"`
-	OperationsNumber            uint64 `json:"operations_number"`
-	GeneralBalance              uint64 `json:"general_balance"`
-	EscrowBalance               uint64 `json:"escrow_balance"`
-	EscrowBalanceShare          uint64 `json:"escrow_balance_share"`
+	Account            string `json:"account_id"`
+	CreatedAt          int64  `json:"created_at"`
+	OperationsAmount   uint64 `json:"operations_amount"`
+	OperationsNumber   uint64 `json:"operations_number"`
+	GeneralBalance     uint64 `json:"general_balance"`
+	EscrowBalance      uint64 `json:"escrow_balance"`
+	EscrowBalanceShare uint64 `json:"escrow_balance_share"`
+
 	DelegationsBalance          uint64 `json:"delegations_balance"`
 	DebondingDelegationsBalance uint64 `json:"debonding_delegations_balance"`
-	Delegate                    string `json:"delegate"`
-	Type                        string `json:"type"`
+	SelfDelegationBalance       uint64 `json:"self_delegation_balance"`
+
+	Delegate string `json:"delegate"`
+	Type     string `json:"type"`
 }
 
 type Account struct {
@@ -97,6 +100,7 @@ type Account struct {
 
 	DelegationsBalance          uint64 `json:"delegations_balance"`
 	DebondingDelegationsBalance uint64 `json:"debonding_delegations_balance"`
+	SelfDelegationBalance       uint64 `json:"self_delegation_balance"`
 
 	TotalBalance uint64    `json:"total_balance"`
 	CreatedAt    time.Time `json:"created_at"`
