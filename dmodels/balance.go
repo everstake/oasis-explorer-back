@@ -46,10 +46,14 @@ func (c *CommissionSchedule) Scan(value interface{}) (err error) {
 		return nil
 	}
 
-	err = json.Unmarshal(data, c)
+	s := CommissionSchedule{}
+
+	err = json.Unmarshal(data, &s)
 	if err != nil {
 		return fmt.Errorf("json.Unmarshal: %s", err.Error())
 	}
+
+	*c = s
 
 	return nil
 }

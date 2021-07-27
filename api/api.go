@@ -4,11 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/gorilla/schema"
-	"github.com/rs/cors"
-	"github.com/urfave/negroni"
-	"go.uber.org/zap"
 	"io/ioutil"
 	"net/http"
 	"oasisTracker/common/apperrors"
@@ -16,6 +11,12 @@ import (
 	"oasisTracker/conf"
 	"oasisTracker/services"
 	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/gorilla/schema"
+	"github.com/rs/cors"
+	"github.com/urfave/negroni"
+	"go.uber.org/zap"
 )
 
 const (
@@ -96,6 +97,9 @@ func (api *API) initialize(handlerArr ...negroni.Handler) {
 		{Path: "/data/info", Method: http.MethodGet, Func: api.GetInfo},
 		{Path: "/data/accounts", Method: http.MethodGet, Func: api.GetAccountList},
 		{Path: "/data/accounts/{account_id}", Method: http.MethodGet, Func: api.GetAccountInfo},
+		{Path: "/data/accounts/{account_id}/rewards", Method: http.MethodGet, Func: api.GetAccountRewards},
+		{Path: "/data/accounts/{account_id}/rewards/stat", Method: http.MethodGet, Func: api.GetAccountRewardsStat},
+
 		{Path: "/data/validators", Method: http.MethodGet, Func: api.GetValidatorsList},
 		{Path: "/data/validators/search", Method: http.MethodGet, Func: api.GetPublicValidatorsSearchList},
 		{Path: "/data/validator/{account_id}", Method: http.MethodGet, Func: api.GetValidatorInfo},

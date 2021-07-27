@@ -6,13 +6,23 @@ import (
 )
 
 type BlockSignatureContainer struct {
-	signs []dmodels.BlockSignature
-	mu    *sync.Mutex
+	signs       []dmodels.BlockSignature
+	mu          *sync.Mutex
+	expectedCap uint64
 }
 
-func NewBlockSignatureContainer() *BlockSignatureContainer {
+func NewBlockSignatureContainer(cap ...uint64) *BlockSignatureContainer {
+	var signs []dmodels.BlockSignature
+	var expectedCap uint64
+	if len(cap) == 1 {
+		signs = make([]dmodels.BlockSignature, 0, cap[0])
+		expectedCap = cap[0]
+	}
+
 	return &BlockSignatureContainer{
-		mu: &sync.Mutex{},
+		mu:          &sync.Mutex{},
+		signs:       signs,
+		expectedCap: expectedCap,
 	}
 }
 
@@ -31,5 +41,5 @@ func (c BlockSignatureContainer) IsEmpty() bool {
 }
 
 func (c *BlockSignatureContainer) Flush() {
-	c.signs = []dmodels.BlockSignature{}
+	c.signs = make([]dmodels.BlockSignature, 0, c.expectedCap)
 }

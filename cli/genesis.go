@@ -76,7 +76,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 		var selfDelegationBalance uint64
 		for delegator, balance := range delegations {
 
-			if delegator == accountAddress.String() {
+			if delegator.Equal(accountAddress) {
 				selfDelegationBalance += balance.Shares.ToBigInt().Uint64()
 			}
 
@@ -140,7 +140,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 				Type:                dmodels.TransactionTypeAddEscrow,
 				Status:              true,
 				Error:               "",
-				Sender:              senderAddress,
+				Sender:              senderAddress.String(),
 				Receiver:            receiverAddress.String(),
 				Nonce:               0,
 				Fee:                 0,
@@ -176,7 +176,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 					EscrowReclaimAmount: escrowReclaimAmount.ToBigInt().Uint64(),
 					Receiver:            validator.String(),
 					Type:                dmodels.TransactionTypeReclaimEscrow,
-					Sender:              unstaker,
+					Sender:              unstaker.String(),
 					Nonce:               0,
 					Fee:                 0,
 					GasLimit:            0,

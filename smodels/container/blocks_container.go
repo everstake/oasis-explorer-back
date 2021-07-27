@@ -6,13 +6,24 @@ import (
 )
 
 type BlocksContainer struct {
-	blocks []dmodels.Block
-	mu     *sync.Mutex
+	blocks      []dmodels.Block
+	mu          *sync.Mutex
+	expectedCap uint64
 }
 
-func NewBlocksContainer() *BlocksContainer {
+func NewBlocksContainer(cap ...uint64) *BlocksContainer {
+	var blocks []dmodels.Block
+	var expectedCap uint64
+
+	if len(cap) == 1 {
+		blocks = make([]dmodels.Block, 0, cap[0])
+		expectedCap = cap[0]
+	}
+
 	return &BlocksContainer{
-		mu: &sync.Mutex{},
+		mu:          &sync.Mutex{},
+		blocks:      blocks,
+		expectedCap: expectedCap,
 	}
 }
 
@@ -34,5 +45,5 @@ func (c *BlocksContainer) IsEmpty() bool {
 }
 
 func (c *BlocksContainer) Flush() {
-	c.blocks = []dmodels.Block{}
+	c.blocks = make([]dmodels.Block, 0, c.expectedCap)
 }

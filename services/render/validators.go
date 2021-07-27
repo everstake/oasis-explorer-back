@@ -26,10 +26,12 @@ func Validator(a dmodels.ValidatorView) smodels.Validator {
 		DebondingBalance:            a.DebondingBalance,
 		DelegationsBalance:          a.DelegationsBalance,
 		DebondingDelegationsBalance: a.DebondingDelegationsBalance,
-		DayUptime:                   a.DayUptime,
-		TotalUptime:                 a.TotalUptime,
-		CreatedAt:                   a.ValidateSince.Unix(),
-		MediaInfo:                   ValidatorMediaInfo(a.Info),
+		SelfDelegationBalance:       a.SelfDelegationBalance,
+
+		DayUptime:   a.DayUptime,
+		TotalUptime: a.TotalUptime,
+		CreatedAt:   a.ValidateSince.Unix(),
+		MediaInfo:   ValidatorMediaInfo(a.Info),
 		ValidatorInfo: smodels.ValidatorInfo{
 			Status:          a.Status,
 			DepositorsCount: a.DepositorsNum,

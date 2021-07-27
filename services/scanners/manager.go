@@ -73,7 +73,7 @@ func (m *Manager) Run() error {
 
 				scanner, err := NewScanner(m.cfg.Scanner, task, m.dao, m.ctx)
 				if err != nil {
-					return fmt.Errorf("NewScanner (%s): %s", task.Title, err.Error())
+					return fmt.Errorf("NewScanner (%s) height (%d): %s", task.Title, task.StartHeight, err.Error())
 				}
 
 				go func() {
