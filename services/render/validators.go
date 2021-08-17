@@ -20,23 +20,25 @@ func Validator(a dmodels.ValidatorView) smodels.Validator {
 		Account:                     a.EntityID,
 		AccountName:                 a.Name,
 		NodeID:                      a.NodeAddress,
-		Fee:                         a.Fee,
 		GeneralBalance:              a.GeneralBalance,
 		EscrowBalance:               a.EscrowBalance,
 		EscrowBalanceShare:          a.EscrowBalanceShare,
 		DebondingBalance:            a.DebondingBalance,
 		DelegationsBalance:          a.DelegationsBalance,
 		DebondingDelegationsBalance: a.DebondingDelegationsBalance,
-		DayUptime:                   a.DayUptime,
-		TotalUptime:                 a.TotalUptime,
-		CreatedAt:                   a.ValidateSince.Unix(),
-		MediaInfo:                   ValidatorMediaInfo(a.Info),
+		SelfDelegationBalance:       a.SelfDelegationBalance,
+
+		DayUptime:   a.DayUptime,
+		TotalUptime: a.TotalUptime,
+		CreatedAt:   a.ValidateSince.Unix(),
+		MediaInfo:   ValidatorMediaInfo(a.Info),
 		ValidatorInfo: smodels.ValidatorInfo{
 			Status:          a.Status,
 			DepositorsCount: a.DepositorsNum,
 			BlocksCount:     a.ProposedBlocksCount,
 			SignaturesCount: a.SignaturesCount,
 		},
+		CommissionSchedule: a.CommissionSchedule.CommissionSchedule,
 	}
 }
 

@@ -30,7 +30,11 @@ type AccountBalance struct {
 	EscrowDebondingShare  uint64    `db:"acb_escrow_debonding_share"`
 
 	DelegationsBalance          uint64 `db:"acb_delegations_balance"`
-	DebondingDelegationsBalance uint64 `db:"acb_escrow_debonding_delegations_balance"`
+	DebondingDelegationsBalance uint64 `db:"acb_debonding_delegations_balance"`
+
+	SelfDelegationBalance uint64 `db:"acb_self_delegation_balance"`
+
+	CommissionSchedule CommissionSchedule `db:"acb_commission_schedule"`
 }
 
 type AccountList struct {
@@ -43,6 +47,7 @@ type AccountList struct {
 	EscrowBalanceShare          uint64    `db:"escrow_balance_share"`
 	DelegationsBalance          uint64    `db:"delegations_balance"`
 	DebondingDelegationsBalance uint64    `db:"debonding_delegations_balance"`
+	SelfDelegationBalance       uint64    `db:"self_delegation_balance"`
 
 	Delegate            string `db:"delegate"`
 	EntityRegisterBlock uint64 `db:"entity"`

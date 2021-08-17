@@ -10,7 +10,10 @@ import (
 )
 
 func (cl Clickhouse) CreateBlocks(blocks []dmodels.Block) (err error) {
-	log.Print("Len: ", len(blocks))
+	log.Print("Len blocks: ", len(blocks))
+	if len(blocks) == 0 {
+		return nil
+	}
 
 	tx, err := cl.db.conn.Begin()
 	if err != nil {

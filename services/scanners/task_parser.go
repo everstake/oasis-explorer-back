@@ -9,6 +9,9 @@ import (
 	"oasisTracker/dmodels/oasis"
 	"reflect"
 	"runtime"
+	"time"
+
+	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 
 	oasisAddress "github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 
@@ -107,7 +110,7 @@ func (p *ParserTask) parseOasisBase(blockData *consensusAPI.Block, parseFlag Par
 
 	if (parseFlag & balanceSnapshotFlag) != 0 {
 		pipes = append(pipes, []func(data oasis.Block) error{
-			p.epochBalanceSnapshot,
+			p.epochBalanceSnapshotGenesisState,
 		}...)
 	}
 
@@ -417,7 +420,7 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 	return nil
 }
 
-func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
+func (p *ParserTask) epochBalanceSnapshotGenesisState(block oasis.Block) error {
 
 	epoch, err := p.beaconAPI.GetEpoch(p.ctx, block.Header.Height)
 	if err != nil {
@@ -434,53 +437,22 @@ func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
 		return nil
 	}
 
-	entities, err := p.registryAPI.GetEntities(p.ctx, block.Header.Height)
+	newEpochGenesis, err := p.stakingAPI.StateToGenesis(p.ctx, block.Header.Height)
 	if err != nil {
 		return err
 	}
 
-	if len(entities) == 0 {
-		return nil
+	prevEpochGenesis, err := p.stakingAPI.StateToGenesis(p.ctx, block.Header.Height-1)
+	if err != nil {
+		return err
 	}
 
-	updates := make([]dmodels.AccountBalance, 0, len(entities))
-	rewards := make([]dmodels.Reward, 0, len(entities))
-	var rewardsAmount uint64
-
-	var entityAddress stakingAPI.Address
-	for i := range entities {
-
-		entityAddress = stakingAPI.NewAddress(entities[i].ID)
-
-		balance, err := p.getAccountBalance(block.Header.Height, entityAddress)
-		if err != nil {
-			return err
-		}
-
-		balance.Time = block.Header.Time
-		updates = append(updates, balance)
-
-		prevBalance, err := p.getAccountBalance(block.Header.Height-1, entityAddress)
-		if err != nil {
-			return err
-		}
-
-		//Todo check txs
-		rewardsAmount = (balance.EscrowBalanceActive - prevBalance.EscrowBalanceActive) + (balance.GeneralBalance - prevBalance.GeneralBalance)
-
-		if rewardsAmount > 0 {
-			rewards = append(rewards, dmodels.Reward{
-				EntityAddress: entityAddress.String(),
-				BlockLevel:    block.Header.Height,
-				Epoch:         uint64(epoch),
-
-				Amount:    rewardsAmount,
-				CreatedAt: block.Header.Time,
-			})
-		}
+	updates, rewards, err := processEpochRewards(block.Header.Height, uint64(epoch), block.Header.Time, newEpochGenesis, prevEpochGenesis)
+	if err != nil {
+		return err
 	}
 
-	debondingUpdates, err := p.processDebondingDelegations(block)
+	debondingUpdates, err := p.processDebondingDelegationsGenesisState(newEpochGenesis, prevEpochGenesis, block.Header.Height, block.Header.Time)
 	if err != nil {
 		return err
 	}
@@ -493,42 +465,112 @@ func (p *ParserTask) epochBalanceSnapshot(block oasis.Block) error {
 	return nil
 }
 
-func (p *ParserTask) processDebondingDelegations(block oasis.Block) (updates []dmodels.AccountBalance, err error) {
-	//Save undelegations
-	addresses, err := p.stakingAPI.Addresses(context.Background(), block.Header.Height)
+func processEpochRewards(height int64, epoch uint64, time time.Time, currentGenesisState, prevGenesisState *stakingAPI.Genesis) (updateBalances []dmodels.AccountBalance, rewards []dmodels.Reward, err error) {
+
+	updateBalances = make([]dmodels.AccountBalance, 0, len(currentGenesisState.Delegations))
+
+	for validator, delegator := range currentGenesisState.Delegations {
+		actualShare := currentGenesisState.Ledger[validator].Escrow
+		prevShare := prevGenesisState.Ledger[validator].Escrow
+
+		totalCommission := quantity.NewQuantity()
+		validatorReward := quantity.NewQuantity()
+
+		for address, delegation := range delegator {
+
+			currentDelegationAmount, err := actualShare.Active.StakeForShares(&delegation.Shares)
+			if err != nil {
+				return updateBalances, rewards, err
+			}
+
+			prevDelegation := prevGenesisState.Delegations[validator][address]
+			//Prev delegation missed, so delegation appeared only in epoch block, and rewards will be in next epoch
+			if prevDelegation == nil {
+				continue
+			}
+
+			//Use prev delegation share
+			prevDelegationAmount, err := prevShare.Active.StakeForShares(&prevDelegation.Shares)
+			if err != nil {
+				return updateBalances, rewards, err
+			}
+
+			rewardsAmount := currentDelegationAmount.Clone()
+			rewardsAmount.Sub(prevDelegationAmount)
+
+			//Calc commission
+			com := rewardsAmount.Clone()
+
+			// Multiply first.
+			com.Mul(actualShare.CommissionSchedule.CurrentRate(beaconAPI.EpochTime(epoch)))
+			com.Quo(stakingAPI.CommissionRateDenominator)
+
+			totalCommission.Add(com)
+			if address.Equal(validator) {
+				validatorReward = rewardsAmount.Clone()
+				continue
+			}
+
+			rewards = append(rewards, dmodels.Reward{
+				AccountAddress: address.String(),
+				EntityAddress:  validator.String(),
+				BlockLevel:     height,
+				Epoch:          epoch,
+				Type:           dmodels.DelegatorReward,
+				Amount:         rewardsAmount.ToBigInt().Uint64(),
+				CreatedAt:      time,
+			})
+		}
+
+		//Add separate validator and validator self reward
+		//Sub total fee
+		validatorReward.Sub(totalCommission)
+		rewards = append(rewards, dmodels.Reward{
+			AccountAddress: validator.String(),
+			EntityAddress:  validator.String(),
+			BlockLevel:     height,
+			Epoch:          epoch,
+			Type:           dmodels.DelegatorReward,
+			Amount:         validatorReward.ToBigInt().Uint64(),
+			CreatedAt:      time,
+		}, dmodels.Reward{
+			AccountAddress: validator.String(),
+			EntityAddress:  validator.String(),
+			BlockLevel:     height,
+			Epoch:          epoch,
+			Type:           dmodels.ValidatorFee,
+			Amount:         totalCommission.ToBigInt().Uint64(),
+			CreatedAt:      time,
+		})
+
+		validatorBalance, err := getAccountBalanceFromGenesisState(currentGenesisState, height, time, validator)
+		if err != nil {
+			return updateBalances, rewards, err
+		}
+
+		updateBalances = append(updateBalances, validatorBalance)
+	}
+
+	return updateBalances, rewards, nil
+}
+
+func (p *ParserTask) processDebondingDelegationsGenesisState(currentState, prevState *stakingAPI.Genesis, height int64, blockTime time.Time) (updates []dmodels.AccountBalance, err error) {
+	addresses, err := p.stakingAPI.Addresses(context.Background(), height)
 	if err != nil {
 		return updates, err
 	}
 
-	for _, address := range addresses {
-
-		debondingDelegations, err := p.stakingAPI.DebondingDelegationsFor(p.ctx, &stakingAPI.OwnerQuery{
-			Height: block.Header.Height,
-			Owner:  address,
-		})
-		if err != nil {
-			return updates, err
-		}
-
-		previousDebondingDelegations, err := p.stakingAPI.DebondingDelegationsFor(p.ctx, &stakingAPI.OwnerQuery{
-			Height: block.Header.Height - 1,
-			Owner:  address,
-		})
-		if err != nil {
-			return updates, err
-		}
+	for i := range addresses {
 
 		//Equal so skip
-		if compareDebondingDelegations(debondingDelegations, previousDebondingDelegations) {
+		if compareDebondingDelegations(currentState.DebondingDelegations[addresses[i]], prevState.DebondingDelegations[addresses[i]]) {
 			continue
 		}
 
-		accountBalance, err := p.getAccountBalance(block.Header.Height, address)
+		accountBalance, err := getAccountBalanceFromGenesisState(currentState, height, blockTime, addresses[i])
 		if err != nil {
 			return updates, err
 		}
-
-		accountBalance.Time = block.Header.Time
 
 		updates = append(updates, accountBalance)
 	}
@@ -569,19 +611,18 @@ func (p *ParserTask) parseAccountBalances(block oasis.Block, addresses map[staki
 			continue
 		}
 
-		balance, err := p.getAccountBalance(block.Header.Height, address)
+		balance, err := p.getAccountBalance(block.Header.Height, block.Header.Time, address)
 		if err != nil {
 			return updates, err
 		}
 
-		balance.Time = block.Header.Time
 		updates = append(updates, balance)
 	}
 
 	return updates, nil
 }
 
-func (p *ParserTask) getAccountBalance(height int64, address stakingAPI.Address) (balance dmodels.AccountBalance, err error) {
+func (p *ParserTask) getAccountBalance(height int64, blockTime time.Time, address stakingAPI.Address) (balance dmodels.AccountBalance, err error) {
 
 	accInfo, err := p.stakingAPI.Account(p.ctx, &stakingAPI.OwnerQuery{
 		Height: height,
@@ -591,33 +632,53 @@ func (p *ParserTask) getAccountBalance(height int64, address stakingAPI.Address)
 		return balance, err
 	}
 
-	delegations, err := p.stakingAPI.DelegationInfosFor(p.ctx, &stakingAPI.OwnerQuery{
+	delegations, err := p.stakingAPI.DelegationsFor(p.ctx, &stakingAPI.OwnerQuery{
 		Height: height,
 		Owner:  address,
 	})
 
-	var delegationsBalance uint64
-	for _, delegation := range delegations {
+	debondingDelegations, err := p.stakingAPI.DebondingDelegationsFor(p.ctx, &stakingAPI.OwnerQuery{
+		Height: height,
+		Owner:  address,
+	})
 
-		stakeBalance, err := delegation.Pool.StakeForShares(&delegation.Shares)
+	return formAccountBalance(height, blockTime, address, accInfo, delegations, debondingDelegations)
+}
+
+func getAccountBalanceFromGenesisState(genesisState *stakingAPI.Genesis, height int64, time time.Time, address stakingAPI.Address) (balance dmodels.AccountBalance, err error) {
+
+	return formAccountBalance(height, time, address, genesisState.Ledger[address], genesisState.Delegations[address], genesisState.DebondingDelegations[address])
+}
+
+func formAccountBalance(height int64, time time.Time, address stakingAPI.Address, accInfo *stakingAPI.Account, delegations map[stakingAPI.Address]*stakingAPI.Delegation, debondingDelegations map[stakingAPI.Address][]*stakingAPI.DebondingDelegation) (balance dmodels.AccountBalance, err error) {
+	if accInfo == nil {
+		return balance, fmt.Errorf("formAccountBalance accInfo is nil")
+	}
+	var delegationsBalance uint64
+	var selfDelegationBalance uint64
+	var stakeBalance *quantity.Quantity
+
+	for delegator, delegation := range delegations {
+
+		stakeBalance, err = accInfo.Escrow.Active.StakeForShares(&delegation.Shares)
 		if err != nil {
 			log.Error("Somehow delegations rpc values is wrong", zap.Error(err))
 			continue
 		}
 
+		if delegator.Equal(address) {
+			selfDelegationBalance += stakeBalance.ToBigInt().Uint64()
+		}
+
 		delegationsBalance += stakeBalance.ToBigInt().Uint64()
 	}
 
-	debondingDelegations, err := p.stakingAPI.DebondingDelegationInfosFor(p.ctx, &stakingAPI.OwnerQuery{
-		Height: height,
-		Owner:  address,
-	})
-
 	var debondingDelegationsBalance uint64
+	var debondingBalance *quantity.Quantity
+
 	for _, debDelegationList := range debondingDelegations {
 		for _, debDelegation := range debDelegationList {
-
-			debondingBalance, err := debDelegation.Pool.StakeForShares(&debDelegation.Shares)
+			debondingBalance, err = accInfo.Escrow.Debonding.StakeForShares(&debDelegation.Shares)
 			if err != nil {
 				log.Error("Somehow debonding rpc values is wrong", zap.Error(err))
 				continue
@@ -627,22 +688,27 @@ func (p *ParserTask) getAccountBalance(height int64, address stakingAPI.Address)
 		}
 	}
 
-	//TODO handle selfstake
-
 	return dmodels.AccountBalance{
 		Account:        address.String(),
 		Height:         height,
 		Nonce:          accInfo.General.Nonce,
 		GeneralBalance: accInfo.General.Balance.ToBigInt().Uint64(),
+		Time:           time,
 
+		//Income delegations
 		EscrowBalanceActive: accInfo.Escrow.Active.Balance.ToBigInt().Uint64(),
 		EscrowBalanceShare:  accInfo.Escrow.Active.TotalShares.ToBigInt().Uint64(),
 
 		EscrowDebondingActive: accInfo.Escrow.Debonding.Balance.ToBigInt().Uint64(),
 		EscrowDebondingShare:  accInfo.Escrow.Debonding.TotalShares.ToBigInt().Uint64(),
 
+		//Outcome delegations
 		DelegationsBalance:          delegationsBalance,
 		DebondingDelegationsBalance: debondingDelegationsBalance,
+
+		SelfDelegationBalance: selfDelegationBalance,
+
+		CommissionSchedule: dmodels.CommissionSchedule{CommissionSchedule: accInfo.Escrow.CommissionSchedule},
 	}, nil
 }
 

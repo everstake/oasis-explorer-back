@@ -3,15 +3,16 @@ package scanners
 import (
 	"context"
 	"fmt"
-	"github.com/oasisprotocol/oasis-core/go/common/grpc"
-	"go.uber.org/zap"
-	grpcCommon "google.golang.org/grpc"
 	"oasisTracker/common/log"
 	"oasisTracker/conf"
 	"oasisTracker/dao"
 	"oasisTracker/dmodels"
 	"oasisTracker/smodels"
 	"time"
+
+	"github.com/oasisprotocol/oasis-core/go/common/grpc"
+	"go.uber.org/zap"
+	grpcCommon "google.golang.org/grpc"
 )
 
 const repeatPause = time.Second * 5
@@ -72,6 +73,8 @@ func (s *Scanner) Run() {
 		case <-s.ctx.Done():
 			return
 		default:
+			//Truncate previous executor after each round
+			s.executor.Truncate()
 		}
 
 		log.Debug("Start scanner ", zap.String("task_name", s.task.Title), zap.Uint64("task_current", s.task.CurrentHeight))
@@ -114,7 +117,7 @@ func (s *Scanner) Run() {
 		tm = time.Now()
 		err = s.executor.Save()
 		if err != nil {
-			log.Error("Scanner Save", zap.Error(err), zap.String("task", s.task.Title))
+			log.Error("Scanner Save", zap.Error(err), zap.String("task", s.task.Title), zap.Uint64("task_height", s.task.CurrentHeight))
 			<-time.After(repeatPause)
 			continue
 		}

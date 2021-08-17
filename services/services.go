@@ -20,6 +20,9 @@ type (
 		GetTransactionsList(params smodels.TransactionsParams) ([]smodels.Transaction, uint64, error)
 		GetAccountInfo(accountID string) (smodels.Account, error)
 		GetAccountList(listParams smodels.AccountListParams) ([]smodels.AccountList, uint64, error)
+		GetAccountRewards(accountID string, params smodels.CommonParams) ([]smodels.Reward, error)
+		GetAccountRewardsStat(validatorID string) (stat smodels.RewardStat, err error)
+
 		GetValidatorInfo(string) (smodels.Validator, error)
 		GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, uint64, error)
 		GetPublicValidatorsSearchList() ([]smodels.ValidatorEntity, error)

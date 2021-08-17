@@ -66,6 +66,10 @@ func (m *Watcher) Run() error {
 	}
 
 	for {
+
+		//Truncate after each execution
+		m.parser.Truncate()
+
 		select {
 		case <-m.ctx.Done():
 			cPub.Close()
@@ -226,7 +230,7 @@ func (m *Watcher) addEpochsReSyncTask(currentEpoch uint64) error {
 		//Current epoch presented and should be processed in
 		EndHeight: currentEpoch + 1,
 		//1 Epoch ~ 600 blocks
-		Batch: 1,
+		Batch: 10,
 	})
 	if err != nil {
 		return fmt.Errorf("CreateTask error: %s", err)

@@ -73,7 +73,13 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 
 		delegations := gen.Staking.Delegations[accountAddress]
 		var delegationsBalance uint64
-		for _, balance := range delegations {
+		var selfDelegationBalance uint64
+		for delegator, balance := range delegations {
+
+			if delegator.Equal(accountAddress) {
+				selfDelegationBalance += balance.Shares.ToBigInt().Uint64()
+			}
+
 			delegationsBalance += balance.Shares.ToBigInt().Uint64()
 		}
 
@@ -97,6 +103,8 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 			EscrowDebondingShare:        balance.Escrow.Debonding.TotalShares.ToBigInt().Uint64(),
 			DelegationsBalance:          delegationsBalance,
 			DebondingDelegationsBalance: debondingDelegationsBalance,
+			SelfDelegationBalance:       selfDelegationBalance,
+			CommissionSchedule:          dmodels.CommissionSchedule{CommissionSchedule: balance.Escrow.CommissionSchedule},
 		}
 
 		i++
@@ -132,7 +140,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 				Type:                dmodels.TransactionTypeAddEscrow,
 				Status:              true,
 				Error:               "",
-				Sender:              senderAddress,
+				Sender:              senderAddress.String(),
 				Receiver:            receiverAddress.String(),
 				Nonce:               0,
 				Fee:                 0,
@@ -168,7 +176,7 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 					EscrowReclaimAmount: escrowReclaimAmount.ToBigInt().Uint64(),
 					Receiver:            validator.String(),
 					Type:                dmodels.TransactionTypeReclaimEscrow,
-					Sender:              unstaker,
+					Sender:              unstaker.String(),
 					Nonce:               0,
 					Fee:                 0,
 					GasLimit:            0,

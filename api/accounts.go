@@ -63,3 +63,56 @@ func (api *API) GetAccountList(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(TotalCountHeader, fmt.Sprint(count))
 	Json(w, accs)
 }
+
+func (api *API) GetAccountRewards(w http.ResponseWriter, r *http.Request) {
+	urlAcc, ok := mux.Vars(r)["account_id"]
+	if !ok || urlAcc == "" {
+		response.JsonError(w, apperrors.New(apperrors.ErrBadParam, "account_id"))
+		return
+	}
+
+	account, err := url.QueryUnescape(urlAcc)
+	if err != nil {
+		response.JsonError(w, apperrors.New(apperrors.ErrBadParam, "account_id"))
+		return
+	}
+
+	params := smodels.CommonParams{}
+	err = api.queryDecoder.Decode(&params, r.URL.Query())
+	if err != nil {
+		response.JsonError(w, err)
+		return
+	}
+
+	rewards, err := api.services.GetAccountRewards(account, params)
+	if err != nil {
+		log.Error("GetValidatorRewards api error", zap.Error(err))
+		response.JsonError(w, err)
+		return
+	}
+
+	Json(w, rewards)
+}
+
+func (api *API) GetAccountRewardsStat(w http.ResponseWriter, r *http.Request) {
+	urlAcc, ok := mux.Vars(r)["account_id"]
+	if !ok || urlAcc == "" {
+		response.JsonError(w, apperrors.New(apperrors.ErrBadParam, "account_id"))
+		return
+	}
+
+	account, err := url.QueryUnescape(urlAcc)
+	if err != nil {
+		response.JsonError(w, apperrors.New(apperrors.ErrBadParam, "account_id"))
+		return
+	}
+
+	stat, err := api.services.GetAccountRewardsStat(account)
+	if err != nil {
+		log.Error("GetValidatorRewards api error", zap.Error(err))
+		response.JsonError(w, err)
+		return
+	}
+
+	Json(w, stat)
+}

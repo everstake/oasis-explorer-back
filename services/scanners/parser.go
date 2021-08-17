@@ -94,16 +94,28 @@ func (p *Parser) GetTaskExecutor(taskTitle string) (executor *smodels.Executor, 
 	case parserBaseTask:
 		return &smodels.Executor{
 			ExecHeight: p.ParseBase,
+			Truncate:   p.Truncate,
 			Save:       p.Save,
 		}, nil
 	case parserBalancesSnapshotTask:
 		return &smodels.Executor{
 			ExecHeight: p.ParseBalancesSnapshot,
+			Truncate:   p.Truncate,
 			Save:       p.Save,
 		}, nil
 	default:
 		return nil, fmt.Errorf("executor %s not found", taskTitle)
 	}
+}
+
+func (p *Parser) Truncate() {
+
+	p.container.blocks.Flush()
+	p.container.blockSignatures.Flush()
+	p.container.txs.Flush()
+	p.container.balances.Flush()
+	p.container.rewards.Flush()
+
 }
 
 func (p *Parser) Save() (err error) {
@@ -116,7 +128,6 @@ func (p *Parser) Save() (err error) {
 		}
 
 		log.Print("Save time Blocks: ", time.Since(tm))
-		p.container.blocks.Flush()
 	}
 
 	if !p.container.blockSignatures.IsEmpty() {
@@ -126,8 +137,6 @@ func (p *Parser) Save() (err error) {
 			return fmt.Errorf("dao.CreateBlockSignatures: %s", err.Error())
 		}
 		log.Print("Save time Signatures: ", time.Since(tm))
-
-		p.container.blockSignatures.Flush()
 	}
 
 	if !p.container.txs.IsEmpty() {
@@ -148,8 +157,6 @@ func (p *Parser) Save() (err error) {
 		if err != nil {
 			return fmt.Errorf("dao.CreateRegisterEntityTransactions: %s", err.Error())
 		}
-
-		p.container.txs.Flush()
 	}
 
 	if !p.container.balances.IsEmpty() {
@@ -160,8 +167,6 @@ func (p *Parser) Save() (err error) {
 		}
 
 		log.Print("Save time Balances: ", time.Since(tm))
-
-		p.container.balances.Flush()
 	}
 
 	if !p.container.rewards.IsEmpty() {
@@ -172,8 +177,6 @@ func (p *Parser) Save() (err error) {
 		}
 
 		log.Print("Save time Rewards: ", time.Since(tm))
-
-		p.container.rewards.Flush()
 	}
 
 	return nil
