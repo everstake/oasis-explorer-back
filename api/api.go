@@ -60,7 +60,9 @@ func (api *API) Run() error {
 }
 
 func (api *API) Stop() error {
-	ctx, _ := context.WithTimeout(context.Background(), gracefulTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), gracefulTimeout)
+	defer cancel()
+
 	return api.server.Shutdown(ctx)
 }
 
@@ -159,7 +161,7 @@ func Json(w http.ResponseWriter, data interface{}) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
+	_, _ = w.Write(js)
 }
 
 // JsonError writes to ResponseWriter error
@@ -174,7 +176,7 @@ func JsonError(w http.ResponseWriter, err error) {
 	js, _ := json.Marshal(e.ToMap())
 	w.WriteHeader(e.GetHttpCode())
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
+	_, _ = w.Write(js)
 }
 
 func (api *API) GetSwaggerAPI(w http.ResponseWriter, r *http.Request) {

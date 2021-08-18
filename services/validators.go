@@ -137,7 +137,7 @@ func calcAvailabilityScore(blocks, signatures, nodeRegisterBlock, currentHeight 
 	availabilityScore := signatures
 	if blocks > 0 {
 		//Temp without proposed stat
-		availabilityPercent := float64(blocks) / float64(blocks)
+		availabilityPercent := float64(signatures) / float64(blocks)
 		availabilityScore += uint64(availabilityPercent * float64(currentHeight-nodeRegisterBlock))
 	}
 

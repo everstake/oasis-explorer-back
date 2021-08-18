@@ -62,19 +62,19 @@ func (c EntityNodesContainer) GetEntity() (resp EntityNode) {
 }
 
 type EntityNode struct {
-	EntityID             string    `db="reg_entity_id"`
-	EntityAddress        string    `db="reg_entity_address"`
-	NodeID               string    `db="reg_id"`
-	Address              string    `db="reg_address"`
-	ConsensusAddress     string    `db="reg_consensus_address"`
-	LastRegBlock         uint64    `db="blk_lvl"`
-	CreatedTime          time.Time `db="created_time"`
-	Expiration           uint64    `db="reg_expiration"`
-	BlocksCount          uint64    `db="blocks"`
-	LastBlockTime        time.Time `db="last_block_time"`
-	BlocksSigned         uint64    `db="signed_blocks"`
-	BlockSignaturesCount uint64    `db="signatures"`
-	LastSignatureTime    time.Time `db="last_signature_time"`
+	EntityID             string    `db:"reg_entity_id"`
+	EntityAddress        string    `db:"reg_entity_address"`
+	NodeID               string    `db:"reg_id"`
+	Address              string    `db:"reg_address"`
+	ConsensusAddress     string    `db:"reg_consensus_address"`
+	LastRegBlock         uint64    `db:"blk_lvl"`
+	CreatedTime          time.Time `db:"created_time"`
+	Expiration           uint64    `db:"reg_expiration"`
+	BlocksCount          uint64    `db:"blocks"`
+	LastBlockTime        time.Time `db:"last_block_time"`
+	BlocksSigned         uint64    `db:"signed_blocks"`
+	BlockSignaturesCount uint64    `db:"signatures"`
+	LastSignatureTime    time.Time `db:"last_signature_time"`
 }
 
 func (n EntityNode) GetLastActiveTime() time.Time {

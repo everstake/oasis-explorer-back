@@ -366,7 +366,7 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 				return err
 			}
 		default:
-			fmt.Errorf("Unknown tx type: %s", raw.Method)
+			return fmt.Errorf("Unknown tx type: %s", raw.Method)
 		}
 
 		//Update balance of sender account as default
@@ -496,16 +496,30 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 			}
 
 			rewardsAmount := currentDelegationAmount.Clone()
-			rewardsAmount.Sub(prevDelegationAmount)
+			err = rewardsAmount.Sub(prevDelegationAmount)
+			if err != nil {
+				return updateBalances, rewards, err
+			}
 
 			//Calc commission
 			com := rewardsAmount.Clone()
 
 			// Multiply first.
-			com.Mul(actualShare.CommissionSchedule.CurrentRate(beaconAPI.EpochTime(epoch)))
-			com.Quo(stakingAPI.CommissionRateDenominator)
+			err = com.Mul(actualShare.CommissionSchedule.CurrentRate(beaconAPI.EpochTime(epoch)))
+			if err != nil {
+				return updateBalances, rewards, err
+			}
 
-			totalCommission.Add(com)
+			err = com.Quo(stakingAPI.CommissionRateDenominator)
+			if err != nil {
+				return updateBalances, rewards, err
+			}
+
+			err = totalCommission.Add(com)
+			if err != nil {
+				return updateBalances, rewards, err
+			}
+
 			if address.Equal(validator) {
 				validatorReward = rewardsAmount.Clone()
 				continue
@@ -524,7 +538,11 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 
 		//Add separate validator and validator self reward
 		//Sub total fee
-		validatorReward.Sub(totalCommission)
+		err = validatorReward.Sub(totalCommission)
+		if err != nil {
+			return updateBalances, rewards, err
+		}
+
 		rewards = append(rewards, dmodels.Reward{
 			AccountAddress: validator.String(),
 			EntityAddress:  validator.String(),
@@ -636,11 +654,17 @@ func (p *ParserTask) getAccountBalance(height int64, blockTime time.Time, addres
 		Height: height,
 		Owner:  address,
 	})
+	if err != nil {
+		return balance, err
+	}
 
 	debondingDelegations, err := p.stakingAPI.DebondingDelegationsFor(p.ctx, &stakingAPI.OwnerQuery{
 		Height: height,
 		Owner:  address,
 	})
+	if err != nil {
+		return balance, err
+	}
 
 	return formAccountBalance(height, blockTime, address, accInfo, delegations, debondingDelegations)
 }

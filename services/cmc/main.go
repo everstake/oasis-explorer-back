@@ -75,7 +75,10 @@ func (c CoinGecko) GetOasisMarketDataByCurr(curr string) (md CurrMarketData, err
 	}
 
 	//Save into cache error can be skipped
-	c.Cache.Add(cacheKey, tmd[0], cacheTTL)
+	err = c.Cache.Add(cacheKey, tmd[0], cacheTTL)
+	if err != nil {
+		return md, err
+	}
 
 	return tmd[0], nil
 }

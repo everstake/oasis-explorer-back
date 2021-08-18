@@ -83,7 +83,4 @@ func (m *Manager) Run() error {
 			}
 		}
 	}
-
-	m.wg.Wait()
-	return nil
 }

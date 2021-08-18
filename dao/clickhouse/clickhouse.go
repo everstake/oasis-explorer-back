@@ -58,7 +58,7 @@ func newConnection(cfg conf.Clickhouse) (*sql.DB, error) {
 
 func makeSource(cfg conf.Clickhouse) string {
 	return fmt.Sprintf("%s://%s:%d/%s?password=%s&user=%s&database=%s",
-		strings.Trim(cfg.Protocol, "://"),
+		strings.Trim(cfg.Protocol, ":/"),
 		strings.Trim(cfg.Host, "/"),
 		cfg.Port,
 		cfg.Database,

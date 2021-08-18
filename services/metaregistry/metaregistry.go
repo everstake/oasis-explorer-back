@@ -8,7 +8,6 @@ import (
 	"oasisTracker/smodels"
 
 	registry "github.com/oasisprotocol/metadata-registry-tools"
-	epochAPI "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
 	stakingAPI "github.com/oasisprotocol/oasis-core/go/staking/api"
 )
@@ -138,27 +137,4 @@ func getAccount(pubKey signature.PublicKey, validatorsMap map[string]dmodels.Pub
 	}
 
 	return validator, nil
-}
-
-//Return actual validator fee in percents
-func getValidatorFee(pubKey signature.PublicKey, provider AccountProvider, unit BlocksRepo) (float64, error) {
-	acc, err := provider.Account(context.Background(), &stakingAPI.OwnerQuery{
-		Height: 0,
-		Owner:  stakingAPI.NewAddress(pubKey),
-	})
-	if err != nil {
-		return 0, err
-	}
-
-	block, err := unit.GetLastBlock()
-	if err != nil {
-		return 0, err
-	}
-
-	fee := acc.Escrow.CommissionSchedule.CurrentRate(epochAPI.EpochTime(block.Epoch))
-	if fee == nil {
-		return 0, nil
-	}
-
-	return float64(fee.ToBigInt().Uint64()) / 1000, nil
 }

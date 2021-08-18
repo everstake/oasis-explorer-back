@@ -2,37 +2,30 @@ package scanners
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 	"log"
 	"oasisTracker/conf"
 	"oasisTracker/dao"
 	"oasisTracker/smodels"
 	"oasisTracker/smodels/container"
-	"strconv"
 	"time"
 
 	beaconAPI "github.com/oasisprotocol/oasis-core/go/beacon/api"
 	"github.com/oasisprotocol/oasis-core/go/common/grpc"
 	consensusAPI "github.com/oasisprotocol/oasis-core/go/consensus/api"
-	"golang.org/x/crypto/blake2b"
 	grpcCommon "google.golang.org/grpc"
 )
 
 const (
-	precision          = 6
-	saveBatch          = 200
-	saveAddressesBatch = 50
+	//precision          = 6
 
 	parserBaseTask             = "base"
 	parserBalancesSnapshotTask = "balances_snapshot"
-	parserSignaturesTask       = "signatures"
-	parseTransactionsTask      = "transactions"
 
-	defaultFlag         ParseFlag = iota
+	//defaultFlag         ParseFlag = iota
 	baseFlag            ParseFlag = 1
 	balanceSnapshotFlag           = baseFlag << 1
-	watcherFlag                   = baseFlag | balanceSnapshotFlag
+	//watcherFlag                   = baseFlag | balanceSnapshotFlag
 )
 
 type (
@@ -238,22 +231,4 @@ func (p *Parser) ParseEpochSnap(epoch beaconAPI.EpochTime) error {
 	}
 
 	return nil
-}
-
-func (p *Parser) getCustomHash(id string, seqNum uint64) (string, error) {
-	key := append([]byte(id), []byte(strconv.Itoa(int(seqNum)))...)
-	h, err := blake2b.New256(key)
-	if err != nil {
-		return "", err
-	}
-
-	return hex.EncodeToString(h.Sum(nil)), nil
-}
-
-//Temp use hex
-func hashHex(hash []byte) string {
-	enc := make([]byte, len(hash)*2+2)
-	copy(enc, "0x")
-	hex.Encode(enc[2:], hash)
-	return string(enc)
 }

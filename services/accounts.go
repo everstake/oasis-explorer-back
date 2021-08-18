@@ -63,6 +63,9 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 		Height: 0,
 		Owner:  adr,
 	})
+	if err != nil {
+		return sAcc, err
+	}
 
 	var delegationsBalance, selfdelegation uint64
 	for address, delegationInfo := range delegations {
@@ -86,6 +89,9 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 		Height: 0,
 		Owner:  adr,
 	})
+	if err != nil {
+		return sAcc, err
+	}
 
 	var debondingDelegationsBalance uint64
 	for _, debDelegationList := range debondingDelegations {

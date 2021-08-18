@@ -49,7 +49,7 @@ func ValidatorMediaInfo(validatorMediaInfoString string) *smodels.ValidatorMedia
 
 	var mediaInfo smodels.ValidatorMediaInfo
 	if validatorMediaInfoString != "" {
-		json.Unmarshal([]byte(validatorMediaInfoString), &mediaInfo)
+		_ = json.Unmarshal([]byte(validatorMediaInfoString), &mediaInfo)
 	}
 
 	return &mediaInfo

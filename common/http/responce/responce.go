@@ -15,7 +15,7 @@ func Json(w http.ResponseWriter, data interface{}) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
+	_, _ = w.Write(js)
 }
 
 // JsonError writes to ResponseWriter error
@@ -30,5 +30,5 @@ func JsonError(w http.ResponseWriter, err error) {
 	js, _ := json.Marshal(e.ToMap())
 	w.WriteHeader(e.GetHttpCode())
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
+	_, _ = w.Write(js)
 }

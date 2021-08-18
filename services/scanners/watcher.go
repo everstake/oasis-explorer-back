@@ -24,15 +24,18 @@ type Watcher struct {
 }
 
 func NewWatcher(cfg conf.Config, d dao.DAO) (*Watcher, error) {
-	ctx, cancel := context.WithCancel(context.Background())
 
 	dao, err := d.GetParserDAO()
 	if err != nil {
 		return nil, fmt.Errorf("GetParserDAO: %s", err.Error())
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+
 	parser, err := NewParser(ctx, cfg.Scanner, dao)
 	if err != nil {
+		//For linter calmness
+		cancel()
 		return nil, fmt.Errorf("NewParser: %s", err.Error())
 	}
 

@@ -13,7 +13,7 @@ const (
 	FrameDay  ChartFrame = "D"
 )
 
-func (p ChartParams) Validate() error {
+func (p *ChartParams) Validate() error {
 	if p.Frame == "" {
 		p.Frame = FrameDay
 	}
