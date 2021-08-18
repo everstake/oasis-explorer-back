@@ -5,10 +5,14 @@
 Oasis Explorer is an open-source Oasis explorer based on its own indexer core.
 Developed and supported by the Everstake team.
 
-The indexer fetches raw data from the Oasis node, then processes and stores it   in the database in such a way as to provide effective access to the blockchain data.
-None of this can be accessed via node RPC, but Oasis Explorer indexer makes this data (and much more) available.
+The indexer fetches raw data from the Oasis node, then processes and
+stores it in the database in such a way 
+as to provide effective access to the blockchain data.
+None of this can be accessed via node RPC,
+but Oasis Explorer indexer makes this data (and much more) available.
 
-Oasis Explorer provides a REST-like API, so you don't have to connect to the database directly.
+Oasis Explorer provides a REST-like API, 
+so you don't have to connect to the database directly.
 Our API server will do all the needed aggregations for you.
 
 Full documentation you can found here [OasisExplorerAPI](https://oasismonitor.com/docs)
