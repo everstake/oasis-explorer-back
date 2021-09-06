@@ -42,6 +42,8 @@ type Validator struct {
 
 	CommissionSchedule api.CommissionSchedule `json:"commission_schedule,omitempty"`
 
+	CurrentEpoch uint64 `json:"current_epoch"`
+
 	ValidatorInfo
 }
 

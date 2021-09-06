@@ -52,6 +52,7 @@ type ValidatorView struct {
 
 	DepositorsNum uint64  `db:"depositors_num"`
 	IsActive      bool    `db:"is_active"`
+	CurrentEpoch  uint64  `db:"-"`
 	DayUptime     float64 `db:"-"`
 	TotalUptime   float64 `db:"-"`
 	Status        string  `db:"-"`

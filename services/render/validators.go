@@ -38,6 +38,8 @@ func Validator(a dmodels.ValidatorView) smodels.Validator {
 			BlocksCount:     a.ProposedBlocksCount,
 			SignaturesCount: a.SignaturesCount,
 		},
+
+		CurrentEpoch:       a.CurrentEpoch,
 		CommissionSchedule: a.CommissionSchedule.CommissionSchedule,
 	}
 }
