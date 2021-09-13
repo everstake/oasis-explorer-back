@@ -16,6 +16,9 @@ type PublicValidator struct {
 	EntityAddress string `db:"reg_entity_address"`
 	Name          string `db:"pvl_name"`
 	Info          string `db:"pvl_info"`
+
+	//Synthetic partition
+	Partition uint64 `db:"partition"`
 }
 
 type ValidatorView struct {

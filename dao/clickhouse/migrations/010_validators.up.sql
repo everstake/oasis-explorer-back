@@ -79,12 +79,13 @@ from (
 
 CREATE TABLE IF NOT EXISTS public_validators
 (
+  partition UInt64 DEFAULT 1,
   reg_entity_id FixedString(44),
   reg_entity_address FixedString(46),
   pvl_name      String,
   pvl_info   String
 ) ENGINE ReplacingMergeTree()
-    PARTITION BY reg_entity_id
+    PARTITION BY partition
     ORDER BY (reg_entity_id);
 
 CREATE VIEW IF NOT EXISTS day_max_block_lvl_view AS

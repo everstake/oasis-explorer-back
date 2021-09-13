@@ -220,7 +220,7 @@ func (cl Clickhouse) UpdateValidators(list []dmodels.PublicValidator) (err error
 	}
 
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (reg_entity_id, reg_entity_address, pvl_name, pvl_info) VALUES (?, ?, ?, ?)", dmodels.PublicValidatorsTable))
+		fmt.Sprintf("INSERT INTO %s (partition, reg_entity_id, reg_entity_address, pvl_name, pvl_info) VALUES (?, ?, ?, ?)", dmodels.PublicValidatorsTable))
 	if err != nil {
 		return err
 	}
@@ -230,6 +230,7 @@ func (cl Clickhouse) UpdateValidators(list []dmodels.PublicValidator) (err error
 	for i := range list {
 
 		_, err = stmt.Exec(
+			list[i].Partition,
 			list[i].EntityID,
 			list[i].EntityAddress,
 			list[i].Name,

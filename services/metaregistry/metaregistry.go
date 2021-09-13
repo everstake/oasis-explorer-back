@@ -30,6 +30,8 @@ type AccountProvider interface {
 	Account(ctx context.Context, query *stakingAPI.OwnerQuery) (*stakingAPI.Account, error)
 }
 
+const defaultPartition = 1
+
 func UpdatePublicValidators(unit Repo, provider AccountProvider) error {
 	publicValidator, err := unit.PublicValidatorsList()
 	if err != nil {
@@ -118,6 +120,7 @@ func validatorUpdate(pubKey signature.PublicKey, validatorsMap map[string]dmodel
 	}
 
 	validator.Info = string(bt)
+	validator.Partition = defaultPartition
 
 	return validator, nil
 }

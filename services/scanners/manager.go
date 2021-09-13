@@ -47,11 +47,14 @@ func (m *Manager) Stop() error {
 
 func (m *Manager) Run() error {
 
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+
 	for {
 		select {
 		case <-m.ctx.Done():
 			return nil
-		case <-time.After(10 * time.Second):
+		case <-ticker.C:
 			//Get active tasks
 			tasks, err := m.dao.GetTasks(true)
 			if err != nil {
