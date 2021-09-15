@@ -953,9 +953,6 @@ definitions:
         type: string
       node_id:
         type: string
-      fee:
-        format: int64
-        type: integer
       escrow_balance:
         format: int64
         type: integer
