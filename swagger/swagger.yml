@@ -962,7 +962,7 @@ definitions:
       general_balance:
         format: int64
         type: integer
-      gebonding_balance:
+      debonding_balance:
         format: int64
         type: integer
       delegations_balance:
@@ -975,7 +975,7 @@ definitions:
         format: int64
         type: integer
       media_info:
-        $ref: '#/definitions/ValidatorMegiaInfo'
+        $ref: '#/definitions/ValidatorMediaInfo'
       commission_schedule:
         $ref: '#/definitions/ValidatorCommissionSchedule'
       available_score:
@@ -1006,7 +1006,7 @@ definitions:
     type: object
   ValidatorCommissionSchedule:
     properties:
-      rates:
+      bounds:
         items:
           type: object
           properties:
@@ -1018,7 +1018,7 @@ definitions:
             rate_max:
               type: string
         type: array
-      bounds:
+      rates:
         items:
           type: object
           properties:
@@ -1028,7 +1028,7 @@ definitions:
             rate:
               type: string
         type: array
-  ValidatorMegiaInfo:
+  ValidatorMediaInfo:
     properties:
       website_link:
         type: string
@@ -1039,6 +1039,8 @@ definitions:
       tg_chat:
         type: string
       medium_link:
+        type: string
+      logotype:
         type: string
   ValidatorStat:
     properties:
@@ -1072,7 +1074,7 @@ definitions:
         type: integer
       proposer:
         type: string
-      numbet_of_signatures:
+      number_of_signatures:
         format: int64
         type: integer
       fees:
