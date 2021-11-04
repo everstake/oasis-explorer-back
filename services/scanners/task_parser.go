@@ -523,12 +523,18 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 
 			//Remove new epoch block escrow from rewards count
 			if newEscrows[address] != nil {
-				currentDelegationAmount.Sub(newEscrows[address])
+				err = currentDelegationAmount.Sub(newEscrows[address])
+				if err != nil {
+					return updateBalances, rewards, err
+				}
 			}
 
 			//Add  new epoch block escrow reclaims to rewards count
 			if reclaimEscrows[address] != nil {
-				currentDelegationAmount.Add(reclaimEscrows[address])
+				err = currentDelegationAmount.Add(reclaimEscrows[address])
+				if err != nil {
+					return updateBalances, rewards, err
+				}
 			}
 
 			prevDelegation := prevGenesisState.Delegations[validator][address]
