@@ -132,7 +132,7 @@ func (p *ParserTask) parseBlock(block oasis.Block) error {
 
 	p.parserContainer.blocks.Add([]dmodels.Block{{
 		Height:          uint64(block.Header.Height),
-		Hash:            hex.EncodeToString(block.Hash),
+		Hash:            block.Hash.Hex(),
 		CreatedAt:       block.Header.Time,
 		Epoch:           uint64(epoch),
 		ProposerAddress: block.Header.ProposerAddress.String(),
@@ -200,7 +200,7 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 
 		dTxs[i] = dmodels.Transaction{
 			BlockLevel: uint64(block.Header.Height),
-			BlockHash:  hex.EncodeToString(block.Hash),
+			BlockHash:  block.Hash.Hex(),
 			Hash:       tx.Hash().String(),
 			Time:       block.Header.Time,
 
@@ -363,6 +363,16 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 		case "governance.CastVote":
 			var proposalVote governance.ProposalVote
 			if err := cbor.Unmarshal(raw.Body, &proposalVote); err != nil {
+				return err
+			}
+		case "beacon.PVSSCommit":
+			var pvssCommit beaconAPI.PVSSCommit
+			if err := cbor.Unmarshal(raw.Body, &pvssCommit); err != nil {
+				return err
+			}
+		case "beacon.PVSSReveal":
+			var pvssReveal beaconAPI.PVSSReveal
+			if err := cbor.Unmarshal(raw.Body, &pvssReveal); err != nil {
 				return err
 			}
 		default:

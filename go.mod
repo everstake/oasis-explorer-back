@@ -14,19 +14,18 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
-	github.com/mitchellh/mapstructure v1.3.0
+	github.com/mitchellh/mapstructure v1.4.2
 	github.com/oasisprotocol/metadata-registry-tools v0.0.0-20210210134526-dc511b52494f
-	github.com/oasisprotocol/oasis-core/go v0.2102.3
+	github.com/oasisprotocol/oasis-core/go v0.2103.5
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/roylee0704/gron v0.0.0-20160621042432-e78485adab46
 	github.com/rs/cors v1.7.0
 	github.com/satori/go.uuid v1.2.0
-	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/superoo7/go-gecko v1.0.0
 	github.com/tendermint/tendermint v0.34.9
 	github.com/urfave/negroni v1.0.0
 	github.com/wedancedalot/decimal v0.0.0-20180831135040-d09bcccc62ea
 	github.com/wedancedalot/squirrel v0.0.0-20181205145720-8a2fefa67662
-	go.uber.org/zap v1.16.0
-	google.golang.org/grpc v1.38.0
+	go.uber.org/zap v1.19.0
+	google.golang.org/grpc v1.41.0
 )

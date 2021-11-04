@@ -5,6 +5,7 @@ import (
 
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	"github.com/oasisprotocol/oasis-core/go/common/crypto/signature"
+	"github.com/oasisprotocol/oasis-core/go/common/crypto/hash"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/libs/bytes"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -15,7 +16,7 @@ var SystemPublicKey = signature.PublicKey{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 var SystemAddress = address.Address{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 type Block struct {
-	Hash       bytes.HexBytes  `cbor:"-"`
+	Hash       hash.Hash  `cbor:"-"`
 	Header     tmtypes.Header  `cbor:"header"`
 	LastCommit BlockLastCommit `cbor:"last_commit"`
 }
