@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	oasisAddress "github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	"oasisTracker/common/log"
 	"oasisTracker/dmodels"
@@ -11,8 +12,6 @@ import (
 	"reflect"
 	"runtime"
 	"time"
-
-	oasisAddress "github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 
 	"github.com/oasisprotocol/oasis-core/go/common/entity"
 
@@ -456,7 +455,14 @@ func (p *ParserTask) epochBalanceSnapshotGenesisState(block oasis.Block) error {
 		return err
 	}
 
-	updates, rewards, err := processEpochRewards(block.Header.Height, uint64(epoch), block.Header.Time, newEpochGenesis, prevEpochGenesis)
+	txsWithResults, err := p.consensusAPI.GetTransactionsWithResults(p.ctx, block.Header.Height)
+	if err != nil {
+		return err
+	}
+
+	escrowEventsMap ,reclaimEscrowMap := processEpochBlockEscrowEvents(txsWithResults)
+
+	updates, rewards, err := processEpochRewards(block.Header.Height, uint64(epoch), block.Header.Time, newEpochGenesis, prevEpochGenesis, escrowEventsMap,reclaimEscrowMap)
 	if err != nil {
 		return err
 	}
@@ -474,22 +480,55 @@ func (p *ParserTask) epochBalanceSnapshotGenesisState(block oasis.Block) error {
 	return nil
 }
 
-func processEpochRewards(height int64, epoch uint64, time time.Time, currentGenesisState, prevGenesisState *stakingAPI.Genesis) (updateBalances []dmodels.AccountBalance, rewards []dmodels.Reward, err error) {
+func processEpochBlockEscrowEvents(txsWithResults *consensusAPI.TransactionsWithResults)(escrowEventsMap,reclaimEventsMap map[stakingAPI.Address]*quantity.Quantity){
+	escrowEventsMap = map[stakingAPI.Address]*quantity.Quantity{}
+	reclaimEventsMap = map[stakingAPI.Address]*quantity.Quantity{}
+
+	for _, result := range txsWithResults.Results {
+		for _, event := range result.Events {
+			if event.Staking != nil{
+				if event.Staking.Escrow != nil{
+					if event.Staking.Escrow.Add != nil{
+						escrowEventsMap[event.Staking.Escrow.Add.Owner] = &event.Staking.Escrow.Add.Amount
+					}
+					if event.Staking.Escrow.Reclaim != nil{
+						reclaimEventsMap[event.Staking.Escrow.Add.Owner] = &event.Staking.Escrow.Reclaim.Amount
+					}
+				}
+			}
+		}
+	}
+
+	return escrowEventsMap, reclaimEventsMap
+}
+
+func processEpochRewards(height int64, epoch uint64, time time.Time, currentGenesisState, prevGenesisState *stakingAPI.Genesis, newEscrows, reclaimEscrows map[stakingAPI.Address]*quantity.Quantity) (updateBalances []dmodels.AccountBalance, rewards []dmodels.Reward, err error) {
 
 	updateBalances = make([]dmodels.AccountBalance, 0, len(currentGenesisState.Delegations))
 
-	for validator, delegator := range currentGenesisState.Delegations {
+	for validator, delegators := range currentGenesisState.Delegations {
+
 		actualShare := currentGenesisState.Ledger[validator].Escrow
 		prevShare := prevGenesisState.Ledger[validator].Escrow
 
 		totalCommission := quantity.NewQuantity()
 		validatorReward := quantity.NewQuantity()
 
-		for address, delegation := range delegator {
+		for address, delegation := range delegators {
 
 			currentDelegationAmount, err := actualShare.Active.StakeForShares(&delegation.Shares)
 			if err != nil {
 				return updateBalances, rewards, err
+			}
+
+			//Remove new epoch block escrow from rewards count
+			if newEscrows[address] != nil {
+				currentDelegationAmount.Sub(newEscrows[address])
+			}
+
+			//Add  new epoch block escrow reclaims to rewards count
+			if reclaimEscrows[address] != nil {
+				currentDelegationAmount.Add(reclaimEscrows[address])
 			}
 
 			prevDelegation := prevGenesisState.Delegations[validator][address]
