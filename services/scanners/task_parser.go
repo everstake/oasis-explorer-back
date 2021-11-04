@@ -4,14 +4,13 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 	"oasisTracker/common/log"
 	"oasisTracker/dmodels"
 	"oasisTracker/dmodels/oasis"
 	"reflect"
 	"runtime"
 	"time"
-
-	"github.com/oasisprotocol/oasis-core/go/common/quantity"
 
 	oasisAddress "github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 
@@ -514,8 +513,13 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 			//Calc commission
 			com := rewardsAmount.Clone()
 
+			rate := actualShare.CommissionSchedule.CurrentRate(beaconAPI.EpochTime(epoch))
+			//Zero comission
+			if rate == nil {
+				rate = quantity.NewQuantity()
+			}
 			// Multiply first.
-			err = com.Mul(actualShare.CommissionSchedule.CurrentRate(beaconAPI.EpochTime(epoch)))
+			err = com.Mul(rate)
 			if err != nil {
 				return updateBalances, rewards, err
 			}
