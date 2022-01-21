@@ -378,8 +378,11 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 		}
 
 		//Update balance of sender account as default
-		accountsUpdateMap := map[stakingAPI.Address]bool{
-			stakingAPI.NewAddress(tx.Signature.PublicKey): true,
+		accountsUpdateMap := map[stakingAPI.Address]bool{}
+
+		//System tx not affect balance so skip it
+		if raw.Method != "roothash.ExecutorCommit" {
+			accountsUpdateMap[stakingAPI.NewAddress(tx.Signature.PublicKey)] = true
 		}
 
 		for _, event := range txsWithResults.Results[i].Events {

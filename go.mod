@@ -16,7 +16,7 @@ require (
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/oasisprotocol/metadata-registry-tools v0.0.0-20210210134526-dc511b52494f
-	github.com/oasisprotocol/oasis-core/go v0.2103.5
+	github.com/oasisprotocol/oasis-core/go v0.2103.7
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/roylee0704/gron v0.0.0-20160621042432-e78485adab46
 	github.com/rs/cors v1.7.0
