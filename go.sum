@@ -1041,6 +1041,8 @@ github.com/oasisprotocol/oasis-core/go v0.2103.5 h1:SNxBarM++blf2DVT1MbZgOvyPL+l
 github.com/oasisprotocol/oasis-core/go v0.2103.5/go.mod h1:X8I4m5T7qlEmFR0nLTE9Fwm6HKIuVlrZ8BBmBIxkCKk=
 github.com/oasisprotocol/oasis-core/go v0.2103.7 h1:3CXeFyYCRngBFtfGUIYVKgFul8iRzH9t9AeV8dIUElQ=
 github.com/oasisprotocol/oasis-core/go v0.2103.7/go.mod h1:X8I4m5T7qlEmFR0nLTE9Fwm6HKIuVlrZ8BBmBIxkCKk=
+github.com/oasisprotocol/oasis-core/go v0.2103.9 h1:d2V2EaMCYcE1lksolS0CdP8mn8tWlcjd0sGaW9n6zkI=
+github.com/oasisprotocol/oasis-core/go v0.2103.9/go.mod h1:X8I4m5T7qlEmFR0nLTE9Fwm6HKIuVlrZ8BBmBIxkCKk=
 github.com/oklog/oklog v0.3.2/go.mod h1:FCV+B7mhrz4o+ueLpx+KqkyXRGMWOYEvfiXtdGtbWGs=
 github.com/oklog/run v1.0.0/go.mod h1:dlhp/R75TPv97u0XWUtDeV/lRKWPKSdTuV0TZvrmrQA=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
