@@ -2,7 +2,7 @@ module oasisTracker
 
 go 1.17
 
-replace github.com/oasisprotocol/oasis-core/go => github.com/everstake/oasis-core/go v0.0.0-20220215124554-50f779a8d5c9
+replace github.com/oasisprotocol/oasis-core/go => github.com/everstake/oasis-core/go v0.2103.9-everstake.0
 
 require (
 	github.com/ClickHouse/clickhouse-go v1.4.0
@@ -89,6 +89,8 @@ require (
 	github.com/whyrusleeping/go-logging v0.0.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
+	go.dedis.ch/fixbuf v1.0.3 // indirect
+	go.dedis.ch/kyber/v3 v3.0.13 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
