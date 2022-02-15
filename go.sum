@@ -271,8 +271,8 @@ github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7
 github.com/envoyproxy/protoc-gen-validate v0.6.2/go.mod h1:2t7qjJNvHPx8IjnBOzl9E9/baC+qXE/TeeyBRzgJDws=
 github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 h1:Yzb9+7DPaBjB8zlTR87/ElzFsnQfuHnVUVqpZZIcV5Y=
 github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5/go.mod h1:a2zkGnVExMxdzMo3M0Hi/3sEU+cWnZpSni0O6/Yb/P0=
-github.com/everstake/oasis-core/go v0.0.0-20220214165625-c9e9e6d60d4c h1:JnBZOBGXpO7+4X01Oknq9pfHqv5OEec+XR/EeRWg8ME=
-github.com/everstake/oasis-core/go v0.0.0-20220214165625-c9e9e6d60d4c/go.mod h1:Zkm/Ya6Vz0O/0gXgaSJE+LNUHB3qcL8RZjNfaSFMFE8=
+github.com/everstake/oasis-core/go v0.0.0-20220215124554-50f779a8d5c9 h1:2Jd9ujv2f7Ogs+tdCKi/+Vkb6CtPBIQxkNHlqFvl6nE=
+github.com/everstake/oasis-core/go v0.0.0-20220215124554-50f779a8d5c9/go.mod h1:Zkm/Ya6Vz0O/0gXgaSJE+LNUHB3qcL8RZjNfaSFMFE8=
 github.com/facebookgo/ensure v0.0.0-20160127193407-b4ab57deab51/go.mod h1:Yg+htXGokKKdzcwhuNDwVvN+uBxDGXJ7G/VN1d8fa64=
 github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c/go.mod h1:Yg+htXGokKKdzcwhuNDwVvN+uBxDGXJ7G/VN1d8fa64=
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052/go.mod h1:UbMTZqLaRiH3MsBH8va0n7s1pQYcu3uTb8G4tygF4Zg=
