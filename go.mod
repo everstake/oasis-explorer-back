@@ -1,8 +1,8 @@
 module oasisTracker
 
-go 1.13
+go 1.17
 
-replace github.com/oasisprotocol/oasis-core/go => github.com/everstake/oasis-core/go v0.0.0-20220214165625-c9e9e6d60d4c
+replace github.com/oasisprotocol/oasis-core/go => github.com/everstake/oasis-core/go v0.0.0-20220215124554-50f779a8d5c9
 
 require (
 	github.com/ClickHouse/clickhouse-go v1.4.0
