@@ -11,6 +11,7 @@ import (
 
 func (cl Clickhouse) CreateBlocks(blocks []dmodels.Block) (err error) {
 	log.Print("Len blocks: ", len(blocks))
+
 	if len(blocks) == 0 {
 		return nil
 	}
@@ -33,7 +34,7 @@ func (cl Clickhouse) CreateBlocks(blocks []dmodels.Block) (err error) {
 		if blocks[i].CreatedAt.IsZero() {
 			return fmt.Errorf("timestamp can not be 0")
 		}
-
+		log.Printf("Inserting block %v from epoch %v", blocks[i].Height, blocks[i].Epoch)
 		_, err = stmt.Exec(
 			blocks[i].Height,
 			blocks[i].CreatedAt,
