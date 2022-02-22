@@ -2,6 +2,8 @@ module oasisTracker
 
 go 1.17
 
+replace github.com/wedancedalot/squirrel => github.com/Masterminds/squirrel v1.5.2
+
 require (
 	github.com/ClickHouse/clickhouse-go v1.4.0
 	github.com/fatih/structs v1.1.0
