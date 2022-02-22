@@ -54,7 +54,7 @@ FROM validator_block_signatures_count_mv
 GROUP BY reg_consensus_address;
 
 DROP TABLE entity_nodes_view;
-CREATE VIEW IF NOT EXISTS entity_nodes_view AS
+CREATE VIEW IF NOT EXISTS entity_nodes_view AS --OMG. seems like here is rewrited query from old 008_entity_nodes_vew.sql
 select *
 from (
        select *
@@ -129,21 +129,27 @@ CREATE VIEW IF NOT EXISTS validators_list_view AS
 select *
 from (
        select *, CASE WHEN reg_expiration >= (select max(blk_epoch) from blocks) THEN 1 ELSE 0 END is_active
-       from (SELECT *
-             FROM validator_entity_view
+       from (
+              SELECT *
+              FROM validator_entity_view -- created MVIEW to don't make fullscan of txs
                     ANY
                     LEFT JOIN
-                  ( select reg_entity_address,
-                    min(blk_lvl) start_blk_lvl
-                    from register_node_transactions
-                    group by reg_entity_address ) val_lvl USING reg_entity_address) validator
+                            ( select reg_entity_address,
+                            min(blk_lvl) start_blk_lvl
+                            from register_node_transactions -- 420 entries
+                            group by reg_entity_address ) val_lvl USING reg_entity_address) validator
               ANY
-              LEFT JOIN (SELECT acb_account reg_entity_address, acb_escrow_balance_active, acb_general_balance, acb_escrow_balance_share, acb_escrow_debonding_active, acb_delegations_balance , acb_debonding_delegations_balance , acb_self_delegation_balance, acb_commission_schedule , depositors_num
-                         from account_last_balance_view ANY
-                                LEFT JOIN entity_active_depositors_counter_view USING reg_entity_address
+              LEFT JOIN (SELECT acb_account reg_entity_address, acb_escrow_balance_active, 
+              acb_general_balance, acb_escrow_balance_share, acb_escrow_debonding_active,\
+               acb_delegations_balance , acb_debonding_delegations_balance ,
+                acb_self_delegation_balance, acb_commission_schedule ,
+                 depositors_num
+                         from account_last_balance_view ANY -- this is an aggregation from mview, haven't any optimizations yet
+                                LEFT JOIN entity_active_depositors_counter_view -- fixed to make aggregate from MVIEW
+                                USING reg_entity_address -- entity_active_depositors_counter_view  is aggregate upon `entity_depositors_view`, a very huge select with joins. 
          ) b USING reg_entity_address
        where blocks > 0
           OR signatures > 0
           OR reg_expiration >= (select max(blk_epoch) from blocks)) prep
        ANY
-       LEFT JOIN public_validators USING reg_entity_address;
+       LEFT JOIN public_validators USING reg_entity_address; --public validators 134 rows
