@@ -2,8 +2,6 @@ module oasisTracker
 
 go 1.17
 
-replace github.com/oasisprotocol/oasis-core/go => github.com/everstake/oasis-core/go v0.2103.9-everstake.0
-
 require (
 	github.com/ClickHouse/clickhouse-go v1.4.0
 	github.com/fatih/structs v1.1.0
@@ -15,7 +13,7 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/oasisprotocol/metadata-registry-tools v0.0.0-20210210134526-dc511b52494f
-	github.com/oasisprotocol/oasis-core/go v0.2103.9
+	github.com/oasisprotocol/oasis-core/go v0.2103.10-0.20220216110355-b629f2e61fd2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/roylee0704/gron v0.0.0-20160621042432-e78485adab46
 	github.com/rs/cors v1.7.0

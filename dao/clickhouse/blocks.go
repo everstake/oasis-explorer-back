@@ -103,7 +103,7 @@ func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlo
 	resp := make([]dmodels.RowBlock, 0, params.Limit)
 
 	q := sq.Select("*").
-		From(dmodels.BlocksRowView).
+		From(dmodels.BlocksRowView).OrderBy("blk_lvl DESC").
 		JoinClause(fmt.Sprintf("ANY LEFT JOIN %s as sig USING blk_lvl", dmodels.BlocksSigCountView)).
 		Limit(params.Limit).
 		Offset(params.Offset)
