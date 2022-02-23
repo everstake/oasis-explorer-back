@@ -435,12 +435,12 @@ func (p *ParserTask) epochBalanceSnapshotGenesisState(block oasis.Block) error {
 
 	epoch, err := p.beaconAPI.GetEpoch(p.ctx, block.Header.Height)
 	if err != nil {
-		return err
+		return fmt.Errorf("beaconAPI.GetEpoch: %s", err.Error())
 	}
 
 	epochBlock, err := p.beaconAPI.GetEpochBlock(p.ctx, epoch)
 	if err != nil {
-		return err
+		return fmt.Errorf("GetEpochBlock: %s", err.Error())
 	}
 
 	//Make snapshot only for epoch start block
@@ -450,29 +450,29 @@ func (p *ParserTask) epochBalanceSnapshotGenesisState(block oasis.Block) error {
 
 	newEpochGenesis, err := p.stakingAPI.StateToGenesis(p.ctx, block.Header.Height)
 	if err != nil {
-		return err
+		return fmt.Errorf("StateToGenesis: %s", err.Error())
 	}
 
 	prevEpochGenesis, err := p.stakingAPI.StateToGenesis(p.ctx, block.Header.Height-1)
 	if err != nil {
-		return err
+		return fmt.Errorf("StateToGenesis: %s", err.Error())
 	}
 
 	txsWithResults, err := p.consensusAPI.GetTransactionsWithResults(p.ctx, block.Header.Height)
 	if err != nil {
-		return err
+		return fmt.Errorf("GetTransactionsWithResults: %s", err.Error())
 	}
 
-	escrowEventsMap ,reclaimEscrowMap := processEpochBlockEscrowEvents(txsWithResults)
+	escrowEventsMap, reclaimEscrowMap := processEpochBlockEscrowEvents(txsWithResults)
 
-	updates, rewards, err := processEpochRewards(block.Header.Height, uint64(epoch), block.Header.Time, newEpochGenesis, prevEpochGenesis, escrowEventsMap,reclaimEscrowMap)
+	updates, rewards, err := processEpochRewards(block.Header.Height, uint64(epoch), block.Header.Time, newEpochGenesis, prevEpochGenesis, escrowEventsMap, reclaimEscrowMap)
 	if err != nil {
-		return err
+		return fmt.Errorf("processEpochRewards: %s", err.Error())
 	}
 
 	debondingUpdates, err := p.processDebondingDelegationsGenesisState(newEpochGenesis, prevEpochGenesis, block.Header.Height, block.Header.Time)
 	if err != nil {
-		return err
+		return fmt.Errorf("processDebondingDelegationsGenesisState: %s", err.Error())
 	}
 
 	updates = append(updates, debondingUpdates...)
@@ -483,18 +483,18 @@ func (p *ParserTask) epochBalanceSnapshotGenesisState(block oasis.Block) error {
 	return nil
 }
 
-func processEpochBlockEscrowEvents(txsWithResults *consensusAPI.TransactionsWithResults)(escrowEventsMap,reclaimEventsMap map[stakingAPI.Address]*quantity.Quantity){
+func processEpochBlockEscrowEvents(txsWithResults *consensusAPI.TransactionsWithResults) (escrowEventsMap, reclaimEventsMap map[stakingAPI.Address]*quantity.Quantity) {
 	escrowEventsMap = map[stakingAPI.Address]*quantity.Quantity{}
 	reclaimEventsMap = map[stakingAPI.Address]*quantity.Quantity{}
 
 	for _, result := range txsWithResults.Results {
 		for _, event := range result.Events {
-			if event.Staking != nil{
-				if event.Staking.Escrow != nil{
-					if event.Staking.Escrow.Add != nil{
+			if event.Staking != nil {
+				if event.Staking.Escrow != nil {
+					if event.Staking.Escrow.Add != nil {
 						escrowEventsMap[event.Staking.Escrow.Add.Owner] = &event.Staking.Escrow.Add.Amount
 					}
-					if event.Staking.Escrow.Reclaim != nil{
+					if event.Staking.Escrow.Reclaim != nil {
 						reclaimEventsMap[event.Staking.Escrow.Add.Owner] = &event.Staking.Escrow.Reclaim.Amount
 					}
 				}
@@ -625,7 +625,7 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 
 		validatorBalance, err := getAccountBalanceFromGenesisState(currentGenesisState, height, time, validator)
 		if err != nil {
-			return updateBalances, rewards, err
+			return updateBalances, rewards, fmt.Errorf("getAccountBalanceFromGenesisState: %s", err.Error())
 		}
 
 		updateBalances = append(updateBalances, validatorBalance)
@@ -649,7 +649,7 @@ func (p *ParserTask) processDebondingDelegationsGenesisState(currentState, prevS
 
 		accountBalance, err := getAccountBalanceFromGenesisState(currentState, height, blockTime, addresses[i])
 		if err != nil {
-			return updates, err
+			return updates, fmt.Errorf("getAccountBalanceFromGenesisState: %s", err.Error())
 		}
 
 		updates = append(updates, accountBalance)
