@@ -528,7 +528,7 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 			if newEscrows[address] != nil {
 				err = currentDelegationAmount.Sub(newEscrows[address])
 				if err != nil {
-					return updateBalances, rewards, err
+					return updateBalances, rewards, fmt.Errorf("sub scrow from delegation amount: %s", err.Error())
 				}
 			}
 
@@ -555,7 +555,7 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 			rewardsAmount := currentDelegationAmount.Clone()
 			err = rewardsAmount.Sub(prevDelegationAmount)
 			if err != nil {
-				return updateBalances, rewards, err
+				return updateBalances, rewards, fmt.Errorf("reward calculation: %s", err.Error())
 			}
 
 			//Calc commission
