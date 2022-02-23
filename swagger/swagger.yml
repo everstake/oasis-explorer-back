@@ -976,14 +976,26 @@ definitions:
         $ref: '#/definitions/ValidatorMediaInfo'
       commission_schedule:
         $ref: '#/definitions/ValidatorCommissionSchedule'
-      available_score:
+      current_epoch:
         format: int64
         type: integer
+      day_uptime:
+        type: number
+        format: float64
+      total_uptime:
+        type: number
+        format: float64
       validate_since:
         format: int64
         type: integer
       status:
         type: string
+        enum: [active, inactive]
+        description:
+          If "active", an entity has a node that is registered for being a
+          validator, node is up to date, and has successfully registered itself.
+          However, it may or may not be part of validator set
+          (top <scheduler.params.max_validators> by stake).
       node_address:
         type: string
       consensus_address:
