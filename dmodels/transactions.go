@@ -33,7 +33,7 @@ func NewTransactionType(s transaction.MethodName) (tt TransactionMethod, err err
 	}, nil
 }
 
-func (tt TransactionMethod) Type() TransactionType {
+func (tt *TransactionMethod) Type() TransactionType {
 	return TransactionType(strings.ToLower(tt.method))
 }
 

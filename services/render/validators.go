@@ -9,12 +9,12 @@ import (
 func ValidatorsList(accs []dmodels.ValidatorView) []smodels.Validator {
 	accounts := make([]smodels.Validator, len(accs))
 	for i := range accs {
-		accounts[i] = Validator(accs[i])
+		accounts[i] = Validator(&accs[i])
 	}
 	return accounts
 }
 
-func Validator(a dmodels.ValidatorView) smodels.Validator {
+func Validator(a *dmodels.ValidatorView) smodels.Validator {
 
 	return smodels.Validator{
 		Account:                     a.EntityID,
@@ -60,12 +60,12 @@ func ValidatorMediaInfo(validatorMediaInfoString string) *smodels.ValidatorMedia
 func ValidatorStatList(sts []dmodels.ValidatorStats) []smodels.ValidatorStats {
 	stats := make([]smodels.ValidatorStats, len(sts))
 	for i := range sts {
-		stats[i] = ValidatorStat(sts[i])
+		stats[i] = ValidatorStat(&sts[i])
 	}
 	return stats
 }
 
-func ValidatorStat(s dmodels.ValidatorStats) smodels.ValidatorStats {
+func ValidatorStat(s *dmodels.ValidatorStats) smodels.ValidatorStats {
 
 	return smodels.ValidatorStats{
 		Timestamp:         s.BeginOfPeriod.Unix(),
@@ -79,12 +79,12 @@ func ValidatorStat(s dmodels.ValidatorStats) smodels.ValidatorStats {
 func DelegatorList(sts []dmodels.Delegator) []smodels.Delegator {
 	stats := make([]smodels.Delegator, len(sts))
 	for i := range sts {
-		stats[i] = Delegator(sts[i])
+		stats[i] = Delegator(&sts[i])
 	}
 	return stats
 }
 
-func Delegator(s dmodels.Delegator) smodels.Delegator {
+func Delegator(s *dmodels.Delegator) smodels.Delegator {
 
 	return smodels.Delegator{
 		Account:       s.Address,
@@ -96,12 +96,12 @@ func Delegator(s dmodels.Delegator) smodels.Delegator {
 func PublicValidatorSearch(sts []dmodels.ValidatorView) []smodels.ValidatorEntity {
 	stats := make([]smodels.ValidatorEntity, len(sts))
 	for i := range sts {
-		stats[i] = ValidatorEntity(sts[i])
+		stats[i] = ValidatorEntity(&sts[i])
 	}
 	return stats
 }
 
-func ValidatorEntity(s dmodels.ValidatorView) smodels.ValidatorEntity {
+func ValidatorEntity(s *dmodels.ValidatorView) smodels.ValidatorEntity {
 
 	return smodels.ValidatorEntity{
 		Account:     s.EntityID,

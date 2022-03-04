@@ -8,14 +8,13 @@ import (
 	sq "github.com/wedancedalot/squirrel"
 )
 
-func (cl Clickhouse) CreateRewards(rewards []dmodels.Reward) error {
+func (cl *Clickhouse) CreateRewards(rewards []dmodels.Reward) error {
 	tx, err := cl.db.conn.Begin()
 	if err != nil {
 		return err
 	}
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_epoch, reg_entity_address, acb_account, rwd_amount, rwd_type, created_at)"+
-			"VALUES (?, ?, ?, ?, ?, ?, ?, ?)", dmodels.RewardsTable))
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_epoch, reg_entity_address, acb_account, rwd_amount, rwd_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", dmodels.RewardsTable))
 	if err != nil {
 		return err
 	}
@@ -50,7 +49,7 @@ func (cl Clickhouse) CreateRewards(rewards []dmodels.Reward) error {
 	return nil
 }
 
-func (cl Clickhouse) GetAccountRewards(accountID string, params smodels.CommonParams) (resp []dmodels.Reward, err error) {
+func (cl *Clickhouse) GetAccountRewards(accountID string, params smodels.CommonParams) (resp []dmodels.Reward, err error) {
 	q := sq.Select("*").
 		From(dmodels.RewardsTable).
 		Where(sq.Eq{"acb_account": accountID}).
@@ -83,7 +82,7 @@ func (cl Clickhouse) GetAccountRewards(accountID string, params smodels.CommonPa
 	return resp, nil
 }
 
-func (cl Clickhouse) GetAccountRewardsStat(accountID string) (resp dmodels.RewardsStat, err error) {
+func (cl *Clickhouse) GetAccountRewardsStat(accountID string) (resp dmodels.RewardsStat, err error) {
 	q := sq.Select("*").
 		From(dmodels.AccountRewardsStatView).
 		Where(sq.Eq{"acb_account": accountID})
@@ -109,7 +108,7 @@ func (cl Clickhouse) GetAccountRewardsStat(accountID string) (resp dmodels.Rewar
 	return resp, nil
 }
 
-func (cl Clickhouse) GetValidatorRewards(accountID string, params smodels.CommonParams) (resp []dmodels.Reward, err error) {
+func (cl *Clickhouse) GetValidatorRewards(accountID string, params smodels.CommonParams) (resp []dmodels.Reward, err error) {
 	q := sq.Select("reg_entity_address, blk_epoch, anyLast(blk_lvl), anyLast(created_at), sum(rwd_amount)").
 		From(dmodels.RewardsTable).
 		Where(sq.Eq{"reg_entity_address": accountID}).
@@ -143,7 +142,7 @@ func (cl Clickhouse) GetValidatorRewards(accountID string, params smodels.Common
 	return resp, nil
 }
 
-func (cl Clickhouse) GetValidatorRewardsStat(validatorID string) (resp dmodels.RewardsStat, err error) {
+func (cl *Clickhouse) GetValidatorRewardsStat(validatorID string) (resp dmodels.RewardsStat, err error) {
 	q := sq.Select("*").
 		From(dmodels.ValidatorRewardsStatView).
 		Where(sq.Eq{"reg_entity_address": validatorID})

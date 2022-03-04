@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func AddToCron(cron *gron.Cron, cfg conf.Config, dao *dao.DaoImpl) {
+func AddToCron(cron *gron.Cron, cfg *conf.Config, dao *dao.DaoImpl) {
 
 	if cfg.Cron.ParseValidatorsRegisterInterval > 0 {
 		dur := time.Duration(cfg.Cron.ParseValidatorsRegisterInterval) * time.Minute

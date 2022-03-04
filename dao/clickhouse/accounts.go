@@ -8,7 +8,7 @@ import (
 	sq "github.com/wedancedalot/squirrel"
 )
 
-func (cl Clickhouse) GetAccountTiming(accountID string) (resp dmodels.AccountTime, err error) {
+func (cl *Clickhouse) GetAccountTiming(accountID string) (resp dmodels.AccountTime, err error) {
 
 	q := sq.Select("min(tx_time) created_at, max(tx_time) last_active").
 		From(dmodels.TransactionsTable).
@@ -35,7 +35,7 @@ func (cl Clickhouse) GetAccountTiming(accountID string) (resp dmodels.AccountTim
 	return resp, nil
 }
 
-func (cl Clickhouse) CreateAccountBalances(balances []dmodels.AccountBalance) (err error) {
+func (cl *Clickhouse) CreateAccountBalances(balances []dmodels.AccountBalance) (err error) {
 	if len(balances) == 0 {
 		return nil
 	}
@@ -45,8 +45,7 @@ func (cl Clickhouse) CreateAccountBalances(balances []dmodels.AccountBalance) (e
 		return err
 	}
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_time, acb_account, acb_nonce, acb_general_balance, acb_escrow_balance_active, acb_escrow_balance_share, acb_escrow_debonding_active, acb_escrow_debonding_share, acb_delegations_balance, acb_debonding_delegations_balance, acb_self_delegation_balance , acb_commission_schedule)"+
-			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.AccountBalanceTable))
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_time, acb_account, acb_nonce, acb_general_balance, acb_escrow_balance_active, acb_escrow_balance_share, acb_escrow_debonding_active, acb_escrow_debonding_share, acb_delegations_balance, acb_debonding_delegations_balance, acb_self_delegation_balance , acb_commission_schedule) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.AccountBalanceTable))
 	if err != nil {
 		return err
 	}
@@ -87,7 +86,7 @@ func (cl Clickhouse) CreateAccountBalances(balances []dmodels.AccountBalance) (e
 	return nil
 }
 
-func (cl Clickhouse) GetTopEscrowAccounts(limit uint64) (resp []dmodels.AccountBalance, err error) {
+func (cl *Clickhouse) GetTopEscrowAccounts(limit uint64) (resp []dmodels.AccountBalance, err error) {
 
 	q := sq.Select("*").
 		From(dmodels.AccountLastBalanceView).
@@ -120,7 +119,7 @@ func (cl Clickhouse) GetTopEscrowAccounts(limit uint64) (resp []dmodels.AccountB
 	return resp, nil
 }
 
-func (cl Clickhouse) AccountsCount() (count uint64, err error) {
+func (cl *Clickhouse) AccountsCount() (count uint64, err error) {
 	q := sq.Select("count()").
 		From(dmodels.AccountLastBalanceView)
 
@@ -146,7 +145,7 @@ func (cl Clickhouse) AccountsCount() (count uint64, err error) {
 	return count, nil
 }
 
-func (cl Clickhouse) GetAccountList(listParams smodels.AccountListParams) (resp []dmodels.AccountList, err error) {
+func (cl *Clickhouse) GetAccountList(listParams smodels.AccountListParams) (resp []dmodels.AccountList, err error) {
 
 	q := sq.Select("*").
 		From(dmodels.AccountListTable).

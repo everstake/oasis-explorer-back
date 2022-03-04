@@ -9,12 +9,12 @@ import (
 func AccountList(accs []dmodels.AccountList) []smodels.AccountList {
 	accounts := make([]smodels.AccountList, len(accs))
 	for i := range accs {
-		accounts[i] = AccountListElement(accs[i])
+		accounts[i] = AccountListElement(&accs[i])
 	}
 	return accounts
 }
 
-func AccountListElement(a dmodels.AccountList) smodels.AccountList {
+func AccountListElement(a *dmodels.AccountList) smodels.AccountList {
 
 	return smodels.AccountList{
 		Account:                     a.Account,

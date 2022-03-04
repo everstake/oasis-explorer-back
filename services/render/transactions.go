@@ -8,12 +8,12 @@ import (
 func Transactions(txs []dmodels.Transaction) []smodels.Transaction {
 	transactions := make([]smodels.Transaction, len(txs))
 	for i := range txs {
-		transactions[i] = Transaction(txs[i])
+		transactions[i] = Transaction(&txs[i])
 	}
 	return transactions
 }
 
-func Transaction(tx dmodels.Transaction) smodels.Transaction {
+func Transaction(tx *dmodels.Transaction) smodels.Transaction {
 
 	return smodels.Transaction{
 		Amount:              tx.Amount,

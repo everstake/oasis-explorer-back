@@ -7,7 +7,7 @@ import (
 	sq "github.com/wedancedalot/squirrel"
 )
 
-func (cl Clickhouse) GetLastDayTotalBalance() (bal dmodels.DayBalance, err error) {
+func (cl *Clickhouse) GetLastDayTotalBalance() (bal dmodels.DayBalance, err error) {
 	q := sq.Select("*").
 		From(dmodels.DayTotalBalanceView).
 		Limit(1)
@@ -36,7 +36,7 @@ func (cl Clickhouse) GetLastDayTotalBalance() (bal dmodels.DayBalance, err error
 	return bal, nil
 }
 
-func (cl Clickhouse) GetBalanceChartData(accountID string, params smodels.ChartParams) (resp []dmodels.BalanceChartData, err error) {
+func (cl *Clickhouse) GetBalanceChartData(accountID string, params smodels.ChartParams) (resp []dmodels.BalanceChartData, err error) {
 
 	q := sq.Select("*").
 		From(dmodels.AccountDayBalanceView).

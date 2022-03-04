@@ -10,20 +10,20 @@ type CurrMarketData struct {
 }
 
 // GetPrice returns the price in USD.
-func (md CurrMarketData) GetPrice() float64 {
+func (md *CurrMarketData) GetPrice() float64 {
 	return md.Price
 }
 
 // GetPriceChange returns the price change during the last 24 hours in percents.
-func (md CurrMarketData) GetPriceChange() float64 {
+func (md *CurrMarketData) GetPriceChange() float64 {
 	return md.Price24hChange
 }
-func (md CurrMarketData) GetMarketCap() float64 {
+func (md *CurrMarketData) GetMarketCap() float64 {
 	return md.MarketCap
 }
-func (md CurrMarketData) GetVolume() float64 {
+func (md *CurrMarketData) GetVolume() float64 {
 	return md.Volume
 }
-func (md CurrMarketData) GetSupply() float64 {
+func (md *CurrMarketData) GetSupply() float64 {
 	return md.Supply
 }

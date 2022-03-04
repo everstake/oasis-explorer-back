@@ -16,7 +16,7 @@ type DAO struct {
 	db *gorm.DB
 }
 
-func New(c conf.Config) (*DAO, error) {
+func New(c *conf.Config) (*DAO, error) {
 	d, err := newConn(c)
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func New(c conf.Config) (*DAO, error) {
 	return &DAO{d}, nil
 }
 
-func newConn(c conf.Config) (*gorm.DB, error) {
+func newConn(c *conf.Config) (*gorm.DB, error) {
 
 	db, err := gorm.Open("postgres", fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=disable&search_path=%s", c.Postgres.User, c.Postgres.Password, c.Postgres.Host, c.Postgres.Port, c.Postgres.Database, c.Postgres.Schema))
 	if err != nil {

@@ -36,7 +36,7 @@ func (c *BlockSignatureContainer) Signatures() []dmodels.BlockSignature {
 	return c.signs
 }
 
-func (c BlockSignatureContainer) IsEmpty() bool {
+func (c *BlockSignatureContainer) IsEmpty() bool {
 	return len(c.signs) == 0
 }
 

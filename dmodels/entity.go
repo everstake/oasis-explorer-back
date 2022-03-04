@@ -11,19 +11,19 @@ type EntityNodesContainer struct {
 	Nodes []EntityNode
 }
 
-func (c EntityNodesContainer) IsEmpty() bool {
+func (c *EntityNodesContainer) IsEmpty() bool {
 	return len(c.Nodes) == 0
 }
 
-func (c EntityNodesContainer) IsNode(accountID string) bool {
+func (c *EntityNodesContainer) IsNode(accountID string) bool {
 	return len(c.Nodes) == 1 && c.Nodes[0].Address == accountID
 }
 
-func (c EntityNodesContainer) IsEntity(accountID string) bool {
+func (c *EntityNodesContainer) IsEntity(accountID string) bool {
 	return len(c.Nodes) > 0 && c.Nodes[0].EntityAddress == accountID
 }
 
-func (c EntityNodesContainer) GetEntityAddress() string {
+func (c *EntityNodesContainer) GetEntityAddress() string {
 	if len(c.Nodes) == 0 {
 		return ""
 	}
@@ -31,7 +31,7 @@ func (c EntityNodesContainer) GetEntityAddress() string {
 	return c.Nodes[0].EntityAddress
 }
 
-func (c EntityNodesContainer) GetEntity() (resp EntityNode) {
+func (c *EntityNodesContainer) GetEntity() (resp EntityNode) {
 	if len(c.Nodes) == 0 {
 		return resp
 	}
@@ -77,7 +77,7 @@ type EntityNode struct {
 	LastSignatureTime    time.Time `db:"last_signature_time"`
 }
 
-func (n EntityNode) GetLastActiveTime() time.Time {
+func (n *EntityNode) GetLastActiveTime() time.Time {
 	if n.LastSignatureTime.After(n.LastBlockTime) {
 		return n.LastSignatureTime
 	}

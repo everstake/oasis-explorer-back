@@ -86,8 +86,8 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 		debondingDelegations := gen.Staking.DebondingDelegations[accountAddress]
 		var debondingDelegationsBalance uint64
 		for _, debondings := range debondingDelegations {
-			for _, value := range debondings {
-				debondingDelegationsBalance += value.Shares.ToBigInt().Uint64()
+			for i := range debondings {
+				debondingDelegationsBalance += debondings[i].Shares.ToBigInt().Uint64()
 			}
 		}
 
@@ -152,9 +152,9 @@ func (cli *Cli) SetupGenesisJson(args []string) error {
 
 	//In this genesis not used
 	//Genesis escrowreclaim
-	for validator, senders := range gen.Staking.DebondingDelegations {
+	for validator := range gen.Staking.DebondingDelegations {
 
-		for unstaker, shareArr := range senders {
+		for unstaker, shareArr := range gen.Staking.DebondingDelegations[validator] {
 
 			for i := range shareArr {
 

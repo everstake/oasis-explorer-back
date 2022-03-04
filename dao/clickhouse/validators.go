@@ -8,7 +8,7 @@ import (
 	sq "github.com/wedancedalot/squirrel"
 )
 
-func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.ValidatorView, err error) {
+func (cl *Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.ValidatorView, err error) {
 
 	q := sq.Select("reg_entity_address,reg_consensus_address,node_address,created_time,start_blk_lvl,blocks,signatures, signed_blocks, max_day_block, day_signatures, day_signed_blocks, day_blocks, acb_escrow_balance_active, acb_general_balance,acb_escrow_balance_share,acb_escrow_debonding_active, acb_delegations_balance , acb_debonding_delegations_balance, acb_self_delegation_balance, acb_commission_schedule, depositors_num, is_active, pvl_name, pvl_info").
 		From(dmodels.ValidatorsTable).
@@ -45,7 +45,7 @@ func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []d
 	return resp, nil
 }
 
-func (cl Clickhouse) GetValidatorsCount(params smodels.ValidatorParams) (count uint64, err error) {
+func (cl *Clickhouse) GetValidatorsCount(params smodels.ValidatorParams) (count uint64, err error) {
 	q := sq.Select("count()").
 		From("validator_entity_view")
 
@@ -76,7 +76,7 @@ func (cl Clickhouse) GetValidatorsCount(params smodels.ValidatorParams) (count u
 	return count, nil
 }
 
-func (cl Clickhouse) GetValidatorDayStats(consensusAddress string, params smodels.ChartParams) (resp []dmodels.ValidatorStats, err error) {
+func (cl *Clickhouse) GetValidatorDayStats(consensusAddress string, params smodels.ChartParams) (resp []dmodels.ValidatorStats, err error) {
 
 	q := sq.Select("day, day_signatures, blocks, blk_lvl, day_signed_blocks/blk_count uptime").
 		From(dmodels.ValidatorStatsView).
@@ -111,7 +111,7 @@ func (cl Clickhouse) GetValidatorDayStats(consensusAddress string, params smodel
 	return resp, nil
 }
 
-func (cl Clickhouse) GetValidatorDelegators(validatorID string, params smodels.CommonParams) (resp []dmodels.Delegator, err error) {
+func (cl *Clickhouse) GetValidatorDelegators(validatorID string, params smodels.CommonParams) (resp []dmodels.Delegator, err error) {
 
 	q := sq.Select("tx_sender,escrow_since,balance").
 		From(dmodels.DepositorsView).
@@ -146,7 +146,7 @@ func (cl Clickhouse) GetValidatorDelegators(validatorID string, params smodels.C
 	return resp, nil
 }
 
-func (cl Clickhouse) PublicValidatorsSearchList() (resp []dmodels.ValidatorView, err error) {
+func (cl *Clickhouse) PublicValidatorsSearchList() (resp []dmodels.ValidatorView, err error) {
 	q := sq.Select("reg_entity_address,pvl_name").
 		From(dmodels.PublicValidatorsTable)
 
@@ -175,7 +175,7 @@ func (cl Clickhouse) PublicValidatorsSearchList() (resp []dmodels.ValidatorView,
 	return resp, nil
 }
 
-func (cl Clickhouse) PublicValidatorsList() (resp []dmodels.PublicValidator, err error) {
+func (cl *Clickhouse) PublicValidatorsList() (resp []dmodels.PublicValidator, err error) {
 	q := sq.Select("reg_entity_id,reg_entity_address,pvl_name, pvl_info").
 		From(dmodels.PublicValidatorsTable)
 
@@ -204,7 +204,7 @@ func (cl Clickhouse) PublicValidatorsList() (resp []dmodels.PublicValidator, err
 	return resp, nil
 }
 
-func (cl Clickhouse) UpdateValidators(list []dmodels.PublicValidator) (err error) {
+func (cl *Clickhouse) UpdateValidators(list []dmodels.PublicValidator) (err error) {
 	if len(list) == 0 {
 		return nil
 	}

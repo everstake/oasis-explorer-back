@@ -45,16 +45,16 @@ type (
 	}
 )
 
-func (e Error) Error() string {
+func (e *Error) Error() string {
 	return fmt.Sprintf("%s %s", string(e.Code), e.Value)
 }
 
-func (e Error) ErrorCode() ErrCode {
+func (e *Error) ErrorCode() ErrCode {
 	return e.Code
 }
 
 // ToMap converts Error object to map[string]interface{}
-func (e Error) ToMap() map[string]interface{} {
+func (e *Error) ToMap() map[string]interface{} {
 	r := map[string]interface{}{
 		"error": string(e.Code),
 	}
@@ -71,7 +71,7 @@ func (e Error) ToMap() map[string]interface{} {
 }
 
 // GetHttpCode return a Http error code
-func (e Error) GetHttpCode() int {
+func (e *Error) GetHttpCode() int {
 	switch e.Code {
 	case ErrService:
 		return http.StatusInternalServerError
@@ -112,7 +112,7 @@ func FromError(err error) *Error {
 
 func AppEncode(err error) error {
 	switch err.(type) {
-	case Error, *Error:
+	case *Error:
 		text, mErr := json.Marshal(err)
 		if mErr != nil {
 			return err

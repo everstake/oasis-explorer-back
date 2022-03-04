@@ -17,7 +17,7 @@ type DBParams struct {
 }
 
 // Validate checks all MysqlParams fields
-func (this DBParams) Validate() error {
+func (this *DBParams) Validate() error {
 	if this.Port == 0 {
 		return fmt.Errorf("bad db Port")
 	}

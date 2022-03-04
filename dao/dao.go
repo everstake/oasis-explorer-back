@@ -16,10 +16,10 @@ type (
 	}
 
 	TaskDAO interface {
-		CreateTask(task dmodels.Task) error
+		CreateTask(task *dmodels.Task) error
 		GetTasks(bool) (tasks []dmodels.Task, err error)
 		GetLastTask(title string) (task dmodels.Task, found bool, err error)
-		UpdateTask(task dmodels.Task) error
+		UpdateTask(task *dmodels.Task) error
 	}
 
 	ServiceDAO interface {
@@ -82,7 +82,7 @@ type (
 	}
 )
 
-func New(cfg conf.Config) (*DaoImpl, error) {
+func New(cfg *conf.Config) (*DaoImpl, error) {
 	m, err := postgres.New(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("postgres.New: %s", err.Error())
@@ -97,10 +97,10 @@ func New(cfg conf.Config) (*DaoImpl, error) {
 	}, nil
 }
 
-func (d DaoImpl) GetParserDAO() (ParserDAO, error) {
+func (d *DaoImpl) GetParserDAO() (ParserDAO, error) {
 	return d.Clickhouse, nil
 }
 
-func (d DaoImpl) GetServiceDAO() ServiceDAO {
+func (d *DaoImpl) GetServiceDAO() ServiceDAO {
 	return d.Clickhouse
 }

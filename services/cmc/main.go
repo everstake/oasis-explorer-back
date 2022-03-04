@@ -41,7 +41,7 @@ func NewCoinGecko() *CoinGecko {
 }
 
 // GetOasisMarketData gets the oasis prices and price change from CoinGecko API.
-func (c CoinGecko) GetOasisMarketData(curr string) (md MarketInfo, err error) {
+func (c *CoinGecko) GetOasisMarketData(curr string) (md MarketInfo, err error) {
 	if !AvailableCurrencies[curr] {
 		return md, fmt.Errorf("Not available currency: %s", curr)
 	}
@@ -54,10 +54,10 @@ func (c CoinGecko) GetOasisMarketData(curr string) (md MarketInfo, err error) {
 	return md, nil
 }
 
-func (c CoinGecko) GetOasisMarketDataByCurr(curr string) (md CurrMarketData, err error) {
+func (c *CoinGecko) GetOasisMarketDataByCurr(curr string) (md *CurrMarketData, err error) {
 	cacheKey := fmt.Sprintf(marketInfoKey, curr)
 	if marketData, isFound := c.Cache.Get(cacheKey); isFound {
-		return marketData.(CurrMarketData), nil
+		return marketData.(*CurrMarketData), nil
 	}
 
 	cg := coingecko.NewClient(nil)
@@ -80,5 +80,5 @@ func (c CoinGecko) GetOasisMarketDataByCurr(curr string) (md CurrMarketData, err
 		return md, err
 	}
 
-	return tmd[0], nil
+	return &tmd[0], nil
 }

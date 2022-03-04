@@ -10,7 +10,7 @@ import (
 	sq "github.com/wedancedalot/squirrel"
 )
 
-func (cl Clickhouse) CreateTransfers(transfers []dmodels.Transaction) error {
+func (cl *Clickhouse) CreateTransfers(transfers []dmodels.Transaction) error {
 	if len(transfers) == 0 {
 		return nil
 	}
@@ -23,8 +23,7 @@ func (cl Clickhouse) CreateTransfers(transfers []dmodels.Transaction) error {
 	}
 
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_hash, tx_time, tx_hash, tx_amount, tx_escrow_amount,  tx_escrow_reclaim_amount, tx_type, tx_status, tx_error, tx_sender, tx_receiver, tx_nonce, tx_fee, tx_gas_limit, tx_gas_price)"+
-			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.TransactionsTable))
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_hash, tx_time, tx_hash, tx_amount, tx_escrow_amount,  tx_escrow_reclaim_amount, tx_type, tx_status, tx_error, tx_sender, tx_receiver, tx_nonce, tx_fee, tx_gas_limit, tx_gas_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.TransactionsTable))
 	if err != nil {
 		return err
 	}
@@ -65,7 +64,7 @@ func (cl Clickhouse) CreateTransfers(transfers []dmodels.Transaction) error {
 	return nil
 }
 
-func (cl Clickhouse) CreateRegisterNodeTransactions(txs []dmodels.NodeRegistryTransaction) error {
+func (cl *Clickhouse) CreateRegisterNodeTransactions(txs []dmodels.NodeRegistryTransaction) error {
 	if len(txs) == 0 {
 		return nil
 	}
@@ -77,8 +76,7 @@ func (cl Clickhouse) CreateRegisterNodeTransactions(txs []dmodels.NodeRegistryTr
 	}
 
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (blk_lvl, tx_time, tx_hash, reg_id, reg_address, reg_entity_id, reg_entity_address, reg_expiration, reg_p2p_id, reg_consensus_id, reg_consensus_address, reg_physical_address, reg_roles)"+
-			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.RegisterNodeTable))
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, tx_time, tx_hash, reg_id, reg_address, reg_entity_id, reg_entity_address, reg_expiration, reg_p2p_id, reg_consensus_id, reg_consensus_address, reg_physical_address, reg_roles) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.RegisterNodeTable))
 	if err != nil {
 		return err
 	}
@@ -117,7 +115,7 @@ func (cl Clickhouse) CreateRegisterNodeTransactions(txs []dmodels.NodeRegistryTr
 	return nil
 }
 
-func (cl Clickhouse) CreateRegisterEntityTransactions(txs []dmodels.EntityRegistryTransaction) error {
+func (cl *Clickhouse) CreateRegisterEntityTransactions(txs []dmodels.EntityRegistryTransaction) error {
 	if len(txs) == 0 {
 		return nil
 	}
@@ -129,8 +127,7 @@ func (cl Clickhouse) CreateRegisterEntityTransactions(txs []dmodels.EntityRegist
 	}
 
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (blk_lvl, tx_time, tx_hash, reg_entity_id, reg_entity_address, reg_nodes)"+
-			"VALUES (?, ?, ?, ?, ?, ?)", dmodels.RegisterEntityTable))
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, tx_time, tx_hash, reg_entity_id, reg_entity_address, reg_nodes) VALUES (?, ?, ?, ?, ?, ?)", dmodels.RegisterEntityTable))
 	if err != nil {
 		return err
 	}
@@ -162,7 +159,7 @@ func (cl Clickhouse) CreateRegisterEntityTransactions(txs []dmodels.EntityRegist
 	return nil
 }
 
-func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]dmodels.Transaction, error) {
+func (cl *Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]dmodels.Transaction, error) {
 
 	resp := make([]dmodels.Transaction, 0, params.Limit)
 
@@ -200,7 +197,7 @@ func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]d
 	return resp, nil
 }
 
-func (cl Clickhouse) GetTransactionsCount(params smodels.TransactionsParams) (count uint64, err error) {
+func (cl *Clickhouse) GetTransactionsCount(params smodels.TransactionsParams) (count uint64, err error) {
 	q := sq.Select("count()").
 		From(dmodels.TransactionsTable)
 

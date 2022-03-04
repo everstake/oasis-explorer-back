@@ -57,10 +57,10 @@ func UpdatePublicValidators(unit Repo, provider AccountProvider) error {
 	}
 
 	updatedValidators := make([]dmodels.PublicValidator, 0, len(publicValidator))
-	for pubKey, metadata := range entities {
+	for pubKey := range entities {
 
 		//Update validator info
-		updatedValidator, err := validatorUpdate(pubKey, validatorsMap, metadata)
+		updatedValidator, err := validatorUpdate(pubKey, validatorsMap, entities[pubKey])
 		if err != nil {
 			return err
 		}

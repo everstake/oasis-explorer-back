@@ -22,7 +22,7 @@ type Clickhouse struct {
 
 const migrationsDir = "./dao/clickhouse/migrations"
 
-func New(cfg conf.Config) (db *Clickhouse, err error) {
+func New(cfg *conf.Config) (db *Clickhouse, err error) {
 	config := cfg.Clickhouse
 
 	conn, err := newConnection(config)

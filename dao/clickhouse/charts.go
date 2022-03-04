@@ -7,7 +7,7 @@ import (
 	"oasisTracker/smodels"
 )
 
-func (cl Clickhouse) GetChartsData(params smodels.ChartParams) (resp []dmodels.ChartData, err error) {
+func (cl *Clickhouse) GetChartsData(params smodels.ChartParams) (resp []dmodels.ChartData, err error) {
 
 	q := sq.Select("start_of_period, toString(sum(tx_amount)) transaction_volume").
 		From(dmodels.TransactionsTable).
@@ -42,7 +42,7 @@ func (cl Clickhouse) GetChartsData(params smodels.ChartParams) (resp []dmodels.C
 	return resp, nil
 }
 
-func (cl Clickhouse) GetEscrowRatioChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error) {
+func (cl *Clickhouse) GetEscrowRatioChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error) {
 
 	q := sq.Select("start_of_period, escrow_balance_active / (general_balance + escrow_balance_active + escrow_debonding_active) * 100 escrow_ratio").
 		From(dmodels.DayTotalBalanceView).
@@ -74,7 +74,7 @@ func (cl Clickhouse) GetEscrowRatioChartData(params smodels.ChartParams) (resp [
 	return resp, nil
 }
 
-func (cl Clickhouse) GetTotalAccountsCountChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error) {
+func (cl *Clickhouse) GetTotalAccountsCountChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error) {
 
 	q := sq.Select("start_of_period, accounts_number").
 		From(dmodels.DayAccountsCountView).
@@ -107,7 +107,7 @@ func (cl Clickhouse) GetTotalAccountsCountChartData(params smodels.ChartParams) 
 	return resp, nil
 }
 
-func (cl Clickhouse) GetAvgBlockTimeChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error) {
+func (cl *Clickhouse) GetAvgBlockTimeChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error) {
 
 	q := sq.Select("start_of_period, avg(next_blk_created_at - blk_created_at) avg_delay").
 		From(dmodels.BlocksTable).
@@ -143,7 +143,7 @@ func (cl Clickhouse) GetAvgBlockTimeChartData(params smodels.ChartParams) (resp 
 	return resp, nil
 }
 
-func (cl Clickhouse) GetFeeVolumeChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error) {
+func (cl *Clickhouse) GetFeeVolumeChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error) {
 
 	q := sq.Select("start_of_period, sum(tx_fee) tx_fee").
 		From(dmodels.TransactionsTable).
@@ -177,7 +177,7 @@ func (cl Clickhouse) GetFeeVolumeChartData(params smodels.ChartParams) (resp []d
 	return resp, nil
 }
 
-func (cl Clickhouse) GetOperationsCountChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error) {
+func (cl *Clickhouse) GetOperationsCountChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error) {
 	q := sq.Select("start_of_period, count() operations").
 		From(dmodels.TransactionsTable).
 		Where(sq.GtOrEq{"start_of_period": params.From}).
@@ -210,7 +210,7 @@ func (cl Clickhouse) GetOperationsCountChartData(params smodels.ChartParams) (re
 	return resp, nil
 }
 
-func (cl Clickhouse) GetReclaimAmountChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error) {
+func (cl *Clickhouse) GetReclaimAmountChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error) {
 	q := sq.Select("start_of_period, sum(tx_escrow_reclaim_amount) reclaim_amount").
 		From(dmodels.TransactionsTable).
 		Where(sq.GtOrEq{"start_of_period": params.From}).

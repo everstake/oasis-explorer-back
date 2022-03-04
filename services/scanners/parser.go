@@ -51,7 +51,7 @@ type (
 	}
 )
 
-func NewParser(ctx context.Context, cfg conf.Scanner, d dao.ParserDAO) (*Parser, error) {
+func NewParser(ctx context.Context, cfg *conf.Scanner, d dao.ParserDAO) (*Parser, error) {
 	grpcConn, err := grpc.Dial(cfg.NodeConfig, grpcCommon.WithInsecure())
 	if err != nil {
 		return nil, err

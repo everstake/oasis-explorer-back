@@ -19,7 +19,7 @@ const repeatPause = time.Second * 5
 
 type (
 	Scanner struct {
-		cfg      conf.Scanner
+		cfg      *conf.Scanner
 		task     dmodels.Task
 		executor *smodels.Executor
 		dao      dao.DAO
@@ -33,7 +33,7 @@ type (
 	}
 )
 
-func NewScanner(cfg conf.Scanner, task dmodels.Task, d dao.DAO, ctx context.Context) (s *Scanner, err error) {
+func NewScanner(cfg *conf.Scanner, task dmodels.Task, d dao.DAO, ctx context.Context) (s *Scanner, err error) {
 	scCtx, stop := context.WithCancel(ctx)
 
 	s = &Scanner{
@@ -130,7 +130,7 @@ func (s *Scanner) Run() {
 		}
 
 		for {
-			err = s.dao.UpdateTask(s.task)
+			err = s.dao.UpdateTask(&s.task)
 			if err == nil {
 				break
 			}

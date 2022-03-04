@@ -94,8 +94,8 @@ func (s *ServiceFacade) GetAccountInfo(accountID string) (sAcc smodels.Account, 
 	}
 
 	var debondingDelegationsBalance uint64
-	for _, debDelegationList := range debondingDelegations {
-		for _, value := range debDelegationList {
+	for key := range debondingDelegations {
+		for _, value := range debondingDelegations[key] {
 
 			debondingBalance, err := value.Pool.StakeForShares(&value.Shares)
 			if err != nil {
@@ -217,5 +217,5 @@ func (s *ServiceFacade) GetAccountRewardsStat(validatorID string) (stat smodels.
 		return stat, err
 	}
 
-	return render.RewardStat(rewardsStat), nil
+	return render.RewardStat(&rewardsStat), nil
 }

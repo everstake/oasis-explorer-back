@@ -6,4 +6,4 @@ CREATE TABLE IF NOT EXISTS block_signatures (
     sig_blk_signature FixedString(128)
 ) ENGINE ReplacingMergeTree()
 PARTITION BY toYYYYMMDD(sig_timestamp)
-ORDER BY (sig_blk_signature);
+ORDER BY (blk_lvl);

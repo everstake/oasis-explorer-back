@@ -9,7 +9,7 @@ import (
 	sq "github.com/wedancedalot/squirrel"
 )
 
-func (cl Clickhouse) CreateBlocks(blocks []dmodels.Block) (err error) {
+func (cl *Clickhouse) CreateBlocks(blocks []dmodels.Block) (err error) {
 	log.Print("Len blocks: ", len(blocks))
 
 	if len(blocks) == 0 {
@@ -21,8 +21,7 @@ func (cl Clickhouse) CreateBlocks(blocks []dmodels.Block) (err error) {
 		return err
 	}
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_created_at, blk_hash, blk_proposer_address, blk_validator_hash, blk_epoch)"+
-			"VALUES (?, ?, ?, ?, ?, ?)", dmodels.BlocksTable))
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_created_at, blk_hash, blk_proposer_address, blk_validator_hash, blk_epoch) VALUES (?, ?, ?, ?, ?, ?)", dmodels.BlocksTable))
 	if err != nil {
 		return err
 	}
@@ -56,7 +55,7 @@ func (cl Clickhouse) CreateBlocks(blocks []dmodels.Block) (err error) {
 	return nil
 }
 
-func (cl Clickhouse) CreateBlockSignatures(blocks []dmodels.BlockSignature) error {
+func (cl *Clickhouse) CreateBlockSignatures(blocks []dmodels.BlockSignature) error {
 	var err error
 
 	tx, err := cl.db.conn.Begin()
@@ -64,8 +63,7 @@ func (cl Clickhouse) CreateBlockSignatures(blocks []dmodels.BlockSignature) erro
 		return err
 	}
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (blk_lvl, sig_timestamp, sig_block_id_flag, sig_validator_address, sig_blk_signature)"+
-			"VALUES (?, ?, ?, ?, ?)", dmodels.BlockSignaturesTable))
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, sig_timestamp, sig_block_id_flag, sig_validator_address, sig_blk_signature) VALUES (?, ?, ?, ?, ?)", dmodels.BlockSignaturesTable))
 	if err != nil {
 		return err
 	}
@@ -98,7 +96,7 @@ func (cl Clickhouse) CreateBlockSignatures(blocks []dmodels.BlockSignature) erro
 	return nil
 }
 
-func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlock, error) {
+func (cl *Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlock, error) {
 
 	resp := make([]dmodels.RowBlock, 0, params.Limit)
 
@@ -135,7 +133,7 @@ func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlo
 	return resp, nil
 }
 
-func (cl Clickhouse) GetLastBlock() (block dmodels.Block, err error) {
+func (cl *Clickhouse) GetLastBlock() (block dmodels.Block, err error) {
 	q := sq.Select("*").
 		From(dmodels.BlocksTable).
 		Limit(1).
@@ -163,7 +161,7 @@ func (cl Clickhouse) GetLastBlock() (block dmodels.Block, err error) {
 	return block, nil
 }
 
-func (cl Clickhouse) BlocksCount(params smodels.BlockParams) (count uint64, err error) {
+func (cl *Clickhouse) BlocksCount(params smodels.BlockParams) (count uint64, err error) {
 	q := sq.Select("count()").
 		From(dmodels.BlocksTable)
 

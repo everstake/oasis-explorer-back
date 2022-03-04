@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS register_node_transactions (
     reg_roles UInt32
 ) ENGINE ReplacingMergeTree()
 PARTITION BY toYYYYMMDD(tx_time)
-ORDER BY (tx_hash);
+ORDER BY (blk_lvl);
 
 CREATE TABLE IF NOT EXISTS register_entity_transactions (
     blk_lvl UInt64,
@@ -26,4 +26,4 @@ CREATE TABLE IF NOT EXISTS register_entity_transactions (
     reg_allow_entity_signed_nodes UInt8 --Bool
 ) ENGINE ReplacingMergeTree()
 PARTITION BY toYYYYMMDD(tx_time)
-ORDER BY (tx_hash);
+ORDER BY (blk_lvl);

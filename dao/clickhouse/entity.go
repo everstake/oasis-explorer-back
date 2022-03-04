@@ -6,7 +6,7 @@ import (
 	sq "github.com/wedancedalot/squirrel"
 )
 
-func (cl Clickhouse) GetEntityActiveDepositorsCount(accountAddress string) (count uint64, err error) {
+func (cl *Clickhouse) GetEntityActiveDepositorsCount(accountAddress string) (count uint64, err error) {
 
 	q := sq.Select("depositors_num").
 		From(dmodels.EntityActiveDepositorsCounterView).
@@ -35,7 +35,7 @@ func (cl Clickhouse) GetEntityActiveDepositorsCount(accountAddress string) (coun
 	return count, nil
 }
 
-func (cl Clickhouse) GetEntity(address string) (resp dmodels.EntityRegistryTransaction, err error) {
+func (cl *Clickhouse) GetEntity(address string) (resp dmodels.EntityRegistryTransaction, err error) {
 	q := sq.Select("*").
 		From(dmodels.RegisterEntityTable).
 		Where(sq.Eq{"reg_entity_address": address}).
@@ -63,7 +63,7 @@ func (cl Clickhouse) GetEntity(address string) (resp dmodels.EntityRegistryTrans
 	return resp, nil
 }
 
-func (cl Clickhouse) GetAccountValidatorInfo(accountAddress string) (resp dmodels.EntityNodesContainer, err error) {
+func (cl *Clickhouse) GetAccountValidatorInfo(accountAddress string) (resp dmodels.EntityNodesContainer, err error) {
 
 	q := sq.Select("*").
 		From(dmodels.EntityNodesView).

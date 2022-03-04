@@ -13,7 +13,7 @@ type (
 		Postgres           types.DBParams
 		Clickhouse         Clickhouse
 		CORSAllowedOrigins []string
-		Scanner            Scanner
+		Scanner            *Scanner
 		Cron               Cron
 	}
 	API struct {
@@ -44,7 +44,7 @@ const (
 	Service = "oasis"
 )
 
-func NewFromFile(cfgFile *string) (cfg Config, err error) {
+func NewFromFile(cfgFile *string) (cfg *Config, err error) {
 	err = baseconf.Init(&cfg, cfgFile)
 	if err != nil {
 		return cfg, err
@@ -59,7 +59,7 @@ func NewFromFile(cfgFile *string) (cfg Config, err error) {
 }
 
 // Validate validates all Config fields.
-func (config Config) Validate() error {
+func (config *Config) Validate() error {
 	if config.Clickhouse.Protocol == "" {
 		return fmt.Errorf("bad clickhouse Protocol")
 	}
@@ -72,5 +72,5 @@ func (config Config) Validate() error {
 	if config.Clickhouse.User == "" {
 		return fmt.Errorf("no clickhouse User")
 	}
-	return baseconf.ValidateBaseConfigStructs(&config)
+	return baseconf.ValidateBaseConfigStructs(config)
 }

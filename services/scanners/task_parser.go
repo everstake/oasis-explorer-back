@@ -509,7 +509,7 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 
 	updateBalances = make([]dmodels.AccountBalance, 0, len(currentGenesisState.Delegations))
 
-	for validator, delegators := range currentGenesisState.Delegations {
+	for validator := range currentGenesisState.Delegations {
 
 		actualShare := currentGenesisState.Ledger[validator].Escrow
 		prevShare := prevGenesisState.Ledger[validator].Escrow
@@ -517,7 +517,7 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 		totalCommission := quantity.NewQuantity()
 		validatorReward := quantity.NewQuantity()
 
-		for address, delegation := range delegators {
+		for address, delegation := range currentGenesisState.Delegations[validator] {
 
 			currentDelegationAmount, err := actualShare.Active.StakeForShares(&delegation.Shares)
 			if err != nil {
@@ -762,8 +762,8 @@ func formAccountBalance(height int64, time time.Time, address stakingAPI.Address
 	var debondingDelegationsBalance uint64
 	var debondingBalance *quantity.Quantity
 
-	for _, debDelegationList := range debondingDelegations {
-		for _, debDelegation := range debDelegationList {
+	for addr := range debondingDelegations {
+		for _, debDelegation := range debondingDelegations[addr] {
 			debondingBalance, err = accInfo.Escrow.Debonding.StakeForShares(&debDelegation.Shares)
 			if err != nil {
 				log.Error("Somehow debonding rpc values is wrong", zap.Error(err))

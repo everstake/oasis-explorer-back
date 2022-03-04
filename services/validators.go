@@ -135,7 +135,7 @@ func (s *ServiceFacade) GetValidatorRewardsStat(validatorID string) (stat smodel
 		return stat, err
 	}
 
-	return render.RewardStat(rewardsStat), nil
+	return render.RewardStat(&rewardsStat), nil
 }
 
 func calcAvailabilityScore(blocks, signatures, nodeRegisterBlock, currentHeight uint64) uint64 {

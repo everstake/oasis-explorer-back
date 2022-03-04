@@ -14,7 +14,7 @@ import (
 
 type Watcher struct {
 	dao        dao.DAO
-	cfg        conf.Config
+	cfg        *conf.Config
 	parser     *Parser
 	ctx        context.Context
 	cancelFunc context.CancelFunc
@@ -23,7 +23,7 @@ type Watcher struct {
 	EpochReSyncInit  bool
 }
 
-func NewWatcher(cfg conf.Config, d dao.DAO) (*Watcher, error) {
+func NewWatcher(cfg *conf.Config, d dao.DAO) (*Watcher, error) {
 
 	dao, err := d.GetParserDAO()
 	if err != nil {
@@ -126,7 +126,7 @@ func (m *Watcher) Run() error {
 			}
 
 			//Save all processed epochs
-			err = m.dao.CreateTask(dmodels.Task{
+			err = m.dao.CreateTask(&dmodels.Task{
 				IsActive:      false,
 				Title:         parserBalancesSnapshotTask,
 				StartHeight:   uint64(epoch),
@@ -180,7 +180,7 @@ func (m *Watcher) addBlocksReSyncTask(currentHeight int64) error {
 	}
 
 	//Blocks sync
-	err = m.dao.CreateTask(dmodels.Task{
+	err = m.dao.CreateTask(&dmodels.Task{
 		IsActive:      true,
 		Title:         parserBaseTask,
 		StartHeight:   startHeight,
@@ -225,7 +225,7 @@ func (m *Watcher) addEpochsReSyncTask(currentEpoch uint64) error {
 	}
 
 	//Snaps sync
-	err = m.dao.CreateTask(dmodels.Task{
+	err = m.dao.CreateTask(&dmodels.Task{
 		IsActive:      true,
 		Title:         parserBalancesSnapshotTask,
 		StartHeight:   startEpoch,

@@ -11,7 +11,7 @@ import (
 
 type (
 	Manager struct {
-		cfg   conf.Config
+		cfg   *conf.Config
 		dao   dao.DAO
 		tasks map[uint64]bool
 
@@ -21,7 +21,7 @@ type (
 	}
 )
 
-func NewManager(cfg conf.Config, d dao.DAO) *Manager {
+func NewManager(cfg *conf.Config, d dao.DAO) *Manager {
 	ctx, stop := context.WithCancel(context.Background())
 
 	return &Manager{
@@ -61,22 +61,22 @@ func (m *Manager) Run() error {
 				return fmt.Errorf("dao.GetTasks: %s", err.Error())
 			}
 
-			for _, task := range tasks {
-				if !task.IsActive {
+			for i := range tasks {
+				if !tasks[i].IsActive {
 					continue
 				}
 
 				//Already run
-				if ok := m.tasks[task.ID]; ok {
+				if ok := m.tasks[tasks[i].ID]; ok {
 					continue
 				}
 
 				m.wg.Add(1)
-				m.tasks[task.ID] = true
+				m.tasks[tasks[i].ID] = true
 
-				scanner, err := NewScanner(m.cfg.Scanner, task, m.dao, m.ctx)
+				scanner, err := NewScanner(m.cfg.Scanner, tasks[i], m.dao, m.ctx)
 				if err != nil {
-					return fmt.Errorf("NewScanner (%s) height (%d): %s", task.Title, task.StartHeight, err.Error())
+					return fmt.Errorf("NewScanner (%s) height (%d): %s", tasks[i].Title, tasks[i].StartHeight, err.Error())
 				}
 
 				go func() {

@@ -9,7 +9,7 @@ type CommonParams struct {
 
 const MaxLimitSize = 500
 
-func (c CommonParams) Validate() error {
+func (c *CommonParams) Validate() error {
 	if c.Limit == 0 {
 		return fmt.Errorf("limit not present")
 	}

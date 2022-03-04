@@ -28,7 +28,7 @@ type (
 	API struct {
 		router       *mux.Router
 		server       *http.Server
-		cfg          conf.Config
+		cfg          *conf.Config
 		services     services.Service
 		queryDecoder *schema.Decoder
 	}
@@ -42,7 +42,7 @@ type (
 	}
 )
 
-func NewAPI(cfg conf.Config, s services.Service) *API {
+func NewAPI(cfg *conf.Config, s services.Service) *API {
 	queryDecoder := schema.NewDecoder()
 	queryDecoder.IgnoreUnknownKeys(true)
 	api := &API{

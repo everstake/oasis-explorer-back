@@ -40,7 +40,7 @@ const (
 var sortColumns = []string{sortCreatedAt, sortDebondingDelegationsBalance, sortDelegationsBalance, sortEscrowBalance, sortEscrowBalanceShare /*sortEscrowShare,*/, sortBalance, sortOperationsAmount, sortOperationsNumber}
 var sortSides = []string{sortAsc, sortDesc}
 
-func (b AccountListParams) Validate() error {
+func (b *AccountListParams) Validate() error {
 
 	if err := b.CommonParams.Validate(); err != nil {
 		return err

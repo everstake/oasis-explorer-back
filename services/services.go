@@ -44,7 +44,7 @@ type (
 	}
 
 	ServiceFacade struct {
-		cfg                conf.Config
+		cfg                *conf.Config
 		dao                dao.ServiceDAO
 		nodeAPI            api.Backend
 		cache              *cache.Cache
@@ -58,7 +58,7 @@ const (
 	cacheTTL          = 1 * time.Minute
 )
 
-func NewService(cfg conf.Config, dao dao.ServiceDAO, genStartBlock uint64) *ServiceFacade {
+func NewService(cfg *conf.Config, dao dao.ServiceDAO, genStartBlock uint64) *ServiceFacade {
 	grpcConn, err := grpc.Dial(cfg.Scanner.NodeConfig, grpcCommon.WithInsecure())
 	if err != nil {
 		return nil
