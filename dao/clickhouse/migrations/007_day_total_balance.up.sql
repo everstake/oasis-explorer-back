@@ -19,11 +19,6 @@ from account_day_balance_view
 GROUP BY start_of_period
 ORDER BY start_of_period asc;
 
-CREATE VIEW IF NOT EXISTS prev_month_days AS
-SELECT arrayJoin(timeSlots(toStartOfDay(now()) - INTERVAL 1 MONTH,
-                           toUInt32(dateDiff('second', toStartOfDay(now()) - INTERVAL 1 MONTH, toStartOfDay(now()))),
-                           86400)) start_of_period;
-
 -- TODO check this view
 CREATE VIEW IF NOT EXISTS day_total_balance_new_view AS
 select day start_of_period, sum(acb_general_balance) general_balance, sum(escrow_balance_active) escrow_balance_active, sum(escrow_debonding_active) escrow_debonding_active
