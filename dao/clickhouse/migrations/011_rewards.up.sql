@@ -56,10 +56,15 @@ from (
        LEFT JOIN (
   select *
   from (
-         select acb_account, sum(rwd_amount) week_amount
-         from rewards
-         where created_at >= toStartOfWeek(now())
-         group by acb_account) week
+           select acb_account, sum(rwd_amount) week_amount
+           from (select acb_account, rwd_amount
+                 from rewards
+                 where created_at >= toStartOfWeek(now()))
+           group by acb_account) week
+--          select acb_account, sum(rwd_amount) week_amount
+--          from rewards
+--          where created_at >= toStartOfWeek(now())
+--          group by acb_account) week
          ANY
          LEFT JOIN (select acb_account, sum(rwd_amount) month_amount
                     from rewards

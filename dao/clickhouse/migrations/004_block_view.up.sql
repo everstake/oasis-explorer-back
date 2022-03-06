@@ -29,7 +29,7 @@ ANY LEFT JOIN
     FROM transactions
     GROUP BY blk_lvl
 ) AS s USING (blk_lvl)
-ORDER BY blk_lvl DESC
+ORDER BY blk_epoch, blk_lvl DESC
 );
 
 CREATE VIEW IF NOT EXISTS blocks_sig_count AS select blk_lvl, count() sig_count from block_signatures group by blk_lvl;

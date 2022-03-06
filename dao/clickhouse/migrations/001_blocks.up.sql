@@ -7,4 +7,4 @@ CREATE TABLE IF NOT EXISTS blocks (
     blk_epoch UInt64
 ) ENGINE MergeTree()
 PARTITION BY toYYYYMMDD(blk_created_at)
-ORDER BY (blk_epoch, blk_lvl);
+ORDER BY (blk_lvl);

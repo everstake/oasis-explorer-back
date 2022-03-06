@@ -12,9 +12,9 @@ CREATE TABLE IF NOT EXISTS register_node_transactions (
     reg_consensus_address  FixedString(40),
     reg_physical_address String,
     reg_roles UInt32
-) ENGINE ReplacingMergeTree()
+) ENGINE MergeTree()
 PARTITION BY toYYYYMMDD(tx_time)
-ORDER BY (blk_lvl);
+ORDER BY (reg_expiration, reg_address);
 
 CREATE TABLE IF NOT EXISTS register_entity_transactions (
     blk_lvl UInt64,

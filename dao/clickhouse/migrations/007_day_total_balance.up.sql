@@ -1,4 +1,4 @@
-CREATE VIEW IF NOT EXISTS account_day_balance_view AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS account_day_balance_view AS
 select acb_account,
        toStartOfDay(blk_time) start_of_period,
        argMax(acb_general_balance, blk_lvl) acb_general_balance,
@@ -26,23 +26,19 @@ SELECT arrayJoin(timeSlots(toStartOfDay(now()) - INTERVAL 1 MONTH,
 
 -- TODO check this view
 CREATE VIEW IF NOT EXISTS day_total_balance_new_view AS
-SELECT * FROM prev_month_days left join (
-    select start_of_period, sum(acb_general_balance) general_balance, sum(escrow_balance_active) escrow_balance_active, sum(escrow_debonding_active) escrow_debonding_active
-    from (
-             Select acb_account,
-                    max(start_of_period)        start_of_period
-             from account_day_balance_view
-             group by acb_account) gr ANY
-             left join (select acb_account,
-                               start_of_period start_of_period,
-                               acb_general_balance,
-                               escrow_balance_active,
-                               escrow_debonding_active
-                        from account_day_balance_view
-                        where start_of_period <= toStartOfDay(now()) AND start_of_period >= toStartOfDay(now() - Interval 1 MONTH)
-        ) als USING acb_account, start_of_period
-    group by start_of_period
-    ORDER BY start_of_period asc) amt using start_of_period;
+select day start_of_period, sum(acb_general_balance) general_balance, sum(escrow_balance_active) escrow_balance_active, sum(escrow_debonding_active) escrow_debonding_active
+from (
+      select arrayJoin(timeSlots(toStartOfDay(now()) - INTERVAL 1 MONTH,
+                                 toUInt32(dateDiff('second', toStartOfDay(now()) - INTERVAL 1 MONTH, toStartOfDay(now()))),
+                                 86400)) day,
+             sum(acb_general_balance) acb_general_balance,
+             sum(escrow_balance_active) escrow_balance_active,
+             sum(escrow_debonding_active) escrow_debonding_active
+      from account_day_balance_view
+      where start_of_period < day + INTERVAL 1 day
+      group by day)
+group by day
+ORDER BY day asc;
 -- select day start_of_period, sum(acb_general_balance) general_balance, sum(escrow_balance_active) escrow_balance_active, sum(escrow_debonding_active) escrow_debonding_active
 -- from (
 --        select arrayJoin(timeSlots(toStartOfDay(now()) - INTERVAL 1 MONTH,
