@@ -54,28 +54,33 @@ FROM validator_block_signatures_count_mv
 GROUP BY reg_consensus_address;
 
 DROP TABLE entity_nodes_view;
-CREATE MATERIALIZED VIEW IF NOT EXISTS entity_nodes_view AS --OMG. seems like here is rewrited query from old 008_entity_nodes_vew.sql
-select *
-from (
-       select *
-       from (
-              --Group all register txs by entity and node
-              select reg_entity_id,
-                     reg_entity_address,
-                     reg_id,
-                     reg_address,
-                     reg_consensus_address,
-                     min(tx_time)        created_time,
-                     max(blk_lvl)        blk_lvl,
-                     max(reg_expiration) reg_expiration
-              from register_node_transactions
-              group by reg_entity_id, reg_entity_address, reg_address, reg_id, reg_consensus_address
-              ) nodes
-              ANY
-              LEFT JOIN validator_blocks_count_view USING reg_consensus_address
-       ) prep
-       ANY
-       LEFT JOIN validator_block_signatures_count_view USING reg_consensus_address;
+CREATE MATERIALIZED VIEW IF NOT EXISTS entity_nodes_view --OMG. seems like here is rewrited query from old 008_entity_nodes_vew.sql
+    ENGINE = SummingMergeTree()
+        ORDER BY (reg_entity_id)
+        SETTINGS index_granularity = 8192
+AS (
+    select *
+    from (
+           select *
+           from (
+                  --Group all register txs by entity and node
+                  select reg_entity_id,
+                         reg_entity_address,
+                         reg_id,
+                         reg_address,
+                         reg_consensus_address,
+                         min(tx_time)        created_time,
+                         max(blk_lvl)        blk_lvl,
+                         max(reg_expiration) reg_expiration
+                  from register_node_transactions
+                  group by reg_entity_id, reg_entity_address, reg_address, reg_id, reg_consensus_address
+                  ) nodes
+                  ANY
+                  LEFT JOIN validator_blocks_count_view USING reg_consensus_address
+           ) prep
+           ANY
+           LEFT JOIN validator_block_signatures_count_view USING reg_consensus_address
+);
 
 CREATE TABLE IF NOT EXISTS public_validators
 (
