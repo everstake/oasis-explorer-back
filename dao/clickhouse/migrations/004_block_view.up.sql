@@ -1,7 +1,7 @@
 --CREATE VIEW IF NOT EXISTS block_row_view AS
 --select * from blocks ANY LEFT JOIN
 --              (select blk_lvl, sum(tx_gas_price), sum(tx_fee), count()
---from transactions group by blk_lvl) as s USING blk_lvl ORDER BY blk_lvl DESC; 
+--from transactions group by blk_lvl) as s USING blk_lvl ORDER BY blk_lvl DESC
 -- HERE IS FULL SCAN OF txs table, cause it ordered by hash, not block height
 -- SO we have create Materialized view to store ordered data  
 
@@ -37,6 +37,6 @@ ANY LEFT JOIN
     GROUP BY blk_lvl
 ) AS s USING (blk_lvl)
 ORDER BY blk_lvl DESC   
-)
+);
 
-CREATE VIEW IF NOT EXISTS blocks_sig_count AS select blk_lvl, count() sig_count from block_signatures group by blk_lvl;
+CREATE VIEW IF NOT EXISTS blocks_sig_count AS select blk_lvl, count() sig_count FROM block_signatures GROUP BY blk_lvl;

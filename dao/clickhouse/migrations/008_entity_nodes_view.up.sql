@@ -9,7 +9,7 @@
 --          select tx_receiver, tx_sender, sum(tx_escrow_reclaim_amount) output
 --          from transactions
 --          where tx_type = 'reclaimescrow' and tx_status = 1
---          group by tx_receiver, tx_sender) remove USING tx_receiver, tx_sender;
+--          group by tx_receiver, tx_sender) remove USING tx_receiver, tx_sender
 -- ┌─tx_receiver────────────────────────────────────┬─tx_sender──────────────────────────────────────┬────────escrow_since─┬────────input─┬─output─┬──────balance─┐
 -- │ oasis1qq0xmq7r0z9sdv02t5j9zs7en3n6574gtg8v9fyt │ oasis1qr07pxep97z79d5qnsvcue85pr924rt34gdguytc │ 2022-02-09 18:26:36 │ 100000000000 │      0 │ 100000000000 │
 -- │ oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp │ oasis1qqjhx3qsfyevtyxpl58dxnmqrzkl9mceys5kjkux │ 2022-02-12 16:46:46 │ 110900000000 │      0 │ 110900000000 │
@@ -40,8 +40,7 @@ AS
          from transactions
          where tx_type = 'reclaimescrow' and tx_status = 1
          group by tx_receiver, tx_sender) remove USING tx_receiver, tx_sender
-)
-
+);
      
 CREATE VIEW IF NOT EXISTS entity_active_depositors_counter_view AS
   SELECT tx_receiver reg_entity_address, count() depositors_num from entity_depositors_view
@@ -118,6 +117,7 @@ ANY LEFT JOIN
     GROUP BY sig_validator_address
 ) AS blk USING (reg_consensus_address)
 )
+
 -- Memory troubles: try to fix with MVIEW. ALSO: this DDL was changed!
 -- CREATE VIEW IF NOT EXISTS entity_nodes_view AS
 -- select *
@@ -141,5 +141,5 @@ ANY LEFT JOIN
 --          --Blocks signatures count
 --          select sig_validator_address reg_consensus_address, max(sig_timestamp) last_signature_time, count() c_block_signatures
 --                   from block_signatures
---                   group by sig_validator_address) blk USING reg_consensus_address;
+--                   group by sig_validator_address) blk USING reg_consensus_address
 
