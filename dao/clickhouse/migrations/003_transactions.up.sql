@@ -15,6 +15,6 @@ CREATE TABLE IF NOT EXISTS transactions (
     tx_fee UInt64,
     tx_gas_limit UInt64,
     tx_gas_price UInt64
-) ENGINE MergeTree()
+) ENGINE ReplacingMergeTree()
 PARTITION BY toYYYYMMDD(tx_time)
 ORDER BY (blk_lvl, blk_hash);

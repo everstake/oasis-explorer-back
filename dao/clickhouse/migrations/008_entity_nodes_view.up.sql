@@ -14,16 +14,16 @@ SETTINGS index_granularity = 8192 POPULATE
 
 AS
 (select *, add.input - remove.output balance from (
-  select tx_receiver, tx_sender, min(tx_time) escrow_since, sum(tx_escrow_amount) input
-  from (SELECT * FROM transactions
-        where tx_type = 'addescrow' and tx_status = 1)
-  group by  tx_receiver, tx_sender) add
-   ANY
-       LEFT JOIN (
-         select tx_receiver, tx_sender, sum(tx_escrow_reclaim_amount) output
-         from transactions
-         where tx_type = 'reclaimescrow' and tx_status = 1
-         group by tx_receiver, tx_sender) remove USING tx_receiver, tx_sender
+        select tx_receiver, tx_sender, min(tx_time) escrow_since, sum(tx_escrow_amount) input
+        from transactions
+        where tx_type = 'addescrow' and tx_status = 1
+        group by  tx_receiver, tx_sender) add
+        ANY
+        LEFT JOIN (
+    select tx_receiver, tx_sender, sum(tx_escrow_reclaim_amount) output
+    from transactions
+    where tx_type = 'reclaimescrow' and tx_status = 1
+    group by tx_receiver, tx_sender) remove USING tx_receiver, tx_sender
 );
 
      

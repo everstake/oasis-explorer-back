@@ -10,9 +10,9 @@ CREATE MATERIALIZED VIEW block_row_view
     tx_fee UInt64,
     count UInt32
 )
-ENGINE = MergeTree()
+ENGINE = ReplacingMergeTree()
 PARTITION BY intDiv(blk_lvl,500000)
-ORDER BY (blk_epoch, blk_lvl)
+ORDER BY (blk_lvl)
 SETTINGS index_granularity = 8192 POPULATE
  AS
 (
