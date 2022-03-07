@@ -54,7 +54,7 @@ FROM validator_block_signatures_count_mv
 GROUP BY reg_consensus_address;
 
 DROP TABLE entity_nodes_view;
-CREATE VIEW IF NOT EXISTS entity_nodes_view AS --OMG. seems like here is rewrited query from old 008_entity_nodes_vew.sql
+CREATE MATERIALIZED VIEW IF NOT EXISTS entity_nodes_view AS --OMG. seems like here is rewrited query from old 008_entity_nodes_vew.sql
 select *
 from (
        select *
