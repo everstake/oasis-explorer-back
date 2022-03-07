@@ -12,7 +12,7 @@
 CREATE MATERIALIZED VIEW IF NOT EXISTS account_day_balance_view
 ENGINE = AggregatingMergeTree()
     PARTITION BY toYYYYMMDD(start_of_period)
-    ORDER BY (start_of_period)
+    ORDER BY (acb_account, start_of_period)
     SETTINGS index_granularity = 8192
 populate AS(
            select acb_account,
