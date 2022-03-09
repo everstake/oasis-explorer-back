@@ -1,19 +1,3 @@
--- CREATE VIEW IF NOT EXISTS entity_depositors_view AS
--- select *, add.input - remove.output balance from (
---   select tx_receiver, tx_sender, min(tx_time) escrow_since, sum(tx_escrow_amount) input
---   from transactions
---   where tx_type = 'addescrow' and tx_status = 1
---   group by  tx_receiver, tx_sender) add
---    ANY
---        LEFT JOIN (
---          select tx_receiver, tx_sender, sum(tx_escrow_reclaim_amount) output
---          from transactions
---          where tx_type = 'reclaimescrow' and tx_status = 1
---          group by tx_receiver, tx_sender) remove USING tx_receiver, tx_sender;
--- ┌─tx_receiver────────────────────────────────────┬─tx_sender──────────────────────────────────────┬────────escrow_since─┬────────input─┬─output─┬──────balance─┐
--- │ oasis1qq0xmq7r0z9sdv02t5j9zs7en3n6574gtg8v9fyt │ oasis1qr07pxep97z79d5qnsvcue85pr924rt34gdguytc │ 2022-02-09 18:26:36 │ 100000000000 │      0 │ 100000000000 │
--- │ oasis1qp60saapdcrhe5zp3c3zk52r4dcfkr2uyuc5qjxp │ oasis1qqjhx3qsfyevtyxpl58dxnmqrzkl9mceys5kjkux │ 2022-02-12 16:46:46 │ 110900000000 │      0 │ 110900000000 │
--- └────────────────────────────────────────────────┴────────────────────────────────────────────────┴─────────────────────┴──────────────┴────────┴──────────────┘
 CREATE MATERIALIZED VIEW  IF NOT EXISTS entity_depositors_view
 (
  tx_receiver FixedString(46),
@@ -40,7 +24,7 @@ AS
          from transactions
          where tx_type = 'reclaimescrow' and tx_status = 1
          group by tx_receiver, tx_sender) remove USING tx_receiver, tx_sender
-)
+);
 
      
 CREATE VIEW IF NOT EXISTS entity_active_depositors_counter_view AS
@@ -118,28 +102,3 @@ ANY LEFT JOIN
     GROUP BY sig_validator_address
 ) AS blk USING (reg_consensus_address)
 )
--- Memory troubles: try to fix with MVIEW. ALSO: this DDL was changed!
--- CREATE VIEW IF NOT EXISTS entity_nodes_view AS
--- select *
--- from (
---        select *
---        from (
---               --Group all register txs by entity and node
---               select reg_entity_id, reg_id, reg_consensus_address, min(tx_time) created_time, max(blk_lvl) blk_lvl
---               from register_node_transactions
---               group by reg_entity_id, reg_id, reg_consensus_address
---               ) nodes
---               ANY
---               LEFT JOIN (
---                 --Block proposed count
---                 select blk_proposer_address reg_consensus_address, max(blk_created_at) last_block_time, count() c_blocks
---                          from blocks
---                          group by blk_proposer_address) blk USING reg_consensus_address
---        ) prep
---        ANY
---        LEFT JOIN (
---          --Blocks signatures count
---          select sig_validator_address reg_consensus_address, max(sig_timestamp) last_signature_time, count() c_block_signatures
---                   from block_signatures
---                   group by sig_validator_address) blk USING reg_consensus_address;
-

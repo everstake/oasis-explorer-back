@@ -14,8 +14,7 @@ func (cl Clickhouse) CreateRewards(rewards []dmodels.Reward) error {
 		return err
 	}
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_epoch, reg_entity_address, acb_account, rwd_amount, rwd_type, created_at)"+
-			"VALUES (?, ?, ?, ?, ?, ?, ?, ?)", dmodels.RewardsTable))
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_epoch, reg_entity_address, acb_account, rwd_amount, rwd_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", dmodels.RewardsTable))
 	if err != nil {
 		return err
 	}

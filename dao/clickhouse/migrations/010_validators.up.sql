@@ -124,7 +124,6 @@ from (
        ANY
        LEFT JOIN day_max_block_lvl_view b USING day;
 
-
 CREATE VIEW IF NOT EXISTS validators_list_view AS
 select *
 from (
@@ -140,7 +139,7 @@ from (
                             group by reg_entity_address ) val_lvl USING reg_entity_address) validator
               ANY
               LEFT JOIN (SELECT acb_account reg_entity_address, acb_escrow_balance_active, 
-              acb_general_balance, acb_escrow_balance_share, acb_escrow_debonding_active,\
+              acb_general_balance, acb_escrow_balance_share, acb_escrow_debonding_active,
                acb_delegations_balance , acb_debonding_delegations_balance ,
                 acb_self_delegation_balance, acb_commission_schedule ,
                  depositors_num
@@ -152,4 +151,4 @@ from (
           OR signatures > 0
           OR reg_expiration >= (select max(blk_epoch) from blocks)) prep
        ANY
-       LEFT JOIN public_validators USING reg_entity_address; --public validators 134 rows
+       LEFT JOIN public_validators USING reg_entity_address;
