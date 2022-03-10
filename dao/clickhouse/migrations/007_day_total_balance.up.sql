@@ -1,31 +1,15 @@
-CREATE MATERIALIZED VIEW IF NOT EXISTS account_day_balance_view_test
-ENGINE = AggregatingMergeTree()
-    PARTITION BY toYYYYMMDD(start_of_period)
-    ORDER BY (acb_account, start_of_period)
-    SETTINGS index_granularity = 8192
-populate AS(
-   select acb_account,
-          toStartOfDay(blk_time) start_of_period,
-          argMax(acb_general_balance, blk_lvl) acb_general_balance,
-          argMax(acb_escrow_balance_active, blk_lvl)   escrow_balance_active,
-          argMax(acb_escrow_debonding_active, blk_lvl) escrow_debonding_active,
-          argMax(acb_delegations_balance, blk_lvl) acb_delegations_balance,
-          argMax(acb_debonding_delegations_balance, blk_lvl) acb_debonding_delegations_balance,
-          argMax(acb_self_delegation_balance, blk_lvl) acb_self_delegation_balance
-   from account_balance
-   group by acb_account, start_of_period
-);
--- CREATE VIEW IF NOT EXISTS account_day_balance_view AS
--- select acb_account,
---        toStartOfDay(blk_time) start_of_period,
---        argMax(acb_general_balance, blk_lvl) acb_general_balance,
---        argMax(acb_escrow_balance_active, blk_lvl)   escrow_balance_active,
---        argMax(acb_escrow_debonding_active, blk_lvl) escrow_debonding_active,
---        argMax(acb_delegations_balance, blk_lvl) acb_delegations_balance,
---        argMax(acb_debonding_delegations_balance, blk_lvl) acb_debonding_delegations_balance,
---        argMax(acb_self_delegation_balance, blk_lvl) acb_self_delegation_balance
--- from account_balance
--- group by acb_account, start_of_period;
+CREATE VIEW IF NOT EXISTS account_day_balance_view AS
+select acb_account,
+       toStartOfDay(blk_time) start_of_period,
+       argMax(acb_general_balance, blk_lvl) acb_general_balance,
+       argMax(acb_escrow_balance_active, blk_lvl)   escrow_balance_active,
+       argMax(acb_escrow_debonding_active, blk_lvl) escrow_debonding_active,
+       argMax(acb_delegations_balance, blk_lvl) acb_delegations_balance,
+       argMax(acb_debonding_delegations_balance, blk_lvl) acb_debonding_delegations_balance,
+       argMax(acb_self_delegation_balance, blk_lvl) acb_self_delegation_balance
+from account_balance
+group by acb_account, start_of_period;
+
 
 CREATE VIEW IF NOT EXISTS day_total_balance_view AS
 select start_of_period,
