@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"math"
 	"oasisTracker/common/apperrors"
 	"oasisTracker/services/render"
 	"oasisTracker/smodels"
@@ -61,6 +62,12 @@ func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]
 			continue
 		}
 		resp[i].Status = smodels.StatusActive
+	}
+
+	for i := range resp {
+		if math.IsNaN(resp[i].DayUptime) {
+			resp[i].DayUptime = 0
+		}
 	}
 
 	return render.ValidatorsList(resp), count, nil

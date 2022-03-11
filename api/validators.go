@@ -36,10 +36,6 @@ func (api *API) GetValidatorsList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for i := range validators {
-		validators[i].DayUptime = 0
-	}
-
 	w.Header().Set(TotalCountHeader, fmt.Sprint(count))
 	Json(w, validators)
 }
