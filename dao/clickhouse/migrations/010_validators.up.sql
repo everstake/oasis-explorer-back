@@ -132,7 +132,7 @@ from (
 CREATE VIEW IF NOT EXISTS validators_list_view AS
 select *
 from (
-       select *, CASE WHEN reg_expiration >= (select max(blk_epoch) from blocks) THEN 1 ELSE 0 END is_active
+       select *, CASE WHEN last_block_time >= (select now() - INTERVAL 2 HOUR) THEN 1 ELSE 0 END is_active
        from (
               SELECT *
               FROM validator_entity_view -- created MVIEW to don't make fullscan of txs
