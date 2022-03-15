@@ -6,6 +6,7 @@ import (
 	"fmt"
 	oasisAddress "github.com/oasisprotocol/oasis-core/go/common/crypto/address"
 	"github.com/oasisprotocol/oasis-core/go/common/quantity"
+	"math/big"
 	"oasisTracker/common/log"
 	"oasisTracker/dmodels"
 	"oasisTracker/dmodels/oasis"
@@ -465,7 +466,13 @@ func (p *ParserTask) epochBalanceSnapshotGenesisState(block oasis.Block) error {
 
 	escrowEventsMap, reclaimEscrowMap := processEpochBlockEscrowEvents(txsWithResults)
 
-	updates, rewards, err := processEpochRewards(block.Header.Height, uint64(epoch), block.Header.Time, newEpochGenesis, prevEpochGenesis, escrowEventsMap, reclaimEscrowMap)
+	events, err := p.stakingAPI.GetEvents(p.ctx, block.Header.Height)
+	if err != nil {
+		return fmt.Errorf("GetEvents: %s", err.Error())
+	}
+	ledgers := eventsLedgers(events)
+
+	updates, rewards, err := processEpochRewards(block.Header.Height, uint64(epoch), block.Header.Time, newEpochGenesis, prevEpochGenesis, escrowEventsMap, reclaimEscrowMap, ledgers)
 	if err != nil {
 		return fmt.Errorf("processEpochRewards: %s", err.Error())
 	}
@@ -481,6 +488,30 @@ func (p *ParserTask) epochBalanceSnapshotGenesisState(block oasis.Block) error {
 	p.parserContainer.rewards.Add(rewards)
 
 	return nil
+}
+
+func eventsLedgers(events []*stakingAPI.Event) map[string]*big.Int {
+	ledgers := make(map[string]*big.Int)
+	for _, event := range events {
+		if event.Transfer != nil {
+			e := event.Transfer
+			if event.Transfer.To.IsValid() {
+				ledgers[e.To.String()] = e.Amount.ToBigInt()
+			}
+			if e.From.IsValid() {
+				ledgers[e.To.String()] = (&big.Int{}).Neg(e.Amount.ToBigInt())
+			}
+		}
+		if event.Escrow.Add != nil {
+			e := event.Escrow.Add
+			ledgers[e.Owner.String()] = (&big.Int{}).Neg(e.Amount.ToBigInt())
+		}
+		if event.Escrow.Take != nil {
+			e := event.Escrow.Take
+			ledgers[e.Owner.String()] = e.Amount.ToBigInt()
+		}
+	}
+	return ledgers
 }
 
 func processEpochBlockEscrowEvents(txsWithResults *consensusAPI.TransactionsWithResults) (escrowEventsMap, reclaimEventsMap map[stakingAPI.Address]*quantity.Quantity) {
@@ -505,7 +536,7 @@ func processEpochBlockEscrowEvents(txsWithResults *consensusAPI.TransactionsWith
 	return escrowEventsMap, reclaimEventsMap
 }
 
-func processEpochRewards(height int64, epoch uint64, time time.Time, currentGenesisState, prevGenesisState *stakingAPI.Genesis, newEscrows, reclaimEscrows map[stakingAPI.Address]*quantity.Quantity) (updateBalances []dmodels.AccountBalance, rewards []dmodels.Reward, err error) {
+func processEpochRewards(height int64, epoch uint64, time time.Time, currentGenesisState, prevGenesisState *stakingAPI.Genesis, newEscrows, reclaimEscrows map[stakingAPI.Address]*quantity.Quantity, ledgers map[string]*big.Int) (updateBalances []dmodels.AccountBalance, rewards []dmodels.Reward, err error) {
 
 	updateBalances = make([]dmodels.AccountBalance, 0, len(currentGenesisState.Delegations))
 
@@ -553,6 +584,24 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 			}
 
 			rewardsAmount := currentDelegationAmount.Clone()
+
+			// add or sub any operations amount that affects the calculation of rewards
+			operationAmount, ok := ledgers[address.String()]
+			if !ok {
+				if operationAmount.Cmp(big.NewInt(0)) >= 0 {
+					q := quantity.NewQuantity()
+					q.FromBigInt(operationAmount)
+					rewardsAmount.Add(q)
+				} else {
+					q := quantity.NewQuantity()
+					q.FromBigInt((&big.Int{}).Neg(operationAmount))
+					err = rewardsAmount.Sub(q)
+					if err != nil {
+						return updateBalances, rewards, fmt.Errorf("reward ledgers calculation: %s", err.Error())
+					}
+				}
+			}
+
 			err = rewardsAmount.Sub(prevDelegationAmount)
 			if err != nil {
 				return updateBalances, rewards, fmt.Errorf("reward calculation: %s", err.Error())
