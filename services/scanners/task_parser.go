@@ -10,6 +10,7 @@ import (
 	"oasisTracker/common/log"
 	"oasisTracker/dmodels"
 	"oasisTracker/dmodels/oasis"
+	"os"
 	"reflect"
 	"runtime"
 	"time"
@@ -42,6 +43,8 @@ type ParserTask struct {
 
 	baseEpoch beaconAPI.EpochTime
 }
+
+var CHECKED bool = false
 
 func NewParserTask(ctx context.Context, conn *grpc.ClientConn, baseEpoch beaconAPI.EpochTime, parserContainer *ParseContainer) (*ParserTask, error) {
 	consensusAPI := consensusAPI.NewConsensusClient(conn)
@@ -99,7 +102,7 @@ func (p *ParserTask) parseOasisBase(blockData *consensusAPI.Block, parseFlag Par
 
 	var pipes []func(data oasis.Block) error
 
-	if (parseFlag & baseFlag) != 0 {
+	if (parseFlag&baseFlag) != 0 && blockData.Height != 7232196 {
 		pipes = append(pipes, []func(data oasis.Block) error{
 			p.parseBlock,
 			p.parseBlockSignatures,
@@ -107,10 +110,22 @@ func (p *ParserTask) parseOasisBase(blockData *consensusAPI.Block, parseFlag Par
 		}...)
 	}
 
-	if (parseFlag & balanceSnapshotFlag) != 0 {
+	if blockData.Height == 7232196 && CHECKED {
 		pipes = append(pipes, []func(data oasis.Block) error{
-			p.epochBalanceSnapshotGenesisState,
+			p.parseBlock,
+			p.parseBlockSignatures,
+			p.parseBlockTransactions,
 		}...)
+	}
+
+	if (blockData.Height == 7232196 && !CHECKED) || parseFlag == 2 {
+		parseFlag = 2
+		CHECKED = true
+		if (parseFlag & balanceSnapshotFlag) != 0 {
+			pipes = append(pipes, []func(data oasis.Block) error{
+				p.epochBalanceSnapshotGenesisState,
+			}...)
+		}
 	}
 
 	for _, pipe := range pipes {
@@ -463,9 +478,23 @@ func (p *ParserTask) epochBalanceSnapshotGenesisState(block oasis.Block) error {
 	if err != nil {
 		return fmt.Errorf("GetTransactionsWithResults: %s", err.Error())
 	}
+	//fmt.Println(len(txsWithResults.Results))
+
+	f1, _ := os.Create("newEpochGenesis.txt")
+	defer f1.Close()
+	for i, v := range newEpochGenesis.Ledger {
+		f1.WriteString(fmt.Sprintf("Addr:%s \n%+v", i, v))
+	}
+
+	f2, _ := os.Create("prevEpochGenesis.txt")
+	defer f2.Close()
+	for i, v := range prevEpochGenesis.Ledger {
+		f2.WriteString(fmt.Sprintf("Addr:%s \n%+v", i, v))
+	}
 
 	escrowEventsMap, reclaimEscrowMap := processEpochBlockEscrowEvents(txsWithResults)
 
+	// block 7232190 from epoch 12042   // 3027601
 	events, err := p.stakingAPI.GetEvents(p.ctx, block.Header.Height)
 	if err != nil {
 		return fmt.Errorf("GetEvents: %s", err.Error())
@@ -493,62 +522,157 @@ func (p *ParserTask) epochBalanceSnapshotGenesisState(block oasis.Block) error {
 func eventsLedgers(events []*stakingAPI.Event) map[string]*big.Int {
 	ledgers := make(map[string]*big.Int)
 	for _, event := range events {
+		//fmt.Printf("%+v\n", event)
 		if event.Transfer != nil {
 			e := event.Transfer
 			if event.Transfer.To.IsValid() {
+				/*if ledgers[e.To.String()] != nil {
+					ledgers[e.To.String()].Add(ledgers[e.To.String()], e.Amount.ToBigInt())
+				} else {
+					ledgers[e.To.String()] = e.Amount.ToBigInt()
+				}
+				fmt.Println("to ", e.To.String(), ledgers[e.To.String()].String())*/
 				ledgers[e.To.String()] = e.Amount.ToBigInt()
+				ledgers[e.From.String()] = (&big.Int{}).Neg(e.Amount.ToBigInt())
 			}
-			if e.From.IsValid() {
-				ledgers[e.To.String()] = (&big.Int{}).Neg(e.Amount.ToBigInt())
+			if e.From.IsValid() { // always invalid
+				/*if ledgers[e.From.String()] != nil {
+					ledgers[e.From.String()].Sub(ledgers[e.From.String()], e.Amount.ToBigInt())
+				} else {
+					ledgers[e.From.String()] = (&big.Int{}).Neg(e.Amount.ToBigInt())
+				}
+				fmt.Println("from ", e.From.String(), ledgers[e.From.String()].String())*/
+				ledgers[e.From.String()] = (&big.Int{}).Neg(e.Amount.ToBigInt())
 			}
 		}
-		if event.Escrow.Add != nil {
-			e := event.Escrow.Add
-			ledgers[e.Owner.String()] = (&big.Int{}).Neg(e.Amount.ToBigInt())
-		}
-		if event.Escrow.Take != nil {
-			e := event.Escrow.Take
-			ledgers[e.Owner.String()] = e.Amount.ToBigInt()
+		if event.Escrow != nil {
+			//fmt.Printf("%+v\n", event.Escrow)
+			if event.Escrow.Add != nil {
+				e := event.Escrow.Add
+				/*if ledgers[e.Owner.String()] != nil {
+					ledgers[e.Owner.String()].Sub(ledgers[e.Owner.String()], e.Amount.ToBigInt())
+				} else {
+					ledgers[e.Owner.String()] = (&big.Int{}).Neg(e.Amount.ToBigInt())
+				}
+				fmt.Println("ea ", e.Owner.String(), ledgers[e.Owner.String()].String())*/
+				ledgers[e.Owner.String()] = (&big.Int{}).Neg(e.Amount.ToBigInt())
+			}
+			if event.Escrow.Take != nil {
+				e := event.Escrow.Take
+				/*if ledgers[e.Owner.String()] != nil {
+					ledgers[e.Owner.String()].Add(ledgers[e.Owner.String()], e.Amount.ToBigInt())
+				} else {
+					ledgers[e.Owner.String()] = e.Amount.ToBigInt()
+				}
+				fmt.Println("et ", e.Owner.String(), ledgers[e.Owner.String()].String())*/
+				ledgers[e.Owner.String()] = e.Amount.ToBigInt()
+			}
 		}
 	}
 	return ledgers
 }
 
-func processEpochBlockEscrowEvents(txsWithResults *consensusAPI.TransactionsWithResults) (escrowEventsMap, reclaimEventsMap map[stakingAPI.Address]*quantity.Quantity) {
-	escrowEventsMap = map[stakingAPI.Address]*quantity.Quantity{}
-	reclaimEventsMap = map[stakingAPI.Address]*quantity.Quantity{}
+func processEpochBlockEscrowEvents(txsWithResults *consensusAPI.TransactionsWithResults) (escrowEventsMap, reclaimEventsMap map[stakingAPI.Address]map[stakingAPI.Address]*quantity.Quantity) {
+	/*escrowEventsMap = map[stakingAPI.Address]*quantity.Quantity{}
+	reclaimEventsMap = map[stakingAPI.Address]*quantity.Quantity{}*/
+
+	escrowEventsMap = map[stakingAPI.Address]map[stakingAPI.Address]*quantity.Quantity{}
+	reclaimEventsMap = map[stakingAPI.Address]map[stakingAPI.Address]*quantity.Quantity{}
 
 	for _, result := range txsWithResults.Results {
-		for _, event := range result.Events {
-			if event.Staking != nil {
-				if event.Staking.Escrow != nil {
-					if event.Staking.Escrow.Add != nil {
-						escrowEventsMap[event.Staking.Escrow.Add.Owner] = &event.Staking.Escrow.Add.Amount
-					}
-					if event.Staking.Escrow.Reclaim != nil {
-						reclaimEventsMap[event.Staking.Escrow.Add.Owner] = &event.Staking.Escrow.Reclaim.Amount
+		if result.IsSuccess() {
+			for _, event := range result.Events {
+				if event.Staking != nil {
+					if event.Staking.Escrow != nil {
+						if event.Staking.Escrow.Add != nil {
+							if escrowEventsMap[event.Staking.Escrow.Add.Owner] != nil {
+								if escrowEventsMap[event.Staking.Escrow.Add.Owner][event.Staking.Escrow.Add.Escrow] != nil {
+									escrowEventsMap[event.Staking.Escrow.Add.Owner][event.Staking.Escrow.Add.Escrow].Add(&event.Staking.Escrow.Add.Amount)
+								} else {
+									escrowEventsMap[event.Staking.Escrow.Add.Owner][event.Staking.Escrow.Add.Escrow] = &event.Staking.Escrow.Add.Amount
+								}
+							} else {
+								//fmt.Println(event.Staking.Escrow.Add.Owner, event.Staking.Escrow.Add.Escrow)
+								//escrowEventsMap[event.Staking.Escrow.Add.Owner] = &event.Staking.Escrow.Add.Amount
+								escrowEventsMap[event.Staking.Escrow.Add.Owner] = map[stakingAPI.Address]*quantity.Quantity{}
+								escrowEventsMap[event.Staking.Escrow.Add.Owner][event.Staking.Escrow.Add.Escrow] = &event.Staking.Escrow.Add.Amount
+							}
+							//escrowEventsMap[event.Staking.Escrow.Add.Owner] = &event.Staking.Escrow.Add.Amount
+						}
+						if event.Staking.Escrow.Reclaim != nil {
+							if reclaimEventsMap[event.Staking.Escrow.Reclaim.Owner] != nil {
+								if reclaimEventsMap[event.Staking.Escrow.Reclaim.Owner][event.Staking.Escrow.Reclaim.Escrow] != nil {
+									reclaimEventsMap[event.Staking.Escrow.Reclaim.Owner][event.Staking.Escrow.Reclaim.Escrow].Add(&event.Staking.Escrow.Reclaim.Amount)
+								} else {
+									reclaimEventsMap[event.Staking.Escrow.Reclaim.Owner][event.Staking.Escrow.Reclaim.Escrow] = &event.Staking.Escrow.Reclaim.Amount
+								}
+							} else {
+								escrowEventsMap[event.Staking.Escrow.Reclaim.Owner] = map[stakingAPI.Address]*quantity.Quantity{}
+								reclaimEventsMap[event.Staking.Escrow.Reclaim.Owner][event.Staking.Escrow.Reclaim.Escrow] = &event.Staking.Escrow.Reclaim.Amount
+							}
+							//reclaimEventsMap[event.Staking.Escrow.Reclaim.Owner] = &event.Staking.Escrow.Reclaim.Amount
+						}
 					}
 				}
 			}
 		}
 	}
+	/*for _, result := range txsWithResults.Results {
+		if result.IsSuccess() {
+			for _, event := range result.Events {
+				if event.Staking != nil {
+					if event.Staking.Escrow != nil {
+						if event.Staking.Escrow.Add != nil {
+							if escrowEventsMap[event.Staking.Escrow.Add.Owner] != nil {
+								escrowEventsMap[event.Staking.Escrow.Add.Owner].Add(&event.Staking.Escrow.Add.Amount)
+							} else {
+								//fmt.Println(event.Staking.Escrow.Add.Owner, event.Staking.Escrow.Add.Escrow)
+								//escrowEventsMap[event.Staking.Escrow.Add.Owner] = &event.Staking.Escrow.Add.Amount
+								escrowEventsMap[event.Staking.Escrow.Add.Owner] = &event.Staking.Escrow.Add.Amount
+							}
+							//escrowEventsMap[event.Staking.Escrow.Add.Owner] = &event.Staking.Escrow.Add.Amount
+						}
+						if event.Staking.Escrow.Reclaim != nil {
+							if reclaimEventsMap[event.Staking.Escrow.Reclaim.Owner] != nil {
+								reclaimEventsMap[event.Staking.Escrow.Reclaim.Owner].Add(&event.Staking.Escrow.Reclaim.Amount)
+							} else {
+								reclaimEventsMap[event.Staking.Escrow.Reclaim.Owner] = &event.Staking.Escrow.Reclaim.Amount
+							}
+							//reclaimEventsMap[event.Staking.Escrow.Reclaim.Owner] = &event.Staking.Escrow.Reclaim.Amount
+						}
+					}
+				}
+			}
+		}
+	}*/
 
 	return escrowEventsMap, reclaimEventsMap
 }
 
-func processEpochRewards(height int64, epoch uint64, time time.Time, currentGenesisState, prevGenesisState *stakingAPI.Genesis, newEscrows, reclaimEscrows map[stakingAPI.Address]*quantity.Quantity, ledgers map[string]*big.Int) (updateBalances []dmodels.AccountBalance, rewards []dmodels.Reward, err error) {
+func processEpochRewards(height int64, epoch uint64, time time.Time, currentGenesisState, prevGenesisState *stakingAPI.Genesis, newEscrows, reclaimEscrows map[stakingAPI.Address]map[stakingAPI.Address]*quantity.Quantity, ledgers map[string]*big.Int) (updateBalances []dmodels.AccountBalance, rewards []dmodels.Reward, err error) {
 
 	updateBalances = make([]dmodels.AccountBalance, 0, len(currentGenesisState.Delegations))
 
 	for validator, delegators := range currentGenesisState.Delegations {
-
 		actualShare := currentGenesisState.Ledger[validator].Escrow
 		prevShare := prevGenesisState.Ledger[validator].Escrow
+
+		/*if validator.String() == "oasis1qqekv2ymgzmd8j2s2u7g0hhc7e77e654kvwqtjwm" {
+			//prevDelegation := prevGenesisState.Delegations[validator][address]
+			//prevDelegationAmount, _ := prevShare.Active.StakeForShares(&prevDelegation.Shares)
+			fmt.Println("sadsd")
+		}*/
 
 		totalCommission := quantity.NewQuantity()
 		validatorReward := quantity.NewQuantity()
 
 		for address, delegation := range delegators {
+
+			if address.String() == "oasis1qrg8s3ymtmstekehzp3fjsaxj0f4w535cucvzknz" && validator.String() == "oasis1qqekv2ymgzmd8j2s2u7g0hhc7e77e654kvwqtjwm" {
+				//prevDelegation := prevGenesisState.Delegations[validator][address]
+				//prevDelegationAmount, _ := prevShare.Active.StakeForShares(&prevDelegation.Shares)
+				fmt.Println("sadsd")
+			}
 
 			currentDelegationAmount, err := actualShare.Active.StakeForShares(&delegation.Shares)
 			if err != nil {
@@ -556,16 +680,17 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 			}
 
 			//Remove new epoch block escrow from rewards count
-			if newEscrows[address] != nil {
-				err = currentDelegationAmount.Sub(newEscrows[address])
+			if newEscrows[address][validator] != nil { ////////////////////////////////////////////////
+				err = currentDelegationAmount.Sub(newEscrows[address][validator])
 				if err != nil {
+					//fmt.Println(fmt.Sprintf("1) newEscrows[%s]=%s\ncurDelegAm=%s\ndelegationShares=%s\nvalidator=%s", address.String(), newEscrows[address].String(), currentDelegationAmount.String(), delegation.Shares.String(), validator.String()))
 					return updateBalances, rewards, fmt.Errorf("sub scrow from delegation amount: %s", err.Error())
 				}
 			}
 
 			//Add  new epoch block escrow reclaims to rewards count
-			if reclaimEscrows[address] != nil {
-				err = currentDelegationAmount.Add(reclaimEscrows[address])
+			if reclaimEscrows[address][validator] != nil {
+				err = currentDelegationAmount.Add(reclaimEscrows[address][validator])
 				if err != nil {
 					return updateBalances, rewards, err
 				}
@@ -584,10 +709,10 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 			}
 
 			rewardsAmount := currentDelegationAmount.Clone()
-
+			//fmt.Println("ra ", rewardsAmount.String())
 			// add or sub any operations amount that affects the calculation of rewards
-			operationAmount, ok := ledgers[address.String()]
-			if !ok {
+			/*operationAmount, ok := ledgers[address.String()]
+			if ok {
 				if operationAmount.Cmp(big.NewInt(0)) >= 0 {
 					q := quantity.NewQuantity()
 					q.FromBigInt(operationAmount)
@@ -595,15 +720,17 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 				} else {
 					q := quantity.NewQuantity()
 					q.FromBigInt((&big.Int{}).Neg(operationAmount))
+					fmt.Println("bn", operationAmount.String(), (&big.Int{}).Neg(operationAmount).String())
 					err = rewardsAmount.Sub(q)
 					if err != nil {
 						return updateBalances, rewards, fmt.Errorf("reward ledgers calculation: %s", err.Error())
 					}
 				}
-			}
+			}*/
 
 			err = rewardsAmount.Sub(prevDelegationAmount)
 			if err != nil {
+				//fmt.Println(fmt.Sprintf("2) newEscrows[%s]=%s\nprevDelegAm=%s\nrewAm=%s\ndelegationShares=%s\nvalidator=%s", address.String(), newEscrows[address].String(), prevDelegationAmount.String(), rewardsAmount.String(), delegation.Shares.String(), validator.String()))
 				return updateBalances, rewards, fmt.Errorf("reward calculation: %s", err.Error())
 			}
 
@@ -645,6 +772,7 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 				Amount:         rewardsAmount.ToBigInt().Uint64(),
 				CreatedAt:      time,
 			})
+			//fmt.Println(com, rewardsAmount)
 		}
 
 		//Add separate validator and validator self reward
@@ -678,6 +806,7 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 		}
 
 		updateBalances = append(updateBalances, validatorBalance)
+
 	}
 
 	return updateBalances, rewards, nil
