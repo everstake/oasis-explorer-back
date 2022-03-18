@@ -547,7 +547,7 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 			if newEscrows[address][validator] != nil {
 				err = currentDelegationAmount.Sub(newEscrows[address][validator])
 				if err != nil {
-					return updateBalances, rewards, fmt.Errorf("sub scrow from delegation amount: %s", err.Error())
+					return updateBalances, rewards, fmt.Errorf("sub escrow from delegation amount: %s", err.Error())
 				}
 			}
 
