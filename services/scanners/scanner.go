@@ -158,7 +158,11 @@ func (s *Scanner) runWorkers() {
 				case blockID := <-s.blocksCh:
 					err := s.executor.ExecHeight(grpcConn, blockID)
 					if err != nil {
-						err = fmt.Errorf("block %d : %s", blockID, err.Error())
+						if s.task.Title == parserBaseTask {
+							err = fmt.Errorf("block %d : %s", blockID, err.Error())
+						} else {
+							err = fmt.Errorf("epoch %d : %s", blockID, err.Error())
+						}
 					}
 
 					s.resultCh <- err
