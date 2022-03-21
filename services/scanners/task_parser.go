@@ -483,19 +483,39 @@ func (p *ParserTask) epochBalanceSnapshotGenesisState(block oasis.Block) error {
 	return nil
 }
 
-func processEpochBlockEscrowEvents(txsWithResults *consensusAPI.TransactionsWithResults) (escrowEventsMap, reclaimEventsMap map[stakingAPI.Address]*quantity.Quantity) {
-	escrowEventsMap = map[stakingAPI.Address]*quantity.Quantity{}
-	reclaimEventsMap = map[stakingAPI.Address]*quantity.Quantity{}
+func processEpochBlockEscrowEvents(txsWithResults *consensusAPI.TransactionsWithResults) (escrowEventsMap, reclaimEventsMap map[stakingAPI.Address]map[stakingAPI.Address]*quantity.Quantity) {
+	escrowEventsMap = map[stakingAPI.Address]map[stakingAPI.Address]*quantity.Quantity{}
+	reclaimEventsMap = map[stakingAPI.Address]map[stakingAPI.Address]*quantity.Quantity{}
 
 	for _, result := range txsWithResults.Results {
-		for _, event := range result.Events {
-			if event.Staking != nil {
-				if event.Staking.Escrow != nil {
-					if event.Staking.Escrow.Add != nil {
-						escrowEventsMap[event.Staking.Escrow.Add.Owner] = &event.Staking.Escrow.Add.Amount
-					}
-					if event.Staking.Escrow.Reclaim != nil {
-						reclaimEventsMap[event.Staking.Escrow.Add.Owner] = &event.Staking.Escrow.Reclaim.Amount
+		if result.IsSuccess() {
+			for _, event := range result.Events {
+				if event.Staking != nil {
+					if event.Staking.Escrow != nil {
+						if event.Staking.Escrow.Add != nil {
+							if escrowEventsMap[event.Staking.Escrow.Add.Owner] != nil {
+								if escrowEventsMap[event.Staking.Escrow.Add.Owner][event.Staking.Escrow.Add.Escrow] != nil {
+									escrowEventsMap[event.Staking.Escrow.Add.Owner][event.Staking.Escrow.Add.Escrow].Add(&event.Staking.Escrow.Add.Amount)
+								} else {
+									escrowEventsMap[event.Staking.Escrow.Add.Owner][event.Staking.Escrow.Add.Escrow] = &event.Staking.Escrow.Add.Amount
+								}
+							} else {
+								escrowEventsMap[event.Staking.Escrow.Add.Owner] = map[stakingAPI.Address]*quantity.Quantity{}
+								escrowEventsMap[event.Staking.Escrow.Add.Owner][event.Staking.Escrow.Add.Escrow] = &event.Staking.Escrow.Add.Amount
+							}
+						}
+						if event.Staking.Escrow.Reclaim != nil {
+							if reclaimEventsMap[event.Staking.Escrow.Reclaim.Owner] != nil {
+								if reclaimEventsMap[event.Staking.Escrow.Reclaim.Owner][event.Staking.Escrow.Reclaim.Escrow] != nil {
+									reclaimEventsMap[event.Staking.Escrow.Reclaim.Owner][event.Staking.Escrow.Reclaim.Escrow].Add(&event.Staking.Escrow.Reclaim.Amount)
+								} else {
+									reclaimEventsMap[event.Staking.Escrow.Reclaim.Owner][event.Staking.Escrow.Reclaim.Escrow] = &event.Staking.Escrow.Reclaim.Amount
+								}
+							} else {
+								escrowEventsMap[event.Staking.Escrow.Reclaim.Owner] = map[stakingAPI.Address]*quantity.Quantity{}
+								reclaimEventsMap[event.Staking.Escrow.Reclaim.Owner][event.Staking.Escrow.Reclaim.Escrow] = &event.Staking.Escrow.Reclaim.Amount
+							}
+						}
 					}
 				}
 			}
@@ -505,12 +525,11 @@ func processEpochBlockEscrowEvents(txsWithResults *consensusAPI.TransactionsWith
 	return escrowEventsMap, reclaimEventsMap
 }
 
-func processEpochRewards(height int64, epoch uint64, time time.Time, currentGenesisState, prevGenesisState *stakingAPI.Genesis, newEscrows, reclaimEscrows map[stakingAPI.Address]*quantity.Quantity) (updateBalances []dmodels.AccountBalance, rewards []dmodels.Reward, err error) {
+func processEpochRewards(height int64, epoch uint64, time time.Time, currentGenesisState, prevGenesisState *stakingAPI.Genesis, newEscrows, reclaimEscrows map[stakingAPI.Address]map[stakingAPI.Address]*quantity.Quantity) (updateBalances []dmodels.AccountBalance, rewards []dmodels.Reward, err error) {
 
 	updateBalances = make([]dmodels.AccountBalance, 0, len(currentGenesisState.Delegations))
 
 	for validator, delegators := range currentGenesisState.Delegations {
-
 		actualShare := currentGenesisState.Ledger[validator].Escrow
 		prevShare := prevGenesisState.Ledger[validator].Escrow
 
@@ -525,16 +544,16 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 			}
 
 			//Remove new epoch block escrow from rewards count
-			if newEscrows[address] != nil {
-				err = currentDelegationAmount.Sub(newEscrows[address])
+			if newEscrows[address][validator] != nil {
+				err = currentDelegationAmount.Sub(newEscrows[address][validator])
 				if err != nil {
-					return updateBalances, rewards, fmt.Errorf("sub scrow from delegation amount: %s", err.Error())
+					return updateBalances, rewards, fmt.Errorf("sub escrow from delegation amount: %s", err.Error())
 				}
 			}
 
 			//Add  new epoch block escrow reclaims to rewards count
-			if reclaimEscrows[address] != nil {
-				err = currentDelegationAmount.Add(reclaimEscrows[address])
+			if reclaimEscrows[address][validator] != nil {
+				err = currentDelegationAmount.Add(reclaimEscrows[address][validator])
 				if err != nil {
 					return updateBalances, rewards, err
 				}
@@ -553,6 +572,7 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 			}
 
 			rewardsAmount := currentDelegationAmount.Clone()
+
 			err = rewardsAmount.Sub(prevDelegationAmount)
 			if err != nil {
 				return updateBalances, rewards, fmt.Errorf("reward calculation: %s", err.Error())

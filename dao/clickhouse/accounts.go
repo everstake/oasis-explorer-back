@@ -45,8 +45,7 @@ func (cl Clickhouse) CreateAccountBalances(balances []dmodels.AccountBalance) (e
 		return err
 	}
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_time, acb_account, acb_nonce, acb_general_balance, acb_escrow_balance_active, acb_escrow_balance_share, acb_escrow_debonding_active, acb_escrow_debonding_share, acb_delegations_balance, acb_debonding_delegations_balance, acb_self_delegation_balance , acb_commission_schedule)"+
-			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.AccountBalanceTable))
+		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_time, acb_account, acb_nonce, acb_general_balance, acb_escrow_balance_active, acb_escrow_balance_share, acb_escrow_debonding_active, acb_escrow_debonding_share, acb_delegations_balance, acb_debonding_delegations_balance, acb_self_delegation_balance , acb_commission_schedule) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", dmodels.AccountBalanceTable))
 	if err != nil {
 		return err
 	}
