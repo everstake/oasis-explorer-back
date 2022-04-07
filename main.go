@@ -20,10 +20,10 @@ import (
 )
 
 var parserDisableFlag = flag.Bool("parser-disable", false, "disable cron for api tests")
+var configFile = flag.String("conf", "./config.json", "Path to config file")
 
 func main() {
 	flag.Parse()
-	configFile := flag.String("conf", "./config.json", "Path to config file")
 	cfg, err := conf.NewFromFile(configFile)
 	if err != nil {
 		log.Fatal("can`t read config from file", zap.Error(err))
@@ -34,11 +34,10 @@ func main() {
 		log.Fatal("dao.New", zap.Error(err))
 	}
 
-	args := os.Args[1:]
-	if len(args) > 0 && !*parserDisableFlag {
+	if flag.NArg() > 0 {
 		cli := cli.NewCli(d)
 
-		err = cli.Setup(args)
+		err = cli.Setup(flag.Args())
 		if err != nil {
 			log.Fatal("cli.SetupGenesisJson", zap.Error(err))
 		}
