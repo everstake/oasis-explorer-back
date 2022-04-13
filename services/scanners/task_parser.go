@@ -363,9 +363,9 @@ func (p *ParserTask) parseBlockTransactions(block oasis.Block) (err error) {
 			if err := cbor.Unmarshal(raw.Body, &proposalVote); err != nil {
 				return err
 			}
-		case "beacon.VRFBackend":
-			var pvssCommit beaconAPI.VRFBackend
-			if err := cbor.Unmarshal(raw.Body, &pvssCommit); err != nil {
+		case "beacon.VRFProve":
+			var vrfProve beaconAPI.VRFProve
+			if err := cbor.Unmarshal(raw.Body, &vrfProve); err != nil {
 				return err
 			}
 		default:
