@@ -3,6 +3,7 @@ package scanners
 import (
 	"context"
 	"fmt"
+	"google.golang.org/grpc/credentials/google"
 	"log"
 	"oasisTracker/conf"
 	"oasisTracker/dao"
@@ -52,7 +53,8 @@ type (
 )
 
 func NewParser(ctx context.Context, cfg conf.Scanner, d dao.ParserDAO) (*Parser, error) {
-	grpcConn, err := grpc.Dial(cfg.NodeConfig, grpcCommon.WithInsecure())
+	credentials := google.NewDefaultCredentials().TransportCredentials()
+	grpcConn, err := grpc.Dial(cfg.NodeConfig, grpcCommon.WithTransportCredentials(credentials))
 	if err != nil {
 		return nil, err
 	}

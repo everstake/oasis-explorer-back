@@ -59,13 +59,13 @@ func main() {
 	services.AddToCron(cron, cfg, d)
 
 	if !*parserDisableFlag {
-		sm := scanners.NewManager(cfg, d)
+		//sm := scanners.NewManager(cfg, d)
 
 		wt, err := scanners.NewWatcher(cfg, d)
 		if err != nil {
 			log.Fatal("Watcher.New", zap.Error(err))
 		}
-		mds = append(mds, wt, sm)
+		mds = append(mds, wt /*, sm*/)
 	}
 
 	cron.Start()
