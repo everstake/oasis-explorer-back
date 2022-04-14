@@ -10,9 +10,7 @@ import (
 	"oasisTracker/smodels"
 	"time"
 
-	"github.com/oasisprotocol/oasis-core/go/common/grpc"
 	"go.uber.org/zap"
-	grpcCommon "google.golang.org/grpc"
 )
 
 const repeatPause = time.Second * 5
@@ -144,19 +142,12 @@ func (s *Scanner) Run() {
 func (s *Scanner) runWorkers() {
 	for i := uint64(0); i < s.cfg.NodeRPS; i++ {
 		go func() {
-			grpcConn, err := grpc.Dial(s.cfg.NodeConfig, grpcCommon.WithInsecure())
-			if err != nil {
-				log.Error("grpc.Dial", zap.Error(err))
-				return
-			}
-			defer grpcConn.Close()
-
 			for {
 				select {
 				case <-s.ctx.Done():
 					return
 				case blockID := <-s.blocksCh:
-					err := s.executor.ExecHeight(grpcConn, blockID)
+					err := s.executor.ExecHeight(blockID)
 					if err != nil {
 						if s.task.Title == parserBaseTask {
 							err = fmt.Errorf("block %d : %s", blockID, err.Error())
