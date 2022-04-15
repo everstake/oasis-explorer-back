@@ -615,7 +615,11 @@ func processEpochRewards(height int64, epoch uint64, time time.Time, currentGene
 
 		//Add separate validator and validator self reward
 		//Sub total fee
-		err = validatorReward.Sub(totalCommission)
+		if validatorReward.IsZero() {
+			validatorReward = quantity.NewQuantity()
+		} else {
+			err = validatorReward.Sub(totalCommission)
+		}
 		if err != nil {
 			return updateBalances, rewards, err
 		}
