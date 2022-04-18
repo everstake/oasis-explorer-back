@@ -6,6 +6,7 @@ import (
 	"github.com/roylee0704/gron"
 	"go.uber.org/zap"
 	grpcCommon "google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/google"
 	"oasisTracker/common/log"
 	"oasisTracker/conf"
 	"oasisTracker/dao"
@@ -20,7 +21,8 @@ func AddToCron(cron *gron.Cron, cfg conf.Config, dao *dao.DaoImpl) {
 		log.Info("Sheduling counter saver every", zap.Duration("dur", dur))
 		cron.AddFunc(gron.Every(dur), func() {
 			log.Info("Start")
-			grpcConn, err := grpc.Dial(cfg.Scanner.NodeConfig, grpcCommon.WithInsecure())
+			credentials := google.NewDefaultCredentials().TransportCredentials()
+			grpcConn, err := grpc.Dial(cfg.Scanner.NodeConfig, grpcCommon.WithTransportCredentials(credentials))
 			if err != nil {
 				log.Error("grpc.Dial failed:", zap.Error(err))
 				return
