@@ -1,6 +1,7 @@
 package services
 
 import (
+	"google.golang.org/grpc/credentials/google"
 	"oasisTracker/conf"
 	"oasisTracker/dao"
 	"oasisTracker/services/cmc"
@@ -59,7 +60,8 @@ const (
 )
 
 func NewService(cfg conf.Config, dao dao.ServiceDAO, genStartBlock uint64) *ServiceFacade {
-	grpcConn, err := grpc.Dial(cfg.Scanner.NodeConfig, grpcCommon.WithInsecure())
+	credentials := google.NewDefaultCredentials().TransportCredentials()
+	grpcConn, err := grpc.Dial(cfg.Scanner.NodeConfig, grpcCommon.WithTransportCredentials(credentials))
 	if err != nil {
 		return nil
 	}
