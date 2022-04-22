@@ -177,9 +177,9 @@ func (p *Parser) Save() (err error) {
 	return nil
 }
 
-func (p *Parser) ParseBase(blockID uint64) error {
+func (p *Parser) ParseBase(conn *grpcCommon.ClientConn, blockID uint64) error {
 
-	parsTask, err := NewParserTask(p.ctx, p.conn, p.baseEpoch, p.container)
+	parsTask, err := NewParserTask(p.ctx, conn, p.baseEpoch, p.container)
 	if err != nil {
 		return err
 	}
@@ -192,9 +192,9 @@ func (p *Parser) ParseBase(blockID uint64) error {
 	return nil
 }
 
-func (p *Parser) ParseBalancesSnapshot(epoch uint64) error {
+func (p *Parser) ParseBalancesSnapshot(conn *grpcCommon.ClientConn, epoch uint64) error {
 
-	parsTask, err := NewParserTask(p.ctx, p.conn, p.baseEpoch, p.container)
+	parsTask, err := NewParserTask(p.ctx, conn, p.baseEpoch, p.container)
 	if err != nil {
 		return err
 	}
@@ -213,11 +213,12 @@ func (p *Parser) ParseWatchBlock(block *consensusAPI.Block) error {
 		return err
 	}
 
+	start := time.Now()
 	err = parsTask.parseOasisBase(block, baseFlag)
 	if err != nil {
 		return err
 	}
-
+	fmt.Println("---------------------d: ", time.Since(start).Seconds(), " s")
 	return nil
 }
 

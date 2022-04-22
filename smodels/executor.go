@@ -1,7 +1,9 @@
 package smodels
 
+import "google.golang.org/grpc"
+
 type Executor struct {
-	ExecHeight func(uint64) error
+	ExecHeight func(*grpc.ClientConn, uint64) error
 	Truncate   func()
 	Save       func() error
 }
