@@ -213,12 +213,10 @@ func (p *Parser) ParseWatchBlock(block *consensusAPI.Block) error {
 		return err
 	}
 
-	start := time.Now()
 	err = parsTask.parseOasisBase(block, baseFlag)
 	if err != nil {
 		return err
 	}
-	fmt.Println("---------------------d: ", time.Since(start).Seconds(), " s")
 	return nil
 }
 
