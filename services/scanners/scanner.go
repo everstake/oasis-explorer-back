@@ -3,6 +3,8 @@ package scanners
 import (
 	"context"
 	"fmt"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/google"
 	"oasisTracker/common/log"
 	"oasisTracker/conf"
 	"oasisTracker/dao"
@@ -10,21 +12,24 @@ import (
 	"oasisTracker/smodels"
 	"time"
 
+	"github.com/oasisprotocol/oasis-core/go/common/grpc"
 	"go.uber.org/zap"
+	grpcCommon "google.golang.org/grpc"
 )
 
 const repeatPause = time.Second * 5
 
 type (
 	Scanner struct {
-		cfg      conf.Scanner
-		task     dmodels.Task
-		executor *smodels.Executor
-		dao      dao.DAO
-		ctx      context.Context
-		stopFunc context.CancelFunc
-		blocksCh chan uint64
-		resultCh chan error
+		cfg         conf.Scanner
+		task        dmodels.Task
+		executor    *smodels.Executor
+		dao         dao.DAO
+		ctx         context.Context
+		stopFunc    context.CancelFunc
+		credentials credentials.TransportCredentials
+		blocksCh    chan uint64
+		resultCh    chan error
 	}
 	ExecutorProvider interface {
 		GetTaskExecutor(taskTitle string) (executor *smodels.Executor, err error)
@@ -35,13 +40,14 @@ func NewScanner(cfg conf.Scanner, task dmodels.Task, d dao.DAO, ctx context.Cont
 	scCtx, stop := context.WithCancel(ctx)
 
 	s = &Scanner{
-		cfg:      cfg,
-		task:     task,
-		dao:      d,
-		ctx:      scCtx,
-		stopFunc: stop,
-		blocksCh: make(chan uint64, task.Batch),
-		resultCh: make(chan error, task.Batch),
+		cfg:         cfg,
+		task:        task,
+		dao:         d,
+		ctx:         scCtx,
+		stopFunc:    stop,
+		credentials: google.NewDefaultCredentials().TransportCredentials(),
+		blocksCh:    make(chan uint64, task.Batch),
+		resultCh:    make(chan error, task.Batch),
 	}
 
 	var p ExecutorProvider
@@ -142,12 +148,19 @@ func (s *Scanner) Run() {
 func (s *Scanner) runWorkers() {
 	for i := uint64(0); i < s.cfg.NodeRPS; i++ {
 		go func() {
+			grpcConn, err := grpc.Dial(s.cfg.NodeConfig, grpcCommon.WithTransportCredentials(s.credentials))
+			if err != nil {
+				log.Error("grpc.Dial", zap.Error(err))
+				return
+			}
+			defer grpcConn.Close()
+
 			for {
 				select {
 				case <-s.ctx.Done():
 					return
 				case blockID := <-s.blocksCh:
-					err := s.executor.ExecHeight(blockID)
+					err := s.executor.ExecHeight(grpcConn, blockID)
 					if err != nil {
 						if s.task.Title == parserBaseTask {
 							err = fmt.Errorf("block %d : %s", blockID, err.Error())
