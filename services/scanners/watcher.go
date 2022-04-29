@@ -197,7 +197,7 @@ func (m *Watcher) addBlocksReSyncTask(currentHeight int64) error {
 
 func (m *Watcher) addEpochsReSyncTask(currentEpoch uint64) error {
 	//Setup init startEpoch from config
-	startEpoch := m.cfg.Scanner.StartHeight
+	startEpoch := m.cfg.Scanner.StartEpoch
 
 	//Get last task
 	task, isFound, err := m.dao.GetLastTask(parserBalancesSnapshotTask)
