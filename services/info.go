@@ -24,7 +24,7 @@ func (s *ServiceFacade) GetInfo() (info smodels.Info, err error) {
 		s.cache.Set(topEscrowCacheKey, ratio, cacheTTL)
 	}
 
-	marketInfo, err := s.marketDataProvider.GetOasisMarketData(usdCurrency)
+	marketInfo, err := s.marketDataProvider.GetOasisMarketData(usdCurrency, s.cfg.CMC.Key)
 	if err != nil {
 		return info, err
 	}
