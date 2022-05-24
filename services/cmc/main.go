@@ -92,20 +92,6 @@ func (c CoinGecko) GetOasisMarketDataByCurrCMC(curr string, key string) (md Curr
 		return marketData.(CurrMarketData), nil
 	}
 
-	/*client := cmc.NewClient(&cmc.Config{
-		ProAPIKey: key,
-	})
-
-	resp, err := client.Cryptocurrency.Info(&cmc.InfoOptions{
-		//ID:     "0",
-		Symbol: "ROSE",
-		//Slug:   "rose",
-	})
-	if err != nil {
-		return md, fmt.Errorf("cannot get the market data")
-	}
-	fmt.Println(resp)*/
-
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", oasisInfoURL, nil)
 	if err != nil {
