@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -103,7 +104,7 @@ func (c CoinGecko) GetOasisMarketDataByCurrCMC(curr string, key string) (md Curr
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Error sending request to server")
+		return md, err
 	}
 	defer resp.Body.Close()
 
@@ -115,6 +116,11 @@ func (c CoinGecko) GetOasisMarketDataByCurrCMC(curr string, key string) (md Curr
 	if err != nil {
 		return md, err
 	}
+	rounded, err := strconv.ParseFloat(fmt.Sprintf("%.6f", md.Data.S.Quote.USD.Price), 64)
+	if err != nil {
+		return md, err
+	}
+	md.Data.S.Quote.USD.Price = rounded
 
 	//Save into cache error can be skipped
 	err = c.Cache.Add(cacheKey, md, cacheTTL)
