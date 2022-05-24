@@ -3,6 +3,8 @@ package cmc
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -11,6 +13,7 @@ import (
 
 const (
 	oasisPriceURL = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=%s&ids=oasis-network&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h"
+	oasisInfoURL  = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?id=7653"
 	cacheTTL      = 1 * time.Minute
 	marketInfoKey = "market_info_%s"
 )
@@ -26,7 +29,7 @@ type MarketInfo interface {
 
 // MarketDataProvider is an interface for getting actual price and price changes.
 type MarketDataProvider interface {
-	GetOasisMarketData(curr string) (md MarketInfo, err error)
+	GetOasisMarketData(curr, key string) (md MarketInfo, err error)
 }
 
 var AvailableCurrencies = map[string]bool{"usd": true, "eur": true, "gbp": true, "cny": true}
@@ -41,12 +44,12 @@ func NewCoinGecko() *CoinGecko {
 }
 
 // GetOasisMarketData gets the oasis prices and price change from CoinGecko API.
-func (c CoinGecko) GetOasisMarketData(curr string) (md MarketInfo, err error) {
+func (c CoinGecko) GetOasisMarketData(curr, key string) (md MarketInfo, err error) {
 	if !AvailableCurrencies[curr] {
 		return md, fmt.Errorf("Not available currency: %s", curr)
 	}
 
-	md, err = c.GetOasisMarketDataByCurr(curr)
+	md, err = c.GetOasisMarketDataByCurrCMC(curr, key)
 	if err != nil {
 		return md, err
 	}
@@ -81,4 +84,57 @@ func (c CoinGecko) GetOasisMarketDataByCurr(curr string) (md CurrMarketData, err
 	}
 
 	return tmd[0], nil
+}
+
+func (c CoinGecko) GetOasisMarketDataByCurrCMC(curr string, key string) (md CurrMarketData, err error) {
+	cacheKey := fmt.Sprintf(marketInfoKey, curr)
+	if marketData, isFound := c.Cache.Get(cacheKey); isFound {
+		return marketData.(CurrMarketData), nil
+	}
+
+	/*client := cmc.NewClient(&cmc.Config{
+		ProAPIKey: key,
+	})
+
+	resp, err := client.Cryptocurrency.Info(&cmc.InfoOptions{
+		//ID:     "0",
+		Symbol: "ROSE",
+		//Slug:   "rose",
+	})
+	if err != nil {
+		return md, fmt.Errorf("cannot get the market data")
+	}
+	fmt.Println(resp)*/
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", oasisInfoURL, nil)
+	if err != nil {
+		return md, fmt.Errorf("cannot make a request")
+	}
+
+	req.Header.Set("Accepts", "application/json")
+	req.Header.Add("X-CMC_PRO_API_KEY", key)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error sending request to server")
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return md, err
+	}
+	err = json.Unmarshal(body, &md)
+	if err != nil {
+		return md, err
+	}
+
+	//Save into cache error can be skipped
+	err = c.Cache.Add(cacheKey, md, cacheTTL)
+	if err != nil {
+		return md, err
+	}
+
+	return md, nil
 }

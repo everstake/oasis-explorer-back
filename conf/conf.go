@@ -14,6 +14,7 @@ type (
 		Clickhouse         Clickhouse
 		CORSAllowedOrigins []string
 		Scanner            Scanner
+		CMC                CMC
 		Cron               Cron
 	}
 	API struct {
@@ -29,6 +30,9 @@ type (
 	}
 	Cron struct {
 		ParseValidatorsRegisterInterval uint64
+	}
+	CMC struct {
+		Key string
 	}
 	Clickhouse struct {
 		Protocol string
