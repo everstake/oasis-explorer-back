@@ -15,7 +15,7 @@ import (
 const (
 	oasisPriceURL = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=%s&ids=oasis-network&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h"
 	oasisInfoURL  = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?id=7653"
-	cacheTTL      = 1 * time.Minute
+	cacheTTL      = 4 * time.Minute
 	marketInfoKey = "market_info_%s"
 )
 
