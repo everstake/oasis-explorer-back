@@ -4,15 +4,17 @@ services:
   api-server:
     build: .
     ports:
-      - 9090:9090
+      - 9091:9091
     network_mode: "host"
-    restart: on-failure
+    restart: always
     deploy:
       restart_policy:
-        condition: on-failure
+        condition: always
   api-documentation:
     build:
       context: .
       dockerfile: Dockerfile-api
+      restart_policy:
+        condition: always
     ports:
       - 8080:8080
