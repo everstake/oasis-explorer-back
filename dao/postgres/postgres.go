@@ -36,8 +36,7 @@ func newConn(c conf.Config) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	//db.SetLogger(&config.DbLogger{})
+	// db.SetLogger(&config.DbLogger{})
 	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
 		return fmt.Sprintf("%s.%s", c.Postgres.Schema, defaultTableName)
 	}
