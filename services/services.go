@@ -1,6 +1,7 @@
 package services
 
 import (
+	grpcCommon "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/google"
 	"oasisTracker/conf"
 	"oasisTracker/dao"
@@ -11,7 +12,6 @@ import (
 	"github.com/oasisprotocol/oasis-core/go/common/grpc"
 	"github.com/oasisprotocol/oasis-core/go/staking/api"
 	"github.com/patrickmn/go-cache"
-	grpcCommon "google.golang.org/grpc"
 )
 
 type (

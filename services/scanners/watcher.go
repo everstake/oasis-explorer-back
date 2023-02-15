@@ -79,6 +79,9 @@ func (m *Watcher) Run() error {
 			epochCPub.Close()
 			return nil
 		case block := <-ch:
+			if block == nil {
+				continue
+			}
 			if !m.BlocksReSyncInit {
 				//Interval right border not included, so process current Height in watch
 				err = m.addBlocksReSyncTask(block.Height)
