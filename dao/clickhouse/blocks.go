@@ -100,9 +100,15 @@ func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlo
 
 	resp := make([]dmodels.RowBlock, 0, params.Limit)
 
+	s := params.Limit * 10
+	if params.Offset != 0 {
+		s += params.Offset * 10
+	}
+
 	q := sq.Select("*").
 		From(dmodels.BlocksRowView).OrderBy("blk_lvl DESC").
 		JoinClause(fmt.Sprintf("ANY LEFT JOIN %s as sig USING blk_lvl", dmodels.BlocksSigCountView)).
+		Where(fmt.Sprintf("blk_created_at >= now() - INTERVAL %d SECOND", s)).
 		Limit(params.Limit).
 		Offset(params.Offset)
 
@@ -136,6 +142,7 @@ func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlo
 func (cl Clickhouse) GetLastBlock() (block dmodels.Block, err error) {
 	q := sq.Select("*").
 		From(dmodels.BlocksTable).
+		Where("blk_created_at >= now() - INTERVAL 1 DAY").
 		Limit(1).
 		OrderBy("blk_lvl desc")
 

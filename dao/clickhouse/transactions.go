@@ -163,8 +163,14 @@ func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]d
 
 	resp := make([]dmodels.Transaction, 0, params.Limit)
 
+	s := params.Limit * 10
+	if params.Offset != 0 {
+		s += params.Offset * 10
+	}
+
 	q := sq.Select("*").
 		From(dmodels.TransactionsTable).
+		Where(fmt.Sprintf("tx_time >= now() - INTERVAL %d SECOND", s)).
 		OrderBy("blk_lvl desc").
 		Limit(params.Limit).
 		Offset(params.Offset)
