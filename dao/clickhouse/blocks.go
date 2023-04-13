@@ -100,9 +100,9 @@ func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlo
 
 	resp := make([]dmodels.RowBlock, 0, params.Limit)
 
-	s := params.Limit * 10
+	s := (params.Limit * 12) + 900
 	if params.Offset != 0 {
-		s += params.Offset * 10
+		s += params.Offset * 12
 	}
 
 	q := sq.Select("*").
