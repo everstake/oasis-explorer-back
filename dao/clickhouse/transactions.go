@@ -163,9 +163,9 @@ func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]d
 
 	resp := make([]dmodels.Transaction, 0, params.Limit)
 
-	s := (params.Limit * 12) + 900
+	s := (params.Limit * 7) + 86400
 	if params.Offset != 0 {
-		s += params.Offset * 12
+		s += params.Offset * 7
 	}
 
 	q := sq.Select("*").
