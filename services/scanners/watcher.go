@@ -172,7 +172,7 @@ func (m *Watcher) addBlocksReSyncTask(currentHeight int64) error {
 		return nil
 	}
 
-	//Previous tasks not found
+	//Previous tasks not found.
 	if startHeight == 0 {
 		gen, err := genesis.ReadGenesisFile(genesis.DefaultGenesisFileName)
 		if err != nil {
