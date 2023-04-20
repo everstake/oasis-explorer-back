@@ -163,17 +163,20 @@ func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]d
 
 	resp := make([]dmodels.Transaction, 0, params.Limit)
 
-	s := (params.Limit * 7) + 86400
-	if params.Offset != 0 {
-		s += params.Offset * 7
-	}
-
 	q := sq.Select("*").
 		From(dmodels.TransactionsTable).
-		Where(fmt.Sprintf("tx_time >= now() - INTERVAL %d SECOND", s)).
 		OrderBy("blk_lvl desc").
 		Limit(params.Limit).
 		Offset(params.Offset)
+
+	if params.AccountID == "" {
+		s := (params.Limit * 7) + 86400
+		if params.Offset != 0 {
+			s += params.Offset * 7
+		}
+
+		q = q.Where(fmt.Sprintf("tx_time >= now() - INTERVAL %d SECOND", s))
+	}
 
 	q = getTransactionsQueryParam(q, params)
 
@@ -191,7 +194,6 @@ func (cl Clickhouse) GetTransactionsList(params smodels.TransactionsParams) ([]d
 	row := dmodels.Transaction{}
 
 	for rows.Next() {
-
 		err = rows.Scan(&row.BlockLevel, &row.BlockHash, &row.Time, &row.Hash, &row.Amount, &row.EscrowAmount, &row.EscrowReclaimAmount, &row.Type, &row.Status, &row.Error, &row.Sender, &row.Receiver, &row.Nonce, &row.Fee, &row.GasLimit, &row.GasPrice)
 		if err != nil {
 			return resp, err
