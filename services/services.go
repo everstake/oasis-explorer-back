@@ -3,6 +3,7 @@ package services
 import (
 	grpcCommon "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/google"
+	"oasisTracker/common/modules"
 	"oasisTracker/conf"
 	"oasisTracker/dao"
 	"oasisTracker/services/cmc"
@@ -46,10 +47,12 @@ type (
 
 	ServiceFacade struct {
 		cfg                conf.Config
+		D                  *dao.DaoImpl
 		dao                dao.ServiceDAO
 		nodeAPI            api.Backend
 		cache              *cache.Cache
 		marketDataProvider cmc.MarketDataProvider
+		Modules            []modules.Module
 		genesisHeight      uint64
 	}
 )

@@ -51,12 +51,15 @@ func main() {
 	}
 
 	s := services.NewService(cfg, d.GetServiceDAO(), gen.GenesisHeight)
+	s.D = d
 
 	a := api.NewAPI(cfg, s)
-	mds := []modules.Module{a}
+	//mds := []modules.Module{a}
+	s.Modules = []modules.Module{a}
 	cron := gron.New()
 
-	services.AddToCron(cron, cfg, d)
+	//services.AddToCron(cron, cfg, d)
+	s.AddToCron(cron, cfg, d)
 
 	if !*parserDisableFlag {
 		sm := scanners.NewManager(cfg, d)
@@ -65,17 +68,18 @@ func main() {
 		if err != nil {
 			log.Fatal("Watcher.New", zap.Error(err))
 		}
-		mds = append(mds, wt, sm)
+		s.Modules = append(s.Modules, sm, wt)
 	}
 
 	cron.Start()
 	defer cron.Stop()
 
-	modules.Run(mds)
+	//s.Modules = mds
+	modules.Run(s.Modules)
 
 	var gracefulStop = make(chan os.Signal, 1)
 	signal.Notify(gracefulStop, syscall.SIGTERM, syscall.SIGINT)
 
 	<-gracefulStop
-	modules.Stop(mds)
+	modules.Stop(s.Modules)
 }

@@ -53,6 +53,33 @@ func (d DAO) UpdateTask(task dmodels.Task) (err error) {
 	return nil
 }
 
-func (d DAO) CreateTask(task dmodels.Task) (err error) {
-	return d.db.Model(dmodels.Task{}).Create(&task).Error
+func (d DAO) CreateTask(task dmodels.Task) error {
+	err := d.db.Transaction(func(tx *gorm.DB) error {
+		oldTask := new(dmodels.Task)
+		if err := tx.Select("*").
+			Model(dmodels.Task{}).
+			Where("tsk_title = ? and tsk_start_height = ? and tsk_end_height = ?", task.Title, task.StartHeight, task.EndHeight).
+			Order("tsk_id desc").
+			Last(&oldTask).Error; err != nil {
+			if !gorm.IsRecordNotFoundError(err) {
+				return err
+			}
+		}
+
+		if oldTask.ID != 0 {
+			return nil
+		}
+
+		if err := tx.Model(dmodels.Task{}).
+			Create(&task).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
