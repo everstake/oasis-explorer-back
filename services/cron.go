@@ -64,7 +64,7 @@ func (s *ServiceFacade) CheckDelay() error {
 		return fmt.Errorf("dao.GetLastBlock: %v", err)
 	}
 
-	if block.CreatedAt.Before(time.Now().Add(-time.Minute * 15)) {
+	if block.CreatedAt.Before(time.Now().Add(-time.Minute * 7)) {
 		nw, err := scanners.NewWatcher(s.cfg, s.D)
 		if err != nil {
 			log.Fatal("Watcher.New", zap.Error(err))
