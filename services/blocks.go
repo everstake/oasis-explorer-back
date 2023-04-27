@@ -40,7 +40,7 @@ func (s *ServiceFacade) GetBlockList(params smodels.BlockParams) ([]smodels.Bloc
 
 		err = s.apiCache.Save(fmt.Sprintf("%s?limit=%d&offset=%d&from=%d&to=%d&proposer=%v&id=%v&lvl=%v",
 			getBlocksListEP, params.Limit, params.Offset, params.From, params.To, params.Proposer, params.BlockID,
-			params.BlockLevel), info, time.Second*30)
+			params.BlockLevel), info, time.Second*6)
 		if err != nil {
 			return nil, 0, err
 		}
