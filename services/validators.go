@@ -6,7 +6,10 @@ import (
 	"oasisTracker/common/apperrors"
 	"oasisTracker/services/render"
 	"oasisTracker/smodels"
+	"time"
 )
+
+const getValidatorListEP = "/data/validators"
 
 func (s *ServiceFacade) GetValidatorInfo(accountID string) (val smodels.Validator, err error) {
 	validators, _, err := s.GetValidatorList(smodels.ValidatorParams{
@@ -36,40 +39,67 @@ func (s *ServiceFacade) GetPublicValidatorsSearchList() (list []smodels.Validato
 }
 
 func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, uint64, error) {
-	lastBlock, err := s.dao.GetLastBlock()
+	type respStr struct {
+		arr     []smodels.Validator
+		counter uint64
+	}
+
+	raw, ok, err := s.apiCache.Get(fmt.Sprintf("%s?limit=%d&offset=%d&validator=%s",
+		getValidatorListEP, listParams.Limit, listParams.Offset, listParams.ValidatorID))
 	if err != nil {
 		return nil, 0, err
 	}
 
-	count, err := s.dao.GetValidatorsCount(listParams)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	resp, err := s.dao.GetValidatorsList(listParams)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	for i := range resp {
-		resp[i].DayUptime = float64(resp[i].DaySignedBlocks) / float64(resp[i].DayBlocksCount)
-		resp[i].TotalUptime = float64(resp[i].SignedBlocksCount) / float64(resp[i].LastBlockLevel-s.genesisHeight-1)
-		resp[i].CurrentEpoch = lastBlock.Epoch
-
-		if !resp[i].IsActive {
-			resp[i].Status = smodels.StatusInActive
-			continue
+	if !ok {
+		lastBlock, err := s.dao.GetLastBlock()
+		if err != nil {
+			return nil, 0, err
 		}
-		resp[i].Status = smodels.StatusActive
-	}
 
-	for i := range resp {
-		if math.IsNaN(resp[i].DayUptime) {
-			resp[i].DayUptime = 0
+		count, err := s.dao.GetValidatorsCount(listParams)
+		if err != nil {
+			return nil, 0, err
 		}
-	}
 
-	return render.ValidatorsList(resp), count, nil
+		resp, err := s.dao.GetValidatorsList(listParams)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		for i := range resp {
+			resp[i].DayUptime = float64(resp[i].DaySignedBlocks) / float64(resp[i].DayBlocksCount)
+			resp[i].TotalUptime = float64(resp[i].SignedBlocksCount) / float64(resp[i].LastBlockLevel-s.genesisHeight-1)
+			resp[i].CurrentEpoch = lastBlock.Epoch
+
+			if !resp[i].IsActive {
+				resp[i].Status = smodels.StatusInActive
+				continue
+			}
+			resp[i].Status = smodels.StatusActive
+		}
+
+		for i := range resp {
+			if math.IsNaN(resp[i].DayUptime) {
+				resp[i].DayUptime = 0
+			}
+		}
+
+		info := respStr{
+			arr:     render.ValidatorsList(resp),
+			counter: count,
+		}
+
+		err = s.apiCache.Save(fmt.Sprintf("%s?limit=%d&offset=%d&validator=%s",
+			getValidatorListEP, listParams.Limit, listParams.Offset, listParams.ValidatorID), info, time.Second*30)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		return render.ValidatorsList(resp), count, nil
+	} else {
+		info := raw.(respStr)
+		return info.arr, info.counter, err
+	}
 }
 
 func (s *ServiceFacade) GetValidatorStatsChartData(accountID string, params smodels.ChartParams) ([]smodels.ValidatorStats, error) {
