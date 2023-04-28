@@ -8,7 +8,7 @@ import (
 
 const (
 	defaultExpiration      = time.Second * 5
-	defaultCleanUpDuration = time.Minute * 2
+	defaultCleanUpDuration = time.Second * 30
 )
 
 type Cache struct {
