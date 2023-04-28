@@ -47,7 +47,7 @@ func (s *ServiceFacade) GetInfo() (info smodels.Info, err error) {
 			Supply:      marketInfo.GetSupply(),
 		}
 
-		err = s.apiCache.Save(getInfoEP, info, time.Second*5)
+		err = s.apiCache.Save(getInfoEP, info, time.Second*30)
 		if err != nil {
 			return info, err
 		}
