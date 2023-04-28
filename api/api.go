@@ -90,7 +90,7 @@ func (api *API) initialize(handlerArr ...negroni.Handler) {
 		AllowedHeaders:   []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "User-Env"},
 	}))
 
-	//public routes
+	// public routes
 	HandleActions(api.router, wrapper, actionsAPIPrefix, []*Route{
 		{Path: "/", Method: http.MethodGet, Func: api.Index},
 		{Path: "/health", Method: http.MethodGet, Func: api.Health},
