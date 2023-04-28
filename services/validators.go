@@ -38,11 +38,12 @@ func (s *ServiceFacade) GetPublicValidatorsSearchList() (list []smodels.Validato
 	return render.PublicValidatorSearch(val), nil
 }
 
+type validatorsRespStr struct {
+	arr     []smodels.Validator
+	counter uint64
+}
+
 func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, uint64, error) {
-	type respStr struct {
-		arr     []smodels.Validator
-		counter uint64
-	}
 
 	raw, ok, err := s.apiCache.Get(fmt.Sprintf("%s?limit=%d&offset=%d&validator=%s",
 		getValidatorListEP, listParams.Limit, listParams.Offset, listParams.ValidatorID))
@@ -84,7 +85,7 @@ func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]
 			}
 		}
 
-		info := respStr{
+		info := validatorsRespStr{
 			arr:     render.ValidatorsList(resp),
 			counter: count,
 		}
@@ -97,7 +98,7 @@ func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]
 
 		return render.ValidatorsList(resp), count, nil
 	} else {
-		info := raw.(respStr)
+		info := raw.(validatorsRespStr)
 		return info.arr, info.counter, err
 	}
 }

@@ -9,11 +9,12 @@ import (
 
 const getBlocksListEP = "/data/blocks"
 
+type blocksRespStr struct {
+	arr     []smodels.Block
+	counter uint64
+}
+
 func (s *ServiceFacade) GetBlockList(params smodels.BlockParams) ([]smodels.Block, uint64, error) {
-	type respStr struct {
-		arr     []smodels.Block
-		counter uint64
-	}
 
 	raw, ok, err := s.apiCache.Get(fmt.Sprintf("%s?limit=%d&offset=%d&from=%d&to=%d&proposer=%v&id=%v&lvl=%v",
 		getBlocksListEP, params.Limit, params.Offset, params.From, params.To, params.Proposer, params.BlockID,
@@ -33,7 +34,7 @@ func (s *ServiceFacade) GetBlockList(params smodels.BlockParams) ([]smodels.Bloc
 			return nil, 0, err
 		}
 
-		info := respStr{
+		info := blocksRespStr{
 			arr:     render.Blocks(blocks),
 			counter: count,
 		}
@@ -47,7 +48,7 @@ func (s *ServiceFacade) GetBlockList(params smodels.BlockParams) ([]smodels.Bloc
 
 		return render.Blocks(blocks), count, nil
 	} else {
-		info := raw.(respStr)
+		info := raw.(blocksRespStr)
 		return info.arr, info.counter, err
 	}
 }
