@@ -6,7 +6,6 @@ import (
 	"oasisTracker/common/modules"
 	"oasisTracker/conf"
 	"oasisTracker/dao"
-	dc "oasisTracker/dao/cache"
 	"oasisTracker/services/cmc"
 	"oasisTracker/smodels"
 	"time"
@@ -52,7 +51,6 @@ type (
 		dao                dao.ServiceDAO
 		nodeAPI            api.Backend
 		cache              *cache.Cache
-		apiCache           *dc.Cache
 		marketDataProvider cmc.MarketDataProvider
 		Modules            []modules.Module
 		genesisHeight      uint64
@@ -79,7 +77,6 @@ func NewService(cfg conf.Config, dao dao.ServiceDAO, genStartBlock uint64) *Serv
 		nodeAPI:            sAPI,
 		genesisHeight:      genStartBlock,
 		cache:              cache.New(cacheTTL, cacheTTL),
-		apiCache:           dc.NewCache(),
 		marketDataProvider: cmc.NewCoinGecko(),
 	}
 }
