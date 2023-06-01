@@ -30,7 +30,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-//Struct for direct work with connection from worker
+// Struct for direct work with connection from worker
 type ParserTask struct {
 	ctx             context.Context
 	consensusAPI    consensusAPI.ClientBackend
@@ -100,9 +100,10 @@ func (p *ParserTask) parseOasisBase(blockData *consensusAPI.Block, parseFlag Par
 
 	if (parseFlag & baseFlag) != 0 {
 		pipes = append(pipes, []func(data oasis.Block) error{
-			p.parseBlock,
-			p.parseBlockSignatures,
-			p.parseBlockTransactions,
+			p.parseBlockInfo,
+			//p.parseBlock,
+			//p.parseBlockSignatures,
+			//p.parseBlockTransactions,
 		}...)
 	}
 
@@ -119,6 +120,312 @@ func (p *ParserTask) parseOasisBase(blockData *consensusAPI.Block, parseFlag Par
 			return fmt.Errorf("%s (block:%d): %s", funcName, blockData.Height, err.Error())
 		}
 	}
+	return nil
+}
+
+func (p *ParserTask) parseBlockInfo(block oasis.Block) error {
+	// signatures
+	blockSignatures := make([]dmodels.BlockSignature, 0, len(block.LastCommit.Signatures))
+
+	for key := range block.LastCommit.Signatures {
+		timestamp := block.LastCommit.Signatures[key].Timestamp
+		if timestamp.IsZero() {
+			timestamp = block.Header.Time
+		}
+
+		//Use block timestamp if signature time is zero
+		blockSignatures = append(blockSignatures, dmodels.BlockSignature{
+			BlockHeight:      block.Header.Height,
+			Timestamp:        timestamp,
+			BlockIDFlag:      block.LastCommit.Signatures[key].BlockIDFlag,
+			ValidatorAddress: block.LastCommit.Signatures[key].ValidatorAddress.String(),
+			Signature:        hex.EncodeToString(block.LastCommit.Signatures[key].Signature),
+		})
+
+	}
+
+	p.parserContainer.blockSignatures.Add(blockSignatures)
+
+	// transactions
+	txsWithResults, err := p.consensusAPI.GetTransactionsWithResults(p.ctx, block.Header.Height)
+	if err != nil {
+		return err
+	}
+
+	dTxs := make([]dmodels.Transaction, len(txsWithResults.Transactions))
+	var nodeRegisterTxs []dmodels.NodeRegistryTransaction
+	var entityRegisterTxs []dmodels.EntityRegistryTransaction
+
+	accountBalanceUpdates := make([]dmodels.AccountBalance, 0, len(txsWithResults.Transactions))
+	var tx transaction.SignedTransaction
+	var raw transaction.Transaction
+
+	gasSum := uint64(0)
+	feeSum := uint64(0)
+	for i := range txsWithResults.Transactions {
+		err = cbor.Unmarshal(txsWithResults.Transactions[i], &tx)
+		if err != nil {
+			return err
+		}
+
+		err = cbor.Unmarshal(tx.Blob, &raw)
+		if err != nil {
+			return err
+		}
+
+		txType, err := dmodels.NewTransactionType(raw.Method)
+		if err != nil {
+			return err
+		}
+
+		dTxs[i] = dmodels.Transaction{
+			BlockLevel: uint64(block.Header.Height),
+			BlockHash:  block.Hash.Hex(),
+			Hash:       tx.Hash().String(),
+			Time:       block.Header.Time,
+
+			//Todo probably merge amount to single field
+
+			//Save tx status and error if presented
+			Status: txsWithResults.Results[i].IsSuccess(),
+			Error:  txsWithResults.Results[i].Error.Message,
+
+			Type:   txType.Type(),
+			Sender: stakingAPI.NewAddress(tx.Signature.PublicKey).String(),
+			//Use system address as default receiver
+			Receiver: stakingAPI.NewAddress(oasis.SystemPublicKey).String(),
+			Nonce:    raw.Nonce,
+			Fee:      raw.Fee.Amount.ToBigInt().Uint64(),
+			GasLimit: uint64(raw.Fee.Gas),
+			GasPrice: raw.Fee.GasPrice().ToBigInt().Uint64(),
+		}
+		gasSum += raw.Fee.GasPrice().ToBigInt().Uint64()
+		feeSum += raw.Fee.Amount.ToBigInt().Uint64()
+
+		//Todo Move to sep method
+		switch raw.Method {
+		case "staking.Transfer":
+			var xfer stakingAPI.Transfer
+
+			if err := cbor.Unmarshal(raw.Body, &xfer); err != nil {
+				return err
+			}
+			dTxs[i].Amount = xfer.Amount.ToBigInt().Uint64()
+			dTxs[i].Receiver = xfer.To.String()
+		case "staking.Burn":
+			var burn stakingAPI.Burn
+
+			if err := cbor.Unmarshal(raw.Body, &burn); err != nil {
+				return err
+			}
+			dTxs[i].Amount = burn.Amount.ToBigInt().Uint64()
+		case "staking.AddEscrow":
+			var escrow stakingAPI.Escrow
+
+			if err := cbor.Unmarshal(raw.Body, &escrow); err != nil {
+				return err
+			}
+
+			dTxs[i].Receiver = escrow.Account.String()
+			dTxs[i].EscrowAmount = escrow.Amount.ToBigInt().Uint64()
+		case "staking.ReclaimEscrow":
+			var reclaim stakingAPI.ReclaimEscrow
+
+			if err := cbor.Unmarshal(raw.Body, &reclaim); err != nil {
+				return err
+			}
+
+			dTxs[i].Receiver = reclaim.Account.String()
+
+			//Find DebondingStart event
+			for j := range txsWithResults.Results[i].Events {
+
+				if txsWithResults.Results[i].Events[j].Staking != nil {
+					if txsWithResults.Results[i].Events[j].Staking.Escrow != nil {
+						if txsWithResults.Results[i].Events[j].Staking.Escrow.DebondingStart != nil {
+							dTxs[i].EscrowReclaimAmount = txsWithResults.Results[i].Events[j].Staking.Escrow.DebondingStart.Amount.ToBigInt().Uint64()
+							break
+						}
+					}
+				}
+			}
+		case "staking.AmendCommissionSchedule":
+			//	Todo save as extra field
+			var amend stakingAPI.AmendCommissionSchedule
+
+			if err := cbor.Unmarshal(raw.Body, &amend); err != nil {
+				return err
+			}
+		case "staking.Allow":
+			var allow stakingAPI.Allow
+
+			if err := cbor.Unmarshal(raw.Body, &allow); err != nil {
+				return err
+			}
+
+			//	Todo add negative amount support
+			dTxs[i].Receiver = allow.Beneficiary.String()
+			dTxs[i].Amount = allow.AmountChange.ToBigInt().Uint64()
+		case "staking.Withdraw":
+			var withdraw stakingAPI.Withdraw
+
+			if err := cbor.Unmarshal(raw.Body, &withdraw); err != nil {
+				return err
+			}
+
+			dTxs[i].Receiver = withdraw.From.String()
+			dTxs[i].Amount = withdraw.Amount.ToBigInt().Uint64()
+
+		case "registry.RegisterNode":
+			var node signature.MultiSigned
+
+			if err := cbor.Unmarshal(raw.Body, &node); err != nil {
+				return err
+			}
+
+			regTx, err := p.parseNodeRegistryTransaction(block, node)
+			if err != nil {
+				return err
+			}
+
+			regTx.Hash = tx.Hash().String()
+			nodeRegisterTxs = append(nodeRegisterTxs, regTx)
+		case "registry.RegisterEntity":
+			var entity entity.SignedEntity
+
+			if err := cbor.Unmarshal(raw.Body, &entity); err != nil {
+				return err
+			}
+
+			entityRegisterTx, err := p.parseEntityRegistryTransaction(block, entity)
+			if err != nil {
+				return err
+			}
+
+			entityRegisterTx.Hash = tx.Hash().String()
+			entityRegisterTxs = append(entityRegisterTxs, entityRegisterTx)
+		case "registry.DeregisterEntity":
+			//No body
+		case "registry.UnfreezeNode":
+			var node registryAPI.UnfreezeNode
+
+			if err := cbor.Unmarshal(raw.Body, &node); err != nil {
+				return err
+			}
+		case "registry.RegisterRuntime":
+			var runtime registryAPI.Runtime
+
+			if err := cbor.Unmarshal(raw.Body, &runtime); err != nil {
+				return err
+			}
+
+		case "roothash.ExecutorCommit":
+			var commit roothashAPI.ExecutorCommit
+
+			if err := cbor.Unmarshal(raw.Body, &commit); err != nil {
+				return err
+			}
+		case "roothash.ExecutorProposerTimeout":
+			var timeoutReq roothashAPI.ExecutorProposerTimeoutRequest
+
+			if err := cbor.Unmarshal(raw.Body, &timeoutReq); err != nil {
+				return err
+			}
+		case "roothash.Evidence":
+			var evidence roothashAPI.Evidence
+
+			if err := cbor.Unmarshal(raw.Body, &evidence); err != nil {
+				return err
+			}
+		case "governance.SubmitProposal":
+			var proposalContent governance.ProposalContent
+			if err := cbor.Unmarshal(raw.Body, &proposalContent); err != nil {
+				return err
+			}
+		case "governance.CastVote":
+			var proposalVote governance.ProposalVote
+			if err := cbor.Unmarshal(raw.Body, &proposalVote); err != nil {
+				return err
+			}
+		case "beacon.VRFProve":
+			var vrfProve beaconAPI.VRFProve
+			if err := cbor.Unmarshal(raw.Body, &vrfProve); err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf("Unknown tx type: %s", raw.Method)
+		}
+
+		//Update balance of sender account as default
+		accountsUpdateMap := map[stakingAPI.Address]bool{}
+
+		//System tx not affect balance so skip it
+		if raw.Method != "roothash.ExecutorCommit" {
+			accountsUpdateMap[stakingAPI.NewAddress(tx.Signature.PublicKey)] = true
+		}
+
+		for _, event := range txsWithResults.Results[i].Events {
+			if event.Staking != nil {
+
+				switch {
+				case event.Staking.Transfer != nil:
+					//Update destination account
+					accountsUpdateMap[event.Staking.Transfer.To] = true
+				case event.Staking.Escrow != nil:
+
+					switch {
+					case event.Staking.Escrow.Add != nil:
+						//Escrow destination
+						accountsUpdateMap[event.Staking.Escrow.Add.Escrow] = true
+					case event.Staking.Escrow.DebondingStart != nil:
+						//Debonding start destination
+						accountsUpdateMap[event.Staking.Escrow.DebondingStart.Escrow] = true
+					case event.Staking.Escrow.Take != nil:
+						//Stake is slashed
+						accountsUpdateMap[event.Staking.Escrow.Take.Owner] = true
+						//Todo handle reclaim
+						//case event.Staking.Escrow.Reclaim != nil:
+					}
+
+				case event.Staking.AllowanceChange != nil:
+				//	Todo add after handle account allowances
+				case event.Staking.Burn != nil:
+					// Owner account already updated as sender
+					//	Todo check burn from allowance
+				}
+			}
+		}
+
+		//Save updated balances
+		balanceUpdates, err := p.parseAccountBalances(block, accountsUpdateMap)
+		if err != nil {
+			return err
+		}
+		accountBalanceUpdates = append(accountBalanceUpdates, balanceUpdates...)
+	}
+
+	p.parserContainer.txs.Add(dTxs, nodeRegisterTxs, entityRegisterTxs)
+	p.parserContainer.balances.Add(accountBalanceUpdates)
+
+	// block
+	epoch, err := p.beaconAPI.GetEpoch(p.ctx, block.Header.Height)
+	if err != nil {
+		return err
+	}
+
+	p.parserContainer.blocks.Add([]dmodels.Block{{
+		Height:             uint64(block.Header.Height),
+		Hash:               block.Hash.Hex(),
+		CreatedAt:          block.Header.Time,
+		Epoch:              uint64(epoch),
+		ProposerAddress:    block.Header.ProposerAddress.String(),
+		ValidatorHash:      block.Header.ValidatorsHash.String(),
+		NumberOfTxs:        uint64(len(txsWithResults.Transactions)),
+		NumberOfSignatures: uint64(len(block.LastCommit.Signatures)),
+		Fees:               gasSum,
+		GasUsed:            feeSum,
+	}})
+
 	return nil
 }
 
