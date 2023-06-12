@@ -48,10 +48,10 @@ func newConnection(cfg conf.Clickhouse) (*sql.DB, error) {
 		return nil, fmt.Errorf("can`t make connection: %s", err.Error())
 	}
 
-	//err = makeMigration(conn, migrationsDir, cfg.Database)
-	//if err != nil {
-	//	return nil, fmt.Errorf("can`t make makeMigration: %s", err.Error())
-	//}
+	err = makeMigration(conn, migrationsDir, cfg.Database)
+	if err != nil {
+		return nil, fmt.Errorf("can`t make makeMigration: %s", err.Error())
+	}
 
 	return conn, nil
 }

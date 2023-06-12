@@ -53,8 +53,12 @@ func NewScanner(cfg conf.Scanner, task dmodels.Task, d dao.DAO, ctx context.Cont
 	if err != nil {
 		return nil, fmt.Errorf("GetParserDAO: %s", err.Error())
 	}
+	pDao, err := d.GetParserPostgresDAO()
+	if err != nil {
+		return nil, fmt.Errorf("GetParserPostgresDAO: %s", err.Error())
+	}
 
-	p, err = NewParser(ctx, cfg, dao)
+	p, err = NewParser(ctx, cfg, dao, pDao)
 	if err != nil {
 		return nil, fmt.Errorf("Create NewParser: %s", err.Error())
 	}

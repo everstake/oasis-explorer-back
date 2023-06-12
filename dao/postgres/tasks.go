@@ -6,7 +6,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func (d DAO) GetTasks(OnlyActive bool) (tasks []dmodels.Task, err error) {
+func (d *Postgres) GetTasks(OnlyActive bool) (tasks []dmodels.Task, err error) {
 
 	db := d.db.Select("*").
 		Model(dmodels.Task{})
@@ -22,7 +22,7 @@ func (d DAO) GetTasks(OnlyActive bool) (tasks []dmodels.Task, err error) {
 	return tasks, nil
 }
 
-func (d DAO) GetLastTask(title string) (task dmodels.Task, found bool, err error) {
+func (d *Postgres) GetLastTask(title string) (task dmodels.Task, found bool, err error) {
 
 	err = d.db.Select("*").
 		Model(dmodels.Task{}).
@@ -40,7 +40,7 @@ func (d DAO) GetLastTask(title string) (task dmodels.Task, found bool, err error
 	return task, true, nil
 }
 
-func (d DAO) UpdateTask(task dmodels.Task) (err error) {
+func (d *Postgres) UpdateTask(task dmodels.Task) (err error) {
 	err = d.db.Model(dmodels.Task{}).Where("tsk_id = ?", task.ID).
 		Updates(map[string]interface{}{
 			"tsk_current_height": task.CurrentHeight,
@@ -53,7 +53,7 @@ func (d DAO) UpdateTask(task dmodels.Task) (err error) {
 	return nil
 }
 
-func (d DAO) CreateTask(task dmodels.Task) error {
+func (d *Postgres) CreateTask(task dmodels.Task) error {
 	err := d.db.Transaction(func(tx *gorm.DB) error {
 		oldTask := new(dmodels.Task)
 		if err := tx.Select("*").

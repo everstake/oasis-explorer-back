@@ -21,7 +21,18 @@ func (cl Clickhouse) CreateBlocks(blocks []dmodels.Block) (err error) {
 		return err
 	}
 	stmt, err := tx.Prepare(
-		fmt.Sprintf("INSERT INTO %s (blk_lvl, blk_created_at, blk_hash, blk_proposer_address, blk_validator_hash, blk_epoch) VALUES (?, ?, ?, ?, ?, ?)", dmodels.BlocksTable))
+		fmt.Sprintf(`INSERT INTO %s 
+							(blk_lvl, 
+							 blk_created_at, 
+							 blk_hash, 
+							 blk_proposer_address, 
+							 blk_validator_hash, 
+							 blk_epoch, 
+							 blk_number_of_txs, 
+							 blk_number_of_signatures, 
+							 blk_fees, 
+							 blk_gas_used) 
+							 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, dmodels.BlocksTable))
 	if err != nil {
 		return err
 	}
@@ -41,6 +52,10 @@ func (cl Clickhouse) CreateBlocks(blocks []dmodels.Block) (err error) {
 			blocks[i].ProposerAddress,
 			blocks[i].ValidatorHash,
 			blocks[i].Epoch,
+			blocks[i].NumberOfTxs,
+			blocks[i].NumberOfSignatures,
+			blocks[i].Fees,
+			blocks[i].GasUsed,
 		)
 
 		if err != nil {
@@ -96,9 +111,9 @@ func (cl Clickhouse) CreateBlockSignatures(blocks []dmodels.BlockSignature) erro
 	return nil
 }
 
-func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlock, error) {
+func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.Block, error) {
 
-	resp := make([]dmodels.RowBlock, 0, params.Limit)
+	resp := make([]dmodels.Block, 0, params.Limit)
 
 	s := (params.Limit * 7) + 86400
 	if params.Offset != 0 {
@@ -106,8 +121,7 @@ func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlo
 	}
 
 	q := sq.Select("*").
-		From(dmodels.BlocksRowView).OrderBy("blk_lvl DESC").
-		JoinClause(fmt.Sprintf("ANY LEFT JOIN %s as sig USING blk_lvl", dmodels.BlocksSigCountView)).
+		From(dmodels.BlocksTable).OrderBy("blk_lvl DESC").
 		Where(fmt.Sprintf("blk_created_at >= now() - INTERVAL %d SECOND", s)).
 		Limit(params.Limit).
 		Offset(params.Offset)
@@ -125,10 +139,20 @@ func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlo
 	}
 	defer rows.Close()
 
-	row := dmodels.RowBlock{}
+	row := dmodels.Block{}
 
 	for rows.Next() {
-		err := rows.Scan(&row.Height, &row.CreatedAt, &row.Hash, &row.ProposerAddress, &row.ValidatorHash, &row.Epoch, &row.GasUsed, &row.Fee, &row.TxsCount, &row.SigCount)
+		err := rows.Scan(
+			&row.Height,
+			&row.CreatedAt,
+			&row.Hash,
+			&row.ProposerAddress,
+			&row.ValidatorHash,
+			&row.Epoch,
+			&row.NumberOfTxs,
+			&row.NumberOfSignatures,
+			&row.Fees,
+			&row.GasUsed)
 		if err != nil {
 			return resp, err
 		}
@@ -159,7 +183,17 @@ func (cl Clickhouse) GetLastBlock() (block dmodels.Block, err error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		err = rows.Scan(&block.Height, &block.CreatedAt, &block.Hash, &block.ProposerAddress, &block.ValidatorHash, &block.Epoch)
+		err = rows.Scan(
+			&block.Height,
+			&block.CreatedAt,
+			&block.Hash,
+			&block.ProposerAddress,
+			&block.ValidatorHash,
+			&block.Epoch,
+			&block.NumberOfTxs,
+			&block.NumberOfSignatures,
+			&block.Fees,
+			&block.GasUsed)
 		if err != nil {
 			return block, err
 		}

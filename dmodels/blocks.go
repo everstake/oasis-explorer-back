@@ -9,16 +9,10 @@ const (
 	BlocksRowView        = "block_row_view"
 	BlocksSigCountView   = "block_signatures_count_view"
 	BlockSignaturesTable = "block_signatures"
-)
 
-// todo delete this, because block has such fields now
-type RowBlock struct {
-	Block
-	GasUsed  uint64 `db:"gas_used"`
-	Fee      uint64 `db:"fee"`
-	TxsCount uint64 `db:"txs_count"`
-	SigCount uint64 `db:"sig_count"`
-}
+	BlocksPostgresTable    = "blocks"
+	BlocksDayPostgresTable = "day_blocks"
+)
 
 type Block struct {
 	Height             uint64    `db:"blk_lvl"`
@@ -39,4 +33,16 @@ type BlockSignature struct {
 	BlockIDFlag      uint64
 	ValidatorAddress string
 	Signature        string
+}
+
+type BlockInfo struct {
+	ID          uint64 `gorm:"column:id;PRIMARY_KEY"`
+	TotalBlocks uint64 `gorm:"column:total_count"`
+	LastLvl     uint64 `gorm:"column:last_lvl"`
+}
+
+type BlockDayInfo struct {
+	ID             uint64    `gorm:"column:id;PRIMARY_KEY"`
+	TotalDayBlocks uint64    `gorm:"column:day_total_count"`
+	Day            time.Time `gorm:"column:day"`
 }

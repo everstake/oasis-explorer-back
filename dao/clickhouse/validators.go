@@ -10,7 +10,30 @@ import (
 
 func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.ValidatorView, err error) {
 
-	q := sq.Select("reg_entity_address,reg_consensus_address,node_address,created_time,start_blk_lvl,blocks,signatures, signed_blocks, max_day_block, day_signatures, day_signed_blocks, day_blocks, acb_escrow_balance_active, acb_general_balance,acb_escrow_balance_share,acb_escrow_debonding_active, acb_delegations_balance , acb_debonding_delegations_balance, acb_self_delegation_balance, acb_commission_schedule, depositors_num, is_active, pvl_name, pvl_info").
+	q := sq.Select(`reg_entity_address,
+							 reg_consensus_address,
+							 node_address,
+							 created_time,
+							 start_blk_lvl,
+							 blocks,
+							 signatures, 
+							 signed_blocks, 
+							 max_day_block, 
+							 day_signatures, 
+							 day_signed_blocks, 
+							 day_blocks, 
+							 acb_escrow_balance_active, 
+							 acb_general_balance,
+							 acb_escrow_balance_share,
+							 acb_escrow_debonding_active, 
+							 acb_delegations_balance, 
+							 acb_debonding_delegations_balance, 
+							 acb_self_delegation_balance, 
+							 acb_commission_schedule, 
+							 depositors_num, 
+							 is_active, 
+							 pvl_name, 
+							 pvl_info`).
 		From(dmodels.ValidatorsTable).
 		OrderBy("acb_escrow_balance_active desc").
 		Limit(params.Limit).

@@ -34,8 +34,9 @@ func (s *ServiceFacade) GetBlockList(params smodels.BlockParams) ([]smodels.Bloc
 			return nil, 0, err
 		}
 
+		rendered := render.Blocks(blocks)
 		info := blocksRespStr{
-			arr:     render.Blocks(blocks),
+			arr:     rendered,
 			counter: count,
 		}
 
@@ -46,7 +47,7 @@ func (s *ServiceFacade) GetBlockList(params smodels.BlockParams) ([]smodels.Bloc
 			return nil, 0, err
 		}
 
-		return render.Blocks(blocks), count, nil
+		return rendered, count, nil
 	} else {
 		info := raw.(blocksRespStr)
 		return info.arr, info.counter, err

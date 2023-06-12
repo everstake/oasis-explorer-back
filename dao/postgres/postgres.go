@@ -12,11 +12,11 @@ import (
 
 const migrationsDir = "./dao/postgres/migrations"
 
-type DAO struct {
+type Postgres struct {
 	db *gorm.DB
 }
 
-func New(c conf.Config) (*DAO, error) {
+func New(c conf.Config) (*Postgres, error) {
 	d, err := newConn(c)
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func New(c conf.Config) (*DAO, error) {
 		return nil, err
 	}
 
-	return &DAO{d}, nil
+	return &Postgres{d}, nil
 }
 
 func newConn(c conf.Config) (*gorm.DB, error) {

@@ -35,6 +35,7 @@ type (
 		ctx context.Context
 
 		dao       dao.ParserDAO
+		pDao      dao.ParserPostgresDAO
 		api       consensusAPI.ClientBackend
 		bAPI      beaconAPI.Backend
 		conn      *grpcCommon.ClientConn
@@ -52,7 +53,7 @@ type (
 	}
 )
 
-func NewParser(ctx context.Context, cfg conf.Scanner, d dao.ParserDAO) (*Parser, error) {
+func NewParser(ctx context.Context, cfg conf.Scanner, d dao.ParserDAO, dp dao.ParserPostgresDAO) (*Parser, error) {
 	credentials := google.NewDefaultCredentials().TransportCredentials()
 	grpcConn, err := grpc.Dial(cfg.NodeConfig, grpcCommon.WithTransportCredentials(credentials))
 	if err != nil {
@@ -73,6 +74,7 @@ func NewParser(ctx context.Context, cfg conf.Scanner, d dao.ParserDAO) (*Parser,
 		api:       cAPI,
 		bAPI:      bAPI,
 		dao:       d,
+		pDao:      dp,
 		baseEpoch: baseEpoch,
 		container: &ParseContainer{
 			blocks:          container.NewBlocksContainer(),
@@ -117,9 +119,14 @@ func (p *Parser) Save() (err error) {
 	log.Print("Start saving")
 	if !p.container.blocks.IsEmpty() {
 		tm := time.Now()
-		err := p.dao.CreateBlocks(p.container.blocks.Blocks())
+		err = p.dao.CreateBlocks(p.container.blocks.Blocks())
 		if err != nil {
 			return fmt.Errorf("dao.CreateBlocks: %s", err.Error())
+		}
+
+		err = p.pDao.SaveBlocks(p.container.blocks.Blocks())
+		if err != nil {
+			return fmt.Errorf("pDao.SaveBlocks: %s", err.Error())
 		}
 
 		log.Print("Save time Blocks: ", time.Since(tm))
@@ -130,6 +137,11 @@ func (p *Parser) Save() (err error) {
 		err = p.dao.CreateBlockSignatures(p.container.blockSignatures.Signatures())
 		if err != nil {
 			return fmt.Errorf("dao.CreateBlockSignatures: %s", err.Error())
+		}
+
+		err = p.pDao.SaveSignatures(p.container.blockSignatures.Signatures())
+		if err != nil {
+			return fmt.Errorf("pDao.SaveSignatures: %s", err.Error())
 		}
 		log.Print("Save time Signatures: ", time.Since(tm))
 	}

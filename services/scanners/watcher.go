@@ -30,9 +30,14 @@ func NewWatcher(cfg conf.Config, d dao.DAO) (*Watcher, error) {
 		return nil, fmt.Errorf("GetParserDAO: %s", err.Error())
 	}
 
+	pDao, err := d.GetParserPostgresDAO()
+	if err != nil {
+		return nil, fmt.Errorf("GetParserPostgresDAO: %s", err.Error())
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 
-	parser, err := NewParser(ctx, cfg.Scanner, dao)
+	parser, err := NewParser(ctx, cfg.Scanner, dao, pDao)
 	if err != nil {
 		//For linter calmness
 		cancel()

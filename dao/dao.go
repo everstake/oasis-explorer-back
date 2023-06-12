@@ -12,6 +12,7 @@ import (
 type (
 	DAO interface {
 		TaskDAO
+		GetParserPostgresDAO() (ParserPostgresDAO, error)
 		GetParserDAO() (ParserDAO, error)
 	}
 
@@ -29,7 +30,7 @@ type (
 
 		GetLastBlock() (dmodels.Block, error)
 		BlocksCount(params smodels.BlockParams) (count uint64, err error)
-		GetBlocksList(params smodels.BlockParams) ([]dmodels.RowBlock, error)
+		GetBlocksList(params smodels.BlockParams) ([]dmodels.Block, error)
 
 		GetTransactionsCount(params smodels.TransactionsParams) (uint64, error)
 		GetTransactionsList(params smodels.TransactionsParams) ([]dmodels.Transaction, error)
@@ -75,10 +76,14 @@ type (
 		//To resync from last block
 		GetLastBlock() (dmodels.Block, error)
 	}
+	ParserPostgresDAO interface {
+		SaveBlocks(blocks []dmodels.Block) error
+		SaveSignatures(signatures []dmodels.BlockSignature) error
+	}
 
 	DaoImpl struct {
 		*clickhouse.Clickhouse
-		*postgres.DAO
+		*postgres.Postgres
 	}
 )
 
@@ -93,12 +98,16 @@ func New(cfg conf.Config) (*DaoImpl, error) {
 	}
 	return &DaoImpl{
 		Clickhouse: ch,
-		DAO:        m,
+		Postgres:   m,
 	}, nil
 }
 
 func (d DaoImpl) GetParserDAO() (ParserDAO, error) {
 	return d.Clickhouse, nil
+}
+
+func (d DaoImpl) GetParserPostgresDAO() (ParserPostgresDAO, error) {
+	return d.Postgres, nil
 }
 
 func (d DaoImpl) GetServiceDAO() ServiceDAO {

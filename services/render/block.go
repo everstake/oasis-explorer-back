@@ -5,7 +5,7 @@ import (
 	"oasisTracker/smodels"
 )
 
-func Blocks(bs []dmodels.RowBlock) []smodels.Block {
+func Blocks(bs []dmodels.Block) []smodels.Block {
 	blocks := make([]smodels.Block, len(bs))
 	for i := range bs {
 		blocks[i] = Block(bs[i])
@@ -13,16 +13,16 @@ func Blocks(bs []dmodels.RowBlock) []smodels.Block {
 	return blocks
 }
 
-func Block(b dmodels.RowBlock) smodels.Block {
+func Block(b dmodels.Block) smodels.Block {
 
 	return smodels.Block{
 		Epoch:              b.Epoch,
-		Fees:               b.Fee,
+		Fees:               b.Fees,
 		GasUsed:            b.GasUsed,
 		Hash:               b.Hash,
 		Level:              b.Height,
-		NumberOfTxs:        b.TxsCount,
-		NumberOfSignatures: b.SigCount,
+		NumberOfTxs:        b.NumberOfTxs,
+		NumberOfSignatures: b.NumberOfSignatures,
 		Proposer:           b.ProposerAddress,
 		Timestamp:          b.CreatedAt.Unix(),
 	}
