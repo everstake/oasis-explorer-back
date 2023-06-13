@@ -146,6 +146,7 @@ func (s *Scanner) Run() {
 func (s *Scanner) runWorkers() {
 	for i := uint64(0); i < s.cfg.NodeRPS; i++ {
 		go func() {
+
 			//grpcConn, err := grpc.Dial(s.cfg.NodeConfig, grpcCommon.WithTransportCredentials(s.credentials))
 			//if err != nil {
 			//	log.Error("grpc.Dial", zap.Error(err))
