@@ -13,7 +13,7 @@ import (
 const getValidatorListEP = "/data/validators"
 
 func (s *ServiceFacade) GetValidatorInfo(accountID string) (val smodels.Validator, err error) {
-	validators, _, err := s.GetValidatorList(smodels.ValidatorParams{
+	validators, _, err := s.GetValidatorListNew(smodels.ValidatorParams{
 		CommonParams: smodels.CommonParams{Limit: 1},
 		ValidatorID:  accountID,
 	})
@@ -177,7 +177,7 @@ func (s *ServiceFacade) GetValidatorListNew(listParams smodels.ValidatorParams) 
 
 func (s *ServiceFacade) GetValidatorStatsChartData(accountID string, params smodels.ChartParams) ([]smodels.ValidatorStats, error) {
 
-	validators, err := s.dao.GetValidatorsList(smodels.ValidatorParams{
+	validators, err := s.dao.GetValidatorsListNew(smodels.ValidatorParams{
 		CommonParams: smodels.CommonParams{Limit: 1},
 		ValidatorID:  accountID,
 	})
@@ -218,7 +218,7 @@ func (s *ServiceFacade) GetValidatorBlocks(validatorID string, params smodels.Co
 		return nil, err
 	}
 
-	blocks, err := s.dao.GetBlocksList(smodels.BlockParams{
+	blocks, err := s.dao.GetBlocksListNew(smodels.BlockParams{
 		CommonParams: params,
 		Proposer:     []string{entity.GetEntity().ConsensusAddress},
 	})

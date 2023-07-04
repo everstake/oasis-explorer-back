@@ -95,7 +95,24 @@ func (cl Clickhouse) GetValidatorsListNew(params smodels.ValidatorParams) (resp 
 	row := dmodels.ValidatorView{}
 	for rows.Next() {
 
-		err = rows.Scan(&row.Partition, &row.EntityID, &row.EntityAddress, &row.ConsensusAddress, &row.Name, &row.Info, &row.ValidateSince, &row.EscrowBalance, &row.GeneralBalance, &row.EscrowBalanceShare, &row.DebondingBalance, &row.DelegationsBalance, &row.DebondingDelegationsBalance, &row.SelfDelegationBalance, &row.CommissionSchedule, &row.DepositorsNum)
+		err = rows.Scan(
+			&row.Partition,
+			&row.EntityID,
+			&row.EntityAddress,
+			&row.ConsensusAddress,
+			&row.NodeAddress,
+			&row.Name,
+			&row.Info,
+			&row.ValidateSince,
+			&row.EscrowBalance,
+			&row.GeneralBalance,
+			&row.EscrowBalanceShare,
+			&row.DebondingBalance,
+			&row.DelegationsBalance,
+			&row.DebondingDelegationsBalance,
+			&row.SelfDelegationBalance,
+			&row.CommissionSchedule,
+			&row.DepositorsNum)
 		if err != nil {
 			return resp, err
 		}

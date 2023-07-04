@@ -112,7 +112,6 @@ func (cl Clickhouse) CreateBlockSignatures(blocks []dmodels.BlockSignature) erro
 }
 
 func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.Block, error) {
-
 	resp := make([]dmodels.Block, 0, params.Limit)
 
 	s := (params.Limit * 7) + 86400
@@ -123,6 +122,56 @@ func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.Block,
 	q := sq.Select("*").
 		From(dmodels.BlocksRowView).OrderBy("blk_lvl asc").
 		JoinClause(fmt.Sprintf("ANY LEFT JOIN %s as sig USING blk_lvl", dmodels.BlocksSigCountView)).
+		Limit(params.Limit).
+		Offset(params.Offset)
+
+	q = getBlocksQueryParam(q, params)
+
+	rawSql, args, err := q.ToSql()
+	if err != nil {
+		return resp, err
+	}
+
+	rows, err := cl.db.conn.Query(rawSql, args...)
+	if err != nil {
+		return resp, err
+	}
+	defer rows.Close()
+
+	row := dmodels.Block{}
+
+	for rows.Next() {
+		err := rows.Scan(
+			&row.Height,
+			&row.CreatedAt,
+			&row.Hash,
+			&row.ProposerAddress,
+			&row.ValidatorHash,
+			&row.Epoch,
+			&row.NumberOfTxs,
+			&row.GasUsed,
+			&row.Fees,
+			&row.NumberOfSignatures)
+		if err != nil {
+			return resp, err
+		}
+
+		resp = append(resp, row)
+	}
+
+	return resp, nil
+}
+
+func (cl Clickhouse) GetBlocksListNew(params smodels.BlockParams) ([]dmodels.Block, error) {
+	resp := make([]dmodels.Block, 0, params.Limit)
+
+	s := (params.Limit * 7) + 86400
+	if params.Offset != 0 {
+		s += params.Offset * 7
+	}
+
+	q := sq.Select("*").
+		From(dmodels.BlocksNewTable).OrderBy("blk_lvl desc").
 		Limit(params.Limit).
 		Offset(params.Offset)
 
@@ -203,6 +252,7 @@ func (cl Clickhouse) GetLastBlock() (block dmodels.Block, err error) {
 }
 
 func (cl Clickhouse) BlocksCount(params smodels.BlockParams) (count uint64, err error) {
+	//todo switch table to new
 	q := sq.Select("count()").
 		From(dmodels.BlocksOldTable)
 

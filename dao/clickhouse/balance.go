@@ -37,7 +37,6 @@ func (cl Clickhouse) GetLastDayTotalBalance() (bal dmodels.DayBalance, err error
 }
 
 func (cl Clickhouse) GetBalanceChartData(accountID string, params smodels.ChartParams) (resp []dmodels.BalanceChartData, err error) {
-
 	q := sq.Select("*").
 		From(dmodels.AccountDayBalanceView).
 		Where(sq.Eq{"acb_account": accountID}).

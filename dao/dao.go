@@ -32,6 +32,7 @@ type (
 		BlocksCount(params smodels.BlockParams) (count uint64, err error)
 		BlockSignatures(params smodels.BlockParams) (count uint64, err error)
 		GetBlocksList(params smodels.BlockParams) ([]dmodels.Block, error)
+		GetBlocksListNew(params smodels.BlockParams) ([]dmodels.Block, error)
 
 		GetTransactionsCount(params smodels.TransactionsParams) (uint64, error)
 		GetTransactionsList(params smodels.TransactionsParams) ([]dmodels.Transaction, error)

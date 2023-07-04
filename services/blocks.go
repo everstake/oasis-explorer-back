@@ -34,7 +34,7 @@ func (s *ServiceFacade) GetBlockList(params smodels.BlockParams) ([]smodels.Bloc
 			return nil, 0, err
 		}
 
-		blocks, err := s.dao.GetBlocksList(params)
+		blocks, err := s.dao.GetBlocksListNew(params)
 		if err != nil {
 			return nil, 0, err
 		}
