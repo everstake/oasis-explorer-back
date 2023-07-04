@@ -29,9 +29,9 @@ func (api *API) GetValidatorsList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validators, count, err := api.services.GetValidatorList(params)
+	validators, count, err := api.services.GetValidatorListNew(params)
 	if err != nil {
-		log.Error("GetValidatorList api error", zap.Error(err))
+		log.Error("GetValidatorListNew api error", zap.Error(err))
 		response.JsonError(w, err)
 		return
 	}

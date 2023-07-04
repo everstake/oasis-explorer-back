@@ -110,8 +110,8 @@ func (cl Clickhouse) GetTotalAccountsCountChartData(params smodels.ChartParams) 
 func (cl Clickhouse) GetAvgBlockTimeChartData(params smodels.ChartParams) (resp []dmodels.ChartData, err error) {
 
 	q := sq.Select("start_of_period, avg(next_blk_created_at - blk_created_at) avg_delay").
-		From(dmodels.BlocksTable).
-		JoinClause("ANY LEFT JOIN (select toUInt64(blk_lvl - 1) blk_lvl, blk_created_at next_blk_created_at from blocks) s using blk_lvl").
+		From(dmodels.BlocksNewTable).
+		JoinClause("ANY LEFT JOIN (select toUInt64(blk_lvl - 1) blk_lvl, blk_created_at next_blk_created_at from blocks_new) s using blk_lvl").
 		Where(sq.Gt{"next_blk_created_at": 0}).
 		Where(sq.GtOrEq{"start_of_period": params.From}).
 		Where(sq.LtOrEq{"start_of_period": params.To}).

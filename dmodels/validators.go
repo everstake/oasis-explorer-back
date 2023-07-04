@@ -6,6 +6,7 @@ import (
 
 const (
 	ValidatorsTable       = "validators_list_view"
+	ValidatorsListView    = "validators_list_view_new"
 	PublicValidatorsTable = "public_validators"
 	ValidatorStatsView    = "validator_day_stats_view"
 	DepositorsView        = "entity_depositors_view"
@@ -91,6 +92,18 @@ type ValidatorInfo struct {
 type ValidatorDayInfo struct {
 	ID          uint64    `gorm:"column:id;PRIMARY_KEY"`
 	ValidatorID uint64    `gorm:"column:val_id"`
+	DayBlocks   uint64    `gorm:"column:day_blk_count"`
+	DaySigs     uint64    `gorm:"column:day_sig_count"`
+	Day         time.Time `gorm:"column:day"`
+}
+
+type ValidatorInfoWithDay struct {
+	ID          uint64    `gorm:"column:id;PRIMARY_KEY"`
+	Address     string    `gorm:"column:address"`
+	TotalBlocks uint64    `gorm:"column:total_blk_count"`
+	TotalSigs   uint64    `gorm:"column:total_sig_count"`
+	LastBlkTime time.Time `gorm:"column:last_blk_time"`
+	LastSigTime time.Time `gorm:"column:last_sig_time"`
 	DayBlocks   uint64    `gorm:"column:day_blk_count"`
 	DaySigs     uint64    `gorm:"column:day_sig_count"`
 	Day         time.Time `gorm:"column:day"`

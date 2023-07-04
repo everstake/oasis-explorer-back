@@ -30,6 +30,7 @@ type (
 
 		GetLastBlock() (dmodels.Block, error)
 		BlocksCount(params smodels.BlockParams) (count uint64, err error)
+		BlockSignatures(params smodels.BlockParams) (count uint64, err error)
 		GetBlocksList(params smodels.BlockParams) ([]dmodels.Block, error)
 
 		GetTransactionsCount(params smodels.TransactionsParams) (uint64, error)
@@ -54,6 +55,7 @@ type (
 
 		GetValidatorsCount(params smodels.ValidatorParams) (count uint64, err error)
 		GetValidatorsList(params smodels.ValidatorParams) (resp []dmodels.ValidatorView, err error)
+		GetValidatorsListNew(params smodels.ValidatorParams) (resp []dmodels.ValidatorView, err error)
 		PublicValidatorsSearchList() (resp []dmodels.ValidatorView, err error)
 		GetValidatorDayStats(string, smodels.ChartParams) (resp []dmodels.ValidatorStats, err error)
 		GetValidatorDelegators(validatorID string, params smodels.CommonParams) ([]dmodels.Delegator, error)
@@ -63,6 +65,20 @@ type (
 
 		GetValidatorRewards(accountID string, params smodels.CommonParams) (resp []dmodels.Reward, err error)
 		GetValidatorRewardsStat(accountID string) (resp dmodels.RewardsStat, err error)
+	}
+	ServicePostgresDAO interface {
+		GetBlocksInfo() (*dmodels.BlockInfo, error)
+		GetBlocksDayInfo() (*dmodels.BlockDayInfo, error)
+
+		GetValidatorsInfo() ([]dmodels.ValidatorInfoWithDay, error)
+
+		SaveTotalBlocksCount(count uint64) error
+
+		//delete methods after migration
+		MigrateValidatorsInfo(validators []dmodels.ValidatorView) error
+
+		UpdateBlocksMigrationOffset(offset uint64) error
+		GetBlocksMigrationOffset() (uint64, error)
 	}
 
 	ParserDAO interface {
@@ -78,6 +94,7 @@ type (
 	}
 	ParserPostgresDAO interface {
 		SaveBlocks(blocks []dmodels.Block) error
+
 		SaveSignatures(signatures []dmodels.BlockSignature) error
 	}
 
@@ -106,10 +123,14 @@ func (d DaoImpl) GetParserDAO() (ParserDAO, error) {
 	return d.Clickhouse, nil
 }
 
+func (d DaoImpl) GetServiceDAO() ServiceDAO {
+	return d.Clickhouse
+}
+
 func (d DaoImpl) GetParserPostgresDAO() (ParserPostgresDAO, error) {
 	return d.Postgres, nil
 }
 
-func (d DaoImpl) GetServiceDAO() ServiceDAO {
-	return d.Clickhouse
+func (d DaoImpl) GetServicePostgresDAO() ServicePostgresDAO {
+	return d.Postgres
 }

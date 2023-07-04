@@ -18,6 +18,8 @@ import (
 
 type (
 	Service interface {
+		SyncBlocksStats() error
+
 		GetInfo() (smodels.Info, error)
 		GetBlockList(params smodels.BlockParams) ([]smodels.Block, uint64, error)
 		GetTransactionsList(params smodels.TransactionsParams) ([]smodels.Transaction, uint64, error)
@@ -28,6 +30,7 @@ type (
 
 		GetValidatorInfo(string) (smodels.Validator, error)
 		GetValidatorList(listParams smodels.ValidatorParams) ([]smodels.Validator, uint64, error)
+		GetValidatorListNew(listParams smodels.ValidatorParams) ([]smodels.Validator, uint64, error)
 		GetPublicValidatorsSearchList() ([]smodels.ValidatorEntity, error)
 		GetValidatorDelegators(validatorID string, params smodels.CommonParams) ([]smodels.Delegator, error)
 		GetValidatorBlocks(validatorID string, params smodels.CommonParams) ([]smodels.Block, error)
@@ -50,6 +53,7 @@ type (
 		cfg                conf.Config
 		D                  *dao.DaoImpl
 		dao                dao.ServiceDAO
+		pDao               dao.ServicePostgresDAO
 		nodeAPI            api.Backend
 		cache              *cache.Cache
 		apiCache           *dc.Cache
@@ -64,7 +68,7 @@ const (
 	cacheTTL          = 1 * time.Minute
 )
 
-func NewService(cfg conf.Config, dao dao.ServiceDAO, genStartBlock uint64) *ServiceFacade {
+func NewService(cfg conf.Config, dao dao.ServiceDAO, pDao dao.ServicePostgresDAO, genStartBlock uint64) *ServiceFacade {
 	credentials := google.NewDefaultCredentials().TransportCredentials()
 	grpcConn, err := grpc.Dial(cfg.Scanner.NodeConfig, grpcCommon.WithTransportCredentials(credentials))
 	if err != nil {
@@ -76,6 +80,7 @@ func NewService(cfg conf.Config, dao dao.ServiceDAO, genStartBlock uint64) *Serv
 	return &ServiceFacade{
 		cfg:                cfg,
 		dao:                dao,
+		pDao:               pDao,
 		nodeAPI:            sAPI,
 		genesisHeight:      genStartBlock,
 		cache:              cache.New(cacheTTL, cacheTTL),

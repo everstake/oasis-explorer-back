@@ -5,7 +5,8 @@ import (
 )
 
 const (
-	BlocksTable          = "blocks"
+	BlocksNewTable       = "blocks_new"
+	BlocksOldTable       = "block_row_view"
 	BlocksRowView        = "block_row_view"
 	BlocksSigCountView   = "block_signatures_count_view"
 	BlockSignaturesTable = "block_signatures"
@@ -39,6 +40,7 @@ type BlockInfo struct {
 	ID          uint64 `gorm:"column:id;PRIMARY_KEY"`
 	TotalBlocks uint64 `gorm:"column:total_count"`
 	LastLvl     uint64 `gorm:"column:last_lvl"`
+	Epoch       uint64 `gorm:"column:epoch"`
 }
 
 type BlockDayInfo struct {

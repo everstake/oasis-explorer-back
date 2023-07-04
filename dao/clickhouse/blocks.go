@@ -32,7 +32,7 @@ func (cl Clickhouse) CreateBlocks(blocks []dmodels.Block) (err error) {
 							 blk_number_of_signatures, 
 							 blk_fees, 
 							 blk_gas_used) 
-							 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, dmodels.BlocksTable))
+							 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, dmodels.BlocksNewTable))
 	if err != nil {
 		return err
 	}
@@ -121,8 +121,8 @@ func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.Block,
 	}
 
 	q := sq.Select("*").
-		From(dmodels.BlocksTable).OrderBy("blk_lvl DESC").
-		Where(fmt.Sprintf("blk_created_at >= now() - INTERVAL %d SECOND", s)).
+		From(dmodels.BlocksRowView).OrderBy("blk_lvl asc").
+		JoinClause(fmt.Sprintf("ANY LEFT JOIN %s as sig USING blk_lvl", dmodels.BlocksSigCountView)).
 		Limit(params.Limit).
 		Offset(params.Offset)
 
@@ -150,9 +150,9 @@ func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.Block,
 			&row.ValidatorHash,
 			&row.Epoch,
 			&row.NumberOfTxs,
-			&row.NumberOfSignatures,
+			&row.GasUsed,
 			&row.Fees,
-			&row.GasUsed)
+			&row.NumberOfSignatures)
 		if err != nil {
 			return resp, err
 		}
@@ -165,7 +165,7 @@ func (cl Clickhouse) GetBlocksList(params smodels.BlockParams) ([]dmodels.Block,
 
 func (cl Clickhouse) GetLastBlock() (block dmodels.Block, err error) {
 	q := sq.Select("*").
-		From(dmodels.BlocksTable).
+		From(dmodels.BlocksNewTable).
 		Where("blk_created_at >= now() - INTERVAL 1 DAY").
 		Limit(1).
 		OrderBy("blk_lvl desc")
@@ -204,7 +204,35 @@ func (cl Clickhouse) GetLastBlock() (block dmodels.Block, err error) {
 
 func (cl Clickhouse) BlocksCount(params smodels.BlockParams) (count uint64, err error) {
 	q := sq.Select("count()").
-		From(dmodels.BlocksTable)
+		From(dmodels.BlocksOldTable)
+
+	q = getBlocksQueryParam(q, params)
+
+	rawSql, args, err := q.ToSql()
+	if err != nil {
+		return count, err
+	}
+
+	rows, err := cl.db.conn.Query(rawSql, args...)
+	if err != nil {
+		return count, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		err = rows.Scan(&count)
+		if err != nil {
+			return count, err
+		}
+	}
+
+	return count, nil
+}
+
+func (cl Clickhouse) BlockSignatures(params smodels.BlockParams) (count uint64, err error) {
+	q := sq.Select("count()").
+		From(dmodels.BlocksSigCountView)
 
 	q = getBlocksQueryParam(q, params)
 

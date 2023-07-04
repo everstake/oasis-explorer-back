@@ -10,7 +10,6 @@ import (
 	"oasisTracker/conf"
 	"oasisTracker/dao"
 	"oasisTracker/services"
-	"oasisTracker/services/scanners"
 	"os"
 	"os/signal"
 	"syscall"
@@ -50,7 +49,7 @@ func main() {
 		log.Fatal("ReadGenesisFile", zap.Error(err))
 	}
 
-	s := services.NewService(cfg, d.GetServiceDAO(), gen.GenesisHeight)
+	s := services.NewService(cfg, d.GetServiceDAO(), d.GetServicePostgresDAO(), gen.GenesisHeight)
 	s.D = d
 
 	a := api.NewAPI(cfg, s)
@@ -64,11 +63,11 @@ func main() {
 	if !*parserDisableFlag {
 		//sm := scanners.NewManager(cfg, d)
 
-		wt, err := scanners.NewWatcher(cfg, d)
-		if err != nil {
-			log.Fatal("Watcher.New", zap.Error(err))
-		}
-		s.Modules = append(s.Modules /*sm,*/, wt)
+		//wt, err := scanners.NewWatcher(cfg, d)
+		//if err != nil {
+		//	log.Fatal("Watcher.New", zap.Error(err))
+		//}
+		s.Modules = append(s.Modules /*sm, wt*/)
 	}
 
 	cron.Start()

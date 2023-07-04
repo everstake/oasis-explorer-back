@@ -15,6 +15,7 @@ import (
 	"oasisTracker/dao"
 	"oasisTracker/services/metaregistry"
 	"oasisTracker/services/scanners"
+	"oasisTracker/smodels"
 	"time"
 )
 
@@ -56,6 +57,39 @@ func (s *ServiceFacade) AddToCron(cron *gron.Cron, cfg conf.Config, dao *dao.Dao
 		}
 
 	})
+
+	credentials := google.NewDefaultCredentials().TransportCredentials()
+	grpcConn, err := grpc.Dial(cfg.Scanner.NodeConfig, grpcCommon.WithTransportCredentials(credentials))
+	if err != nil {
+		log.Error("grpc.Dial failed:", zap.Error(err))
+		return
+	}
+
+	defer grpcConn.Close()
+
+	err = metaregistry.UpdatePublicValidators(dao, stakingAPI.NewStakingClient(grpcConn))
+	if err != nil {
+		log.Error("public validators update saver failed:", zap.Error(err))
+		return
+	}
+
+	err = s.SyncBlocksStats()
+	if err != nil {
+		log.Error("SyncBlocksStats failed:", zap.Error(err))
+		return
+	}
+
+	//err = s.MigrateValidators()
+	//if err != nil {
+	//	log.Error("MigrateValidators failed:", zap.Error(err))
+	//	return
+	//}
+
+	//err = s.MigrateBlocks()
+	//if err != nil {
+	//	log.Error("MigrateBlocks failed:", zap.Error(err))
+	//	return
+	//}
 }
 
 func (s *ServiceFacade) CheckDelay() error {
@@ -76,6 +110,79 @@ func (s *ServiceFacade) CheckDelay() error {
 
 		s.Modules = append(s.Modules, nw)
 		modules.Run(s.Modules[2:])
+	}
+
+	return nil
+}
+
+func (s *ServiceFacade) MigrateValidators() error {
+	count, err := s.dao.GetValidatorsCount(smodels.ValidatorParams{})
+	if err != nil {
+		return fmt.Errorf("dao.GetValidatorsCount: %v", err)
+	}
+
+	for i := uint64(0); i < count; {
+		validators, err := s.dao.GetValidatorsList(smodels.ValidatorParams{
+			CommonParams: smodels.CommonParams{
+				Limit:  200,
+				Offset: i,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("dao.GetValidatorsList: %v", err)
+		}
+
+		err = s.pDao.MigrateValidatorsInfo(validators)
+		if err != nil {
+			return fmt.Errorf("pDao.MigrateValidatorsInfo: %v", err)
+		}
+
+		i += 200
+		time.Sleep(time.Second)
+	}
+
+	return nil
+}
+
+func (s *ServiceFacade) MigrateBlocks() error {
+	offset, err := s.pDao.GetBlocksMigrationOffset()
+	if err != nil {
+		return fmt.Errorf("pDao.GetBlocksMigrationOffset: %v", err)
+	}
+
+	bCount, err := s.dao.BlocksCount(smodels.BlockParams{})
+	if err != nil {
+		return fmt.Errorf("dao.BlocksCount: %v", err)
+	}
+
+	limit := uint64(10000)
+	for i := offset; i < bCount; {
+		blocks, err := s.dao.GetBlocksList(smodels.BlockParams{
+			CommonParams: smodels.CommonParams{
+				Limit:  limit,
+				Offset: i,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("dao.GetBlocksList: %v", err)
+		}
+
+		err = s.D.CreateBlocks(blocks)
+		if err != nil {
+			return fmt.Errorf("D.CreateBlocks: %v", err)
+		}
+
+		err = s.D.SaveBlocks(blocks)
+		if err != nil {
+			return fmt.Errorf("D.SaveBlocks: %v", err)
+		}
+
+		i += limit
+
+		err = s.pDao.UpdateBlocksMigrationOffset(i)
+		if err != nil {
+			return fmt.Errorf("pDao.UpdateBlocksMigrationOffset: %v", err)
+		}
 	}
 
 	return nil

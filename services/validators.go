@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"oasisTracker/common/apperrors"
+	"oasisTracker/dmodels"
 	"oasisTracker/services/render"
 	"oasisTracker/smodels"
 	"time"
@@ -97,6 +98,77 @@ func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]
 		}
 
 		return render.ValidatorsList(resp), count, nil
+	} else {
+		info := raw.(validatorsRespStr)
+		return info.arr, info.counter, err
+	}
+}
+
+func (s *ServiceFacade) GetValidatorListNew(listParams smodels.ValidatorParams) ([]smodels.Validator, uint64, error) {
+
+	raw, ok, err := s.apiCache.Get(fmt.Sprintf("%s?limit=%d&offset=%d&validator=%s",
+		getValidatorListEP, listParams.Limit, listParams.Offset, listParams.ValidatorID))
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if !ok {
+		vl, err := s.dao.GetValidatorsListNew(listParams)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		blockInfo, err := s.pDao.GetBlocksInfo()
+		if err != nil {
+			return nil, 0, err
+		}
+
+		blockDayInfo, err := s.pDao.GetBlocksDayInfo()
+		if err != nil {
+			return nil, 0, err
+		}
+
+		validatorInfo, err := s.pDao.GetValidatorsInfo()
+		if err != nil {
+			return nil, 0, err
+		}
+
+		valMap := make(map[string]dmodels.ValidatorInfoWithDay)
+		for _, v := range validatorInfo {
+			valMap[v.Address] = v
+		}
+
+		for i := range vl {
+			vl[i].DayUptime = float64(valMap[vl[i].EntityAddress].DaySigs) / float64(blockDayInfo.TotalDayBlocks)
+			vl[i].TotalUptime = float64(valMap[vl[i].EntityAddress].TotalSigs) / float64(blockInfo.LastLvl-s.genesisHeight-1)
+			vl[i].CurrentEpoch = blockInfo.Epoch
+
+			if valMap[vl[i].EntityAddress].DaySigs == 0 {
+				vl[i].Status = smodels.StatusInActive
+				continue
+			}
+			vl[i].Status = smodels.StatusActive
+
+			if math.IsNaN(vl[i].DayUptime) {
+				vl[i].DayUptime = 0
+			}
+
+			vl[i].SignedBlocksCount = valMap[vl[i].EntityAddress].TotalSigs
+			vl[i].ProposedBlocksCount = valMap[vl[i].EntityAddress].TotalBlocks
+		}
+
+		info := validatorsRespStr{
+			arr:     render.ValidatorsList(vl),
+			counter: uint64(len(validatorInfo)),
+		}
+
+		err = s.apiCache.Save(fmt.Sprintf("%s?limit=%d&offset=%d&validator=%s",
+			getValidatorListEP, listParams.Limit, listParams.Offset, listParams.ValidatorID), info, time.Second*30)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		return render.ValidatorsList(vl), uint64(len(validatorInfo)), nil
 	} else {
 		info := raw.(validatorsRespStr)
 		return info.arr, info.counter, err

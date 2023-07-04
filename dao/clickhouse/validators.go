@@ -18,6 +18,7 @@ func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []d
 							 blocks,
 							 signatures, 
 							 signed_blocks, 
+							 last_block_time, 
 							 max_day_block, 
 							 day_signatures, 
 							 day_signed_blocks, 
@@ -57,7 +58,44 @@ func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []d
 	row := dmodels.ValidatorView{}
 	for rows.Next() {
 
-		err = rows.Scan(&row.EntityID, &row.ConsensusAddress, &row.NodeAddress, &row.ValidateSince, &row.StartBlockLevel, &row.ProposedBlocksCount, &row.SignaturesCount, &row.SignedBlocksCount, &row.LastBlockLevel, &row.DaySignaturesCount, &row.DaySignedBlocks, &row.DayBlocksCount, &row.EscrowBalance, &row.GeneralBalance, &row.EscrowBalanceShare, &row.DebondingBalance, &row.DelegationsBalance, &row.DebondingDelegationsBalance, &row.SelfDelegationBalance, &row.CommissionSchedule, &row.DepositorsNum, &row.IsActive, &row.Name, &row.Info)
+		err = rows.Scan(&row.EntityID, &row.ConsensusAddress, &row.NodeAddress, &row.ValidateSince, &row.StartBlockLevel, &row.ProposedBlocksCount, &row.SignaturesCount, &row.SignedBlocksCount, &row.LastBlockTime, &row.LastBlockLevel, &row.DaySignaturesCount, &row.DaySignedBlocks, &row.DayBlocksCount, &row.EscrowBalance, &row.GeneralBalance, &row.EscrowBalanceShare, &row.DebondingBalance, &row.DelegationsBalance, &row.DebondingDelegationsBalance, &row.SelfDelegationBalance, &row.CommissionSchedule, &row.DepositorsNum, &row.IsActive, &row.Name, &row.Info)
+		if err != nil {
+			return resp, err
+		}
+
+		resp = append(resp, row)
+	}
+
+	return resp, nil
+}
+
+func (cl Clickhouse) GetValidatorsListNew(params smodels.ValidatorParams) (resp []dmodels.ValidatorView, err error) {
+
+	q := sq.Select("*").
+		From(dmodels.ValidatorsListView).
+		OrderBy("acb_escrow_balance_active desc").
+		Limit(params.Limit).
+		Offset(params.Offset)
+
+	if params.ValidatorID != "" {
+		q = q.Where(sq.Eq{"reg_entity_address": params.ValidatorID})
+	}
+
+	rawSql, args, err := q.ToSql()
+	if err != nil {
+		return resp, err
+	}
+
+	rows, err := cl.db.conn.Query(rawSql, args...)
+	if err != nil {
+		return resp, err
+	}
+	defer rows.Close()
+
+	row := dmodels.ValidatorView{}
+	for rows.Next() {
+
+		err = rows.Scan(&row.Partition, &row.EntityID, &row.EntityAddress, &row.ConsensusAddress, &row.Name, &row.Info, &row.ValidateSince, &row.EscrowBalance, &row.GeneralBalance, &row.EscrowBalanceShare, &row.DebondingBalance, &row.DelegationsBalance, &row.DebondingDelegationsBalance, &row.SelfDelegationBalance, &row.CommissionSchedule, &row.DepositorsNum)
 		if err != nil {
 			return resp, err
 		}

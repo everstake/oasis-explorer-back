@@ -36,7 +36,7 @@ func Validator(a dmodels.ValidatorView) smodels.Validator {
 			Status:          a.Status,
 			DepositorsCount: a.DepositorsNum,
 			BlocksCount:     a.ProposedBlocksCount,
-			SignaturesCount: a.SignaturesCount,
+			SignaturesCount: a.SignedBlocksCount,
 		},
 
 		CurrentEpoch:       a.CurrentEpoch,

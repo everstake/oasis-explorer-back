@@ -76,3 +76,17 @@ func (s *ServiceFacade) getTopEscrowRatio() (float64, error) {
 
 	return float64(topAccountsEscrow) / float64(totalBalance.EscrowBalanceActive) * 100, nil
 }
+
+func (s *ServiceFacade) SyncBlocksStats() error {
+	count, err := s.dao.BlocksCount(smodels.BlockParams{})
+	if err != nil {
+		return err
+	}
+
+	err = s.pDao.SaveTotalBlocksCount(count)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

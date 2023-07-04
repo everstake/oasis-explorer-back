@@ -94,7 +94,6 @@ func buildTwitterUrl(acc string) string {
 }
 
 func validatorUpdate(pubKey signature.PublicKey, validatorsMap map[string]dmodels.PublicValidator, metadata *registry.EntityMetadata) (validator dmodels.PublicValidator, err error) {
-
 	validator, err = getAccount(pubKey, validatorsMap)
 	if err != nil {
 		return validator, err

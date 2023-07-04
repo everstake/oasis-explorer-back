@@ -24,7 +24,12 @@ func (s *ServiceFacade) GetBlockList(params smodels.BlockParams) ([]smodels.Bloc
 	}
 
 	if !ok {
-		count, err := s.dao.BlocksCount(params)
+		//count, err := s.dao.BlocksCount(params)
+		//if err != nil {
+		//	return nil, 0, err
+		//}
+
+		bi, err := s.pDao.GetBlocksInfo()
 		if err != nil {
 			return nil, 0, err
 		}
@@ -37,7 +42,7 @@ func (s *ServiceFacade) GetBlockList(params smodels.BlockParams) ([]smodels.Bloc
 		rendered := render.Blocks(blocks)
 		info := blocksRespStr{
 			arr:     rendered,
-			counter: count,
+			counter: bi.TotalBlocks,
 		}
 
 		err = s.apiCache.Save(fmt.Sprintf("%s?limit=%d&offset=%d&from=%d&to=%d&proposer=%v&id=%v&lvl=%v",
@@ -47,7 +52,7 @@ func (s *ServiceFacade) GetBlockList(params smodels.BlockParams) ([]smodels.Bloc
 			return nil, 0, err
 		}
 
-		return rendered, count, nil
+		return rendered, bi.TotalBlocks, nil
 	} else {
 		info := raw.(blocksRespStr)
 		return info.arr, info.counter, err
