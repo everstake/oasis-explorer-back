@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"fmt"
 	"github.com/jinzhu/gorm"
 	"oasisTracker/common/helpers"
 	"oasisTracker/dmodels"
@@ -18,7 +17,6 @@ type BlocksOffset struct {
 func (d *Postgres) MigrateValidatorsInfo(validators []dmodels.ValidatorView) error {
 	vi := new(dmodels.ValidatorInfo)
 	vdi := new(dmodels.ValidatorDayInfo)
-	fmt.Println(11)
 
 	err := d.db.Transaction(func(tx *gorm.DB) error {
 		for i := range validators {
@@ -49,10 +47,6 @@ func (d *Postgres) MigrateValidatorsInfo(validators []dmodels.ValidatorView) err
 				} else {
 					return err
 				}
-			}
-
-			if validators[i].ConsensusAddress == "C22A7F7EF81FEC16C13A8F1DB54115E5BE8F6160" {
-				fmt.Println(i)
 			}
 
 			if err := tx.Table(dmodels.ValidatorsPostgresTable).

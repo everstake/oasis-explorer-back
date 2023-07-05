@@ -117,6 +117,7 @@ func (s *ServiceFacade) CheckDelay() error {
 }
 
 func (s *ServiceFacade) MigrateValidators() error {
+	log.Info("MigrateValidators start")
 	count, err := s.dao.GetValidatorsCount(smodels.ValidatorParams{})
 	if err != nil {
 		return fmt.Errorf("dao.GetValidatorsCount: %v", err)
@@ -141,11 +142,14 @@ func (s *ServiceFacade) MigrateValidators() error {
 		i += 200
 		time.Sleep(time.Second)
 	}
+	log.Info("MigrateValidators done")
 
 	return nil
 }
 
 func (s *ServiceFacade) MigrateBlocks() error {
+	log.Info("MigrateBlocks start")
+
 	offset, err := s.pDao.GetBlocksMigrationOffset()
 	if err != nil {
 		return fmt.Errorf("pDao.GetBlocksMigrationOffset: %v", err)
@@ -189,6 +193,7 @@ func (s *ServiceFacade) MigrateBlocks() error {
 			return fmt.Errorf("pDao.UpdateBlocksMigrationOffset: %v", err)
 		}
 	}
+	log.Info("MigrateBlocks start")
 
 	return nil
 }
