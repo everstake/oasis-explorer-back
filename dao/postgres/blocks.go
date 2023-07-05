@@ -16,39 +16,41 @@ func (d *Postgres) SaveBlocks(blocks []dmodels.Block) error {
 		vs := new(dmodels.ValidatorInfo)
 		vds := new(dmodels.ValidatorDayInfo)
 
-		if err := tx.Select("*").
-			Table(dmodels.BlocksPostgresTable).
-			Order("id desc").
-			Limit(1).
-			Scan(&b).Error; err != nil {
-			if gorm.IsRecordNotFoundError(err) {
-				b.ID = 1
-				b.TotalBlocks = 0
-				b.LastLvl = 0
-				b.Epoch = 0
-				if err = tx.Table(dmodels.BlocksPostgresTable).
-					Create(b).Error; err != nil {
+		if len(blocks) > 0 {
+			if err := tx.Select("*").
+				Table(dmodels.BlocksPostgresTable).
+				Order("id desc").
+				Limit(1).
+				Scan(&b).Error; err != nil {
+				if gorm.IsRecordNotFoundError(err) {
+					b.ID = 1
+					b.TotalBlocks = 0
+					b.LastLvl = 0
+					b.Epoch = 0
+					if err = tx.Table(dmodels.BlocksPostgresTable).
+						Create(b).Error; err != nil {
+						return err
+					}
+				} else {
 					return err
 				}
-			} else {
+			}
+
+			bInfo := map[string]interface{}{
+				"total_count": gorm.Expr(fmt.Sprintf("total_count + %d", len(blocks))),
+			}
+
+			if b.LastLvl < blocks[len(blocks)-1].Height {
+				bInfo["last_lvl"] = blocks[len(blocks)-1].Height
+				bInfo["epoch"] = blocks[len(blocks)-1].Epoch
+			}
+
+			if err := tx.Table(dmodels.BlocksPostgresTable).
+				Where("id = ?", b.ID).
+				Updates(bInfo).
+				Error; err != nil {
 				return err
 			}
-		}
-
-		bInfo := map[string]interface{}{
-			"total_count": gorm.Expr(fmt.Sprintf("total_count + %d", len(blocks))),
-		}
-
-		if b.LastLvl < blocks[len(blocks)-1].Height {
-			bInfo["last_lvl"] = blocks[len(blocks)-1].Height
-			bInfo["epoch"] = blocks[len(blocks)-1].Epoch
-		}
-
-		if err := tx.Table(dmodels.BlocksPostgresTable).
-			Where("id = ?", b.ID).
-			Updates(bInfo).
-			Error; err != nil {
-			return err
 		}
 
 		for i := range blocks {

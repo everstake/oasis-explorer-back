@@ -74,23 +74,23 @@ func (s *ServiceFacade) AddToCron(cron *gron.Cron, cfg conf.Config, dao *dao.Dao
 	}
 
 	// todo delete some func
-	err = s.MigrateBlocks()
-	if err != nil {
-		log.Error("MigrateBlocks failed:", zap.Error(err))
-		return
-	}
-
-	err = s.MigrateValidators()
-	if err != nil {
-		log.Error("MigrateValidators failed:", zap.Error(err))
-		return
-	}
-
-	err = s.SyncBlocksStats()
-	if err != nil {
-		log.Error("SyncBlocksStats failed:", zap.Error(err))
-		return
-	}
+	//err = s.MigrateBlocks()
+	//if err != nil {
+	//	log.Error("MigrateBlocks failed:", zap.Error(err))
+	//	return
+	//}
+	//
+	//err = s.MigrateValidators()
+	//if err != nil {
+	//	log.Error("MigrateValidators failed:", zap.Error(err))
+	//	return
+	//}
+	//
+	//err = s.SyncBlocksStats()
+	//if err != nil {
+	//	log.Error("SyncBlocksStats failed:", zap.Error(err))
+	//	return
+	//}
 }
 
 func (s *ServiceFacade) CheckDelay() error {
@@ -160,8 +160,10 @@ func (s *ServiceFacade) MigrateBlocks() error {
 		return fmt.Errorf("dao.BlocksCount: %v", err)
 	}
 
+	log.Info(fmt.Sprintf("blocks count: %d", bCount))
 	limit := uint64(10000)
 	for i := offset; i < bCount; {
+		log.Info(fmt.Sprintf("offset = %d", i))
 		blocks, err := s.dao.GetBlocksList(smodels.BlockParams{
 			CommonParams: smodels.CommonParams{
 				Limit:  limit,
@@ -188,12 +190,13 @@ func (s *ServiceFacade) MigrateBlocks() error {
 			i += limit
 		}
 
+		log.Info(fmt.Sprintf("save offset: %d", i))
 		err = s.pDao.UpdateBlocksMigrationOffset(i)
 		if err != nil {
 			return fmt.Errorf("pDao.UpdateBlocksMigrationOffset: %v", err)
 		}
 	}
-	log.Info("MigrateBlocks start")
+	log.Info("MigrateBlocks end")
 
 	return nil
 }

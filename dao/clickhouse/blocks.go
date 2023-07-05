@@ -44,7 +44,7 @@ func (cl Clickhouse) CreateBlocks(blocks []dmodels.Block) (err error) {
 		if blocks[i].CreatedAt.IsZero() {
 			return fmt.Errorf("timestamp can not be 0")
 		}
-		log.Printf("Inserting block %v from epoch %v", blocks[i].Height, blocks[i].Epoch)
+		//log.Printf("Inserting block %v from epoch %v", blocks[i].Height, blocks[i].Epoch)
 		_, err = stmt.Exec(
 			blocks[i].Height,
 			blocks[i].CreatedAt,
