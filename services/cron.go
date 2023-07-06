@@ -150,11 +150,6 @@ func (s *ServiceFacade) MigrateValidators() error {
 func (s *ServiceFacade) MigrateBlocks() error {
 	log.Info("MigrateBlocks start")
 
-	offset, err := s.pDao.GetBlocksMigrationOffset()
-	if err != nil {
-		return fmt.Errorf("pDao.GetBlocksMigrationOffset: %v", err)
-	}
-
 	bCount, err := s.dao.BlocksCount(smodels.BlockParams{})
 	if err != nil {
 		return fmt.Errorf("dao.BlocksCount: %v", err)
@@ -162,18 +157,30 @@ func (s *ServiceFacade) MigrateBlocks() error {
 
 	log.Info(fmt.Sprintf("blocks count: %d", bCount))
 	limit := uint64(10000)
-	for i := offset; i < bCount; {
-		log.Info(fmt.Sprintf("offset = %d", i))
+	for {
+		offset, err := s.pDao.GetBlocksMigrationOffset()
+		if err != nil {
+			return fmt.Errorf("pDao.GetBlocksMigrationOffset: %v", err)
+		}
+
+		if offset >= bCount {
+			break
+		}
+
+		log.Info(fmt.Sprintf("offset = %d", offset))
 		blocks, err := s.dao.GetBlocksList(smodels.BlockParams{
 			CommonParams: smodels.CommonParams{
 				Limit:  limit,
-				Offset: i,
+				Offset: offset,
 			},
 		})
 		if err != nil {
 			return fmt.Errorf("dao.GetBlocksList: %v", err)
 		}
 
+		if len(blocks) > 1 {
+			log.Info(fmt.Sprintf("inserting from %d to %d", blocks[0].Height, blocks[len(blocks)-1].Height))
+		}
 		err = s.D.CreateBlocks(blocks)
 		if err != nil {
 			return fmt.Errorf("D.CreateBlocks: %v", err)
@@ -184,14 +191,10 @@ func (s *ServiceFacade) MigrateBlocks() error {
 			return fmt.Errorf("D.SaveBlocks: %v", err)
 		}
 
-		if len(blocks) < int(limit) {
-			i += uint64(len(blocks))
-		} else {
-			i += limit
-		}
+		offset += uint64(len(blocks))
 
-		log.Info(fmt.Sprintf("save offset: %d", i))
-		err = s.pDao.UpdateBlocksMigrationOffset(i)
+		log.Info(fmt.Sprintf("save offset: %d", offset))
+		err = s.pDao.UpdateBlocksMigrationOffset(offset)
 		if err != nil {
 			return fmt.Errorf("pDao.UpdateBlocksMigrationOffset: %v", err)
 		}

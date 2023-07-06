@@ -10,8 +10,8 @@ import (
 const BlocksOffsetPostgresTable = "blocks_progress"
 
 type BlocksOffset struct {
-	ID     uint64 `db:"id"`
-	Offset uint64 `db:"current_offset"`
+	ID     uint64 `gorm:"column:id"`
+	Offset uint64 `gorm:"column:current_offset"`
 }
 
 func (d *Postgres) MigrateValidatorsInfo(validators []dmodels.ValidatorView) error {
@@ -128,21 +128,13 @@ func (d *Postgres) UpdateBlocksMigrationOffset(offset uint64) error {
 }
 
 func (d *Postgres) GetBlocksMigrationOffset() (uint64, error) {
-	var s struct {
-		Offset uint64 `db:"current_offset"`
-	}
-	err := d.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Table(BlocksOffsetPostgresTable).
-			Select("current_offset").
-			Where("id = ?", 1).
-			First(&s).
-			Error; err != nil {
-			return err
-		}
+	s := new(BlocksOffset)
 
-		return nil
-	})
-	if err != nil {
+	if err := d.db.Table(BlocksOffsetPostgresTable).
+		Where("id = 1").
+		Select("*").
+		First(&s).
+		Error; err != nil {
 		return 0, err
 	}
 
