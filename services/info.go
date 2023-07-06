@@ -18,7 +18,11 @@ func (s *ServiceFacade) GetInfo() (info smodels.Info, err error) {
 	}
 
 	if !ok {
-		block, err := s.dao.GetLastBlock()
+		//block, err := s.dao.GetLastBlock()
+		//if err != nil {
+		//	return info, err
+		//}
+		bi, err := s.pDao.GetBlocksInfo()
 		if err != nil {
 			return info, err
 		}
@@ -38,7 +42,7 @@ func (s *ServiceFacade) GetInfo() (info smodels.Info, err error) {
 		}
 
 		info = smodels.Info{
-			Height:      block.Height,
+			Height:      bi.LastLvl,
 			TopEscrow:   ratio.(float64),
 			Price:       marketInfo.GetPrice(),
 			PriceChange: marketInfo.GetPriceChange(),
