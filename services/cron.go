@@ -25,7 +25,7 @@ func (s *ServiceFacade) AddToCron(cron *gron.Cron, cfg conf.Config, dao *dao.Dao
 		dur := time.Duration(cfg.Cron.ParseValidatorsRegisterInterval) * time.Minute
 		log.Info("Scheduling counter saver every", zap.Duration("dur", dur))
 		cron.AddFunc(gron.Every(dur), func() {
-			log.Info("Start")
+			log.Info("Start ParseValidatorsRegisterInterval")
 			credentials := google.NewDefaultCredentials().TransportCredentials()
 			grpcConn, err := grpc.Dial(cfg.Scanner.NodeConfig, grpcCommon.WithTransportCredentials(credentials))
 			if err != nil {
@@ -41,22 +41,23 @@ func (s *ServiceFacade) AddToCron(cron *gron.Cron, cfg conf.Config, dao *dao.Dao
 				return
 			}
 
+			log.Info("End ParseValidatorsRegisterInterval")
 		})
 	} else {
 		log.Info("no scheduling counter due to missing ParseValidatorRegisterInterval in config")
 	}
 
-	//dur := time.Minute * 10
-	//log.Info("Scheduling delay checker every", zap.Duration("dur", dur))
-	//cron.AddFunc(gron.Every(dur), func() {
-	//	log.Info("Start")
-	//	err := s.CheckDelay()
-	//	if err != nil {
-	//		log.Error("delay checker failed:", zap.Error(err))
-	//		return
-	//	}
-	//
-	//})
+	dur := time.Minute * 10
+	log.Info("Scheduling delay checker every", zap.Duration("dur", dur))
+	cron.AddFunc(gron.Every(dur), func() {
+		log.Info("Start")
+		err := s.CheckDelay()
+		if err != nil {
+			log.Error("delay checker failed:", zap.Error(err))
+			return
+		}
+
+	})
 
 	credentials := google.NewDefaultCredentials().TransportCredentials()
 	grpcConn, err := grpc.Dial(cfg.Scanner.NodeConfig, grpcCommon.WithTransportCredentials(credentials))
@@ -74,17 +75,17 @@ func (s *ServiceFacade) AddToCron(cron *gron.Cron, cfg conf.Config, dao *dao.Dao
 	}
 
 	// todo delete some func
-	err = s.MigrateBlocks()
-	if err != nil {
-		log.Error("MigrateBlocks failed:", zap.Error(err))
-		return
-	}
-
-	err = s.MigrateValidators()
-	if err != nil {
-		log.Error("MigrateValidators failed:", zap.Error(err))
-		return
-	}
+	//err = s.MigrateBlocks()
+	//if err != nil {
+	//	log.Error("MigrateBlocks failed:", zap.Error(err))
+	//	return
+	//}
+	//
+	//err = s.MigrateValidators()
+	//if err != nil {
+	//	log.Error("MigrateValidators failed:", zap.Error(err))
+	//	return
+	//}
 
 	err = s.SyncBlocksStats()
 	if err != nil {
@@ -180,23 +181,26 @@ func (s *ServiceFacade) MigrateBlocks() error {
 
 		if len(blocks) > 1 {
 			log.Info(fmt.Sprintf("inserting from %d to %d", blocks[0].Height, blocks[len(blocks)-1].Height))
-		}
-		err = s.D.CreateBlocks(blocks)
-		if err != nil {
-			return fmt.Errorf("D.CreateBlocks: %v", err)
-		}
 
-		err = s.D.SaveBlocks(blocks)
-		if err != nil {
-			return fmt.Errorf("D.SaveBlocks: %v", err)
-		}
+			err = s.D.CreateBlocks(blocks)
+			if err != nil {
+				return fmt.Errorf("D.CreateBlocks: %v", err)
+			}
 
-		offset += uint64(len(blocks))
+			err = s.D.SaveBlocks(blocks)
+			if err != nil {
+				return fmt.Errorf("D.SaveBlocks: %v", err)
+			}
 
-		log.Info(fmt.Sprintf("save offset: %d", offset))
-		err = s.pDao.UpdateBlocksMigrationOffset(offset)
-		if err != nil {
-			return fmt.Errorf("pDao.UpdateBlocksMigrationOffset: %v", err)
+			offset += uint64(len(blocks))
+
+			log.Info(fmt.Sprintf("save offset: %d", offset))
+			err = s.pDao.UpdateBlocksMigrationOffset(offset)
+			if err != nil {
+				return fmt.Errorf("pDao.UpdateBlocksMigrationOffset: %v", err)
+			}
+		} else {
+			log.Info(fmt.Sprintf("Len blocks: %d", len(blocks)))
 		}
 	}
 	log.Info("MigrateBlocks end")
