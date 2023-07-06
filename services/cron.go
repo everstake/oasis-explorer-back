@@ -74,23 +74,23 @@ func (s *ServiceFacade) AddToCron(cron *gron.Cron, cfg conf.Config, dao *dao.Dao
 	}
 
 	// todo delete some func
-	err = s.MigrateBlocks()
-	if err != nil {
-		log.Error("MigrateBlocks failed:", zap.Error(err))
-		return
-	}
-
-	err = s.MigrateValidators()
-	if err != nil {
-		log.Error("MigrateValidators failed:", zap.Error(err))
-		return
-	}
-
-	err = s.SyncBlocksStats()
-	if err != nil {
-		log.Error("SyncBlocksStats failed:", zap.Error(err))
-		return
-	}
+	//err = s.MigrateBlocks()
+	//if err != nil {
+	//	log.Error("MigrateBlocks failed:", zap.Error(err))
+	//	return
+	//}
+	//
+	//err = s.MigrateValidators()
+	//if err != nil {
+	//	log.Error("MigrateValidators failed:", zap.Error(err))
+	//	return
+	//}
+	//
+	//err = s.SyncBlocksStats()
+	//if err != nil {
+	//	log.Error("SyncBlocksStats failed:", zap.Error(err))
+	//	return
+	//}
 }
 
 func (s *ServiceFacade) CheckDelay() error {
