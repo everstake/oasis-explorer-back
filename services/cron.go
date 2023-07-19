@@ -47,17 +47,16 @@ func (s *ServiceFacade) AddToCron(cron *gron.Cron, cfg conf.Config, dao *dao.Dao
 		log.Info("no scheduling counter due to missing ParseValidatorRegisterInterval in config")
 	}
 
-	dur := time.Minute * 10
-	log.Info("Scheduling delay checker every", zap.Duration("dur", dur))
-	cron.AddFunc(gron.Every(dur), func() {
-		log.Info("Start")
-		err := s.CheckDelay()
-		if err != nil {
-			log.Error("delay checker failed:", zap.Error(err))
-			return
-		}
-
-	})
+	//dur := time.Minute * 10
+	//log.Info("Scheduling delay checker every", zap.Duration("dur", dur))
+	//cron.AddFunc(gron.Every(dur), func() {
+	//	log.Info("Start")
+	//	err := s.CheckDelay()
+	//	if err != nil {
+	//		log.Error("delay checker failed:", zap.Error(err))
+	//		return
+	//	}
+	//})
 
 	credentials := google.NewDefaultCredentials().TransportCredentials()
 	grpcConn, err := grpc.Dial(cfg.Scanner.NodeConfig, grpcCommon.WithTransportCredentials(credentials))
@@ -75,17 +74,17 @@ func (s *ServiceFacade) AddToCron(cron *gron.Cron, cfg conf.Config, dao *dao.Dao
 	}
 
 	// todo delete some func
-	//err = s.MigrateBlocks()
-	//if err != nil {
-	//	log.Error("MigrateBlocks failed:", zap.Error(err))
-	//	return
-	//}
-	//
-	//err = s.MigrateValidators()
-	//if err != nil {
-	//	log.Error("MigrateValidators failed:", zap.Error(err))
-	//	return
-	//}
+	err = s.MigrateBlocks()
+	if err != nil {
+		log.Error("MigrateBlocks failed:", zap.Error(err))
+		return
+	}
+
+	err = s.MigrateValidators()
+	if err != nil {
+		log.Error("MigrateValidators failed:", zap.Error(err))
+		return
+	}
 
 	err = s.SyncBlocksStats()
 	if err != nil {

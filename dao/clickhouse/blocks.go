@@ -254,7 +254,7 @@ func (cl Clickhouse) GetLastBlock() (block dmodels.Block, err error) {
 func (cl Clickhouse) BlocksCount(params smodels.BlockParams) (count uint64, err error) {
 	//todo switch table to new
 	q := sq.Select("count()").
-		From(dmodels.BlocksNewTable)
+		From(dmodels.BlocksOldTable)
 
 	q = getBlocksQueryParam(q, params)
 
