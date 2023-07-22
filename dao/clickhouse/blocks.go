@@ -199,9 +199,9 @@ func (cl Clickhouse) GetBlocksListNew(params smodels.BlockParams) ([]dmodels.Blo
 			&row.ValidatorHash,
 			&row.Epoch,
 			&row.NumberOfTxs,
-			&row.GasUsed,
+			&row.NumberOfSignatures,
 			&row.Fees,
-			&row.NumberOfSignatures)
+			&row.GasUsed)
 		if err != nil {
 			return resp, err
 		}
