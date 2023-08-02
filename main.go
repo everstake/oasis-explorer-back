@@ -10,7 +10,6 @@ import (
 	"oasisTracker/conf"
 	"oasisTracker/dao"
 	"oasisTracker/services"
-	"oasisTracker/services/scanners"
 	"os"
 	"os/signal"
 	"syscall"
@@ -62,13 +61,14 @@ func main() {
 	s.AddToCron(cron, cfg, d)
 
 	if !*parserDisableFlag {
-		sm := scanners.NewManager(cfg, d)
+		//sm := scanners.NewManager(cfg, d)
+		//
+		//wt, err := scanners.NewWatcher(cfg, d)
+		//if err != nil {
+		//	log.Fatal("Watcher.New", zap.Error(err))
+		//}
 
-		wt, err := scanners.NewWatcher(cfg, d)
-		if err != nil {
-			log.Fatal("Watcher.New", zap.Error(err))
-		}
-		s.Modules = append(s.Modules, sm, wt)
+		s.Modules = append(s.Modules /*, sm, wt*/)
 	}
 
 	cron.Start()

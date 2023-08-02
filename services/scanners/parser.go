@@ -139,10 +139,10 @@ func (p *Parser) Save() (err error) {
 			return fmt.Errorf("dao.CreateBlockSignatures: %s", err.Error())
 		}
 
-		err = p.pDao.SaveSignatures(p.container.blockSignatures.Signatures())
-		if err != nil {
-			return fmt.Errorf("pDao.SaveSignatures: %s", err.Error())
-		}
+		//err = p.pDao.SaveSignatures(p.container.blockSignatures.Signatures())
+		//if err != nil {
+		//	return fmt.Errorf("pDao.SaveSignatures: %s", err.Error())
+		//}
 		log.Print("Save time Signatures: ", time.Since(tm))
 	}
 
