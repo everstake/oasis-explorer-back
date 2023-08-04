@@ -13,7 +13,7 @@ import (
 const getValidatorListEP = "/data/validators"
 
 func (s *ServiceFacade) GetValidatorInfo(accountID string) (val smodels.Validator, err error) {
-	validators, _, err := s.GetValidatorListNew(smodels.ValidatorParams{
+	validators, _, err := s.GetValidatorList(smodels.ValidatorParams{
 		CommonParams: smodels.CommonParams{Limit: 1},
 		ValidatorID:  accountID,
 	})
