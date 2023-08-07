@@ -68,15 +68,14 @@ func (s *ServiceFacade) GetValidatorList(listParams smodels.ValidatorParams) ([]
 			return nil, 0, err
 		}
 
-		blocksInfo, err := s.pDao.GetBlocksDayInfo()
+		blocksDayInfo, err := s.pDao.GetBlocksDayInfo()
+		if err != nil {
+			return nil, 0, err
+		}
 
 		for i := range resp {
-			if float64(resp[i].DayBlocksCount) == 0 {
-				resp[i].DayUptime = float64(0)
-			} else {
-				resp[i].DayUptime = float64(resp[i].DaySignedBlocks) / float64(blocksInfo.TotalDayBlocks)
-			}
-			resp[i].TotalUptime = float64(resp[i].SignedBlocksCount) / float64(resp[i].LastBlockLevel-s.genesisHeight-1)
+			resp[i].DayUptime = float64(resp[i].DaySignedBlocks) / float64(blocksDayInfo.TotalDayBlocks)
+			resp[i].TotalUptime = float64(resp[i].SignedBlocksCount) / float64(lastBlock.Height-s.genesisHeight-1)
 			resp[i].CurrentEpoch = lastBlock.Epoch
 
 			if !resp[i].IsActive {
