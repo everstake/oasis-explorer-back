@@ -58,7 +58,31 @@ func (cl Clickhouse) GetValidatorsList(params smodels.ValidatorParams) (resp []d
 	row := dmodels.ValidatorView{}
 	for rows.Next() {
 
-		err = rows.Scan(&row.EntityID, &row.ConsensusAddress, &row.NodeAddress, &row.ValidateSince, &row.StartBlockLevel, &row.ProposedBlocksCount, &row.SignaturesCount, &row.SignedBlocksCount, &row.LastBlockTime, &row.LastBlockLevel, &row.DaySignaturesCount, &row.DaySignedBlocks, &row.DayBlocksCount, &row.EscrowBalance, &row.GeneralBalance, &row.EscrowBalanceShare, &row.DebondingBalance, &row.DelegationsBalance, &row.DebondingDelegationsBalance, &row.SelfDelegationBalance, &row.CommissionSchedule, &row.DepositorsNum, &row.IsActive, &row.Name, &row.Info)
+		err = rows.Scan(&row.EntityID,
+			&row.ConsensusAddress,
+			&row.NodeAddress,
+			&row.ValidateSince,
+			&row.StartBlockLevel,
+			&row.ProposedBlocksCount,
+			&row.SignaturesCount,
+			&row.SignedBlocksCount,
+			&row.LastBlockTime,
+			&row.LastBlockLevel,
+			&row.DaySignaturesCount,
+			&row.DaySignedBlocks,
+			&row.DayBlocksCount,
+			&row.EscrowBalance,
+			&row.GeneralBalance,
+			&row.EscrowBalanceShare,
+			&row.DebondingBalance,
+			&row.DelegationsBalance,
+			&row.DebondingDelegationsBalance,
+			&row.SelfDelegationBalance,
+			&row.CommissionSchedule,
+			&row.DepositorsNum,
+			&row.IsActive,
+			&row.Name,
+			&row.Info)
 		if err != nil {
 			return resp, err
 		}
